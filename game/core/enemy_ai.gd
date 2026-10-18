@@ -33,11 +33,15 @@ static func _make(actor: Combatant, ability: AbilityDef, center: Combatant) -> P
 
 static func _condition_holds(rule: AiRule, actor: Combatant, b: BattleState) -> bool:
 	if rule.condition == AiRule.Condition.ALLY_HP_BELOW:
-		for c: Combatant in b.living(b.allies_of(actor)):
-			if float(c.hp) < rule.threshold * float(StatCalculator.hp_max(c, b.cfg)):
-				return true
-		return false
+		return not _below(b.living(b.allies_of(actor)), rule.threshold, b).is_empty()
 	return true
+
+static func _below(arr: Array[Combatant], threshold: float, b: BattleState) -> Array[Combatant]:
+	var out: Array[Combatant] = []
+	for c: Combatant in arr:
+		if float(c.hp) < threshold * float(StatCalculator.hp_max(c, b.cfg)):
+			out.append(c)
+	return out
 
 static func _pick_center(rule: AiRule, actor: Combatant, b: BattleState) -> Combatant:
 	var a: AbilityDef = rule.ability
@@ -49,7 +53,22 @@ static func _pick_center(rule: AiRule, actor: Combatant, b: BattleState) -> Comb
 			return actor if cands.has(actor) else null
 		AiRule.TargetPick.RANDOM_ENEMY:
 			return cands[b.dice.pick_index(cands.size())]
+	if rule.condition == AiRule.Condition.ALLY_HP_BELOW:
+		# [P-plano] 19: o alvo é um aliado abaixo do limiar, o de menor fração de HP.
+		return _lowest_hp_ratio(_below(cands, rule.threshold, b), b)
 	return _lowest_hp(cands)
+
+## Menor HP/HP máx.; empate: o primeiro. Nulo se vazio.
+static func _lowest_hp_ratio(arr: Array[Combatant], b: BattleState) -> Combatant:
+	var best: Combatant = null
+	var best_ratio: float = INF
+	for c: Combatant in arr:
+		var m: int = StatCalculator.hp_max(c, b.cfg)
+		var ratio: float = float(c.hp) / float(m) if m > 0 else 0.0
+		if best == null or ratio < best_ratio:
+			best = c
+			best_ratio = ratio
+	return best
 
 ## Menor HP; empate: o primeiro.
 static func _lowest_hp(arr: Array[Combatant]) -> Combatant:

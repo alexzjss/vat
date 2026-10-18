@@ -39,6 +39,9 @@ func tick(delta: float) -> void:
 			_start_next()
 
 func submit(a: PendingAction) -> void:
+	if a == null or executing != null or session == null:
+		push_error("submit invalido: acao nula, ja executando ou sem sessao de heroi")
+		return
 	session = null
 	_begin(a)
 

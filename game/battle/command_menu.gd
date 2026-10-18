@@ -34,6 +34,10 @@ var mode: Mode = Mode.CLOSED
 var cursor: int = 0
 var target_index: int = 0
 
+## Nível do menu (ROOT/ABILITIES/ITEMS) e cursor de onde o comando atual foi escolhido;
+## Cancelar na etapa de alvo (ou "Sem alvos válidos") volta para lá (spec §4.4: um nível).
+var _origin_mode: Mode = Mode.ROOT
+var _origin_cursor: int = 0
 var _entries: Array[Entry] = []
 var _candidates: Array[Combatant] = []
 var _title: Label
@@ -94,6 +98,9 @@ func entry_labels() -> PackedStringArray:
 func entry_enabled(i: int) -> bool:
 	return i >= 0 and i < _entries.size() and _entries[i].enabled
 
+func header_text() -> String:
+	return _header.text
+
 func current_target() -> Combatant:
 	if mode != Mode.TARGET or _candidates.is_empty():
 		return null
@@ -141,13 +148,15 @@ func cancel() -> void:
 	match mode:
 		Mode.TARGET:
 			session.back()
-			_show_root(0)
+			_return_to_origin()
 		Mode.ABILITIES:
 			_show_root(1)
 		Mode.ITEMS:
 			_show_root(2)
 
 func _pick(e: Entry) -> void:
+	_origin_mode = mode
+	_origin_cursor = cursor
 	match e.kind:
 		Kind.ATTACK:
 			if session.choose_ability(session.actor.basic_attack):
@@ -181,17 +190,17 @@ func _has_items() -> bool:
 			return true
 	return false
 
-func _show_abilities() -> void:
+func _show_abilities(at: int = 0) -> void:
 	mode = Mode.ABILITIES
 	_entries = []
 	for ab: AbilityDef in session.actor.abilities:
 		var e := Entry.new("%s — %d AP" % [ab.display_name, ab.ap_cost], session.can_use(ab), Kind.ABILITY)
 		e.ability = ab
 		_entries.append(e)
-	cursor = 0
+	cursor = at
 	_render()
 
-func _show_items() -> void:
+func _show_items(at: int = 0) -> void:
 	mode = Mode.ITEMS
 	_entries = []
 	for it: ItemDef in session.b.inventory.listing():
@@ -199,19 +208,27 @@ func _show_items() -> void:
 		var e := Entry.new("%s x%d" % [it.display_name, n], n > 0, Kind.ITEM)
 		e.item = it
 		_entries.append(e)
-	cursor = 0
+	cursor = at
 	_render()
+
+## Reabre o nível de onde o comando foi escolhido, com o mesmo cursor.
+func _return_to_origin() -> void:
+	if preview != null:
+		preview.hide_preview()
+	match _origin_mode:
+		Mode.ABILITIES:
+			_show_abilities(_origin_cursor)
+		Mode.ITEMS:
+			_show_items(_origin_cursor)
+		_:
+			_show_root(_origin_cursor)
 
 func _enter_target() -> void:
 	_candidates = session.target_candidates()
 	if _candidates.is_empty():
-		# Sem alvo válido (ex.: Reviver sem ninguém caído): desfaz e fica no submenu.
-		var back_to: Mode = mode
+		# Sem alvo válido (ex.: Reviver sem ninguém caído): desfaz (devolve AP/reserva) e fica no nível de origem.
 		session.back()
-		if back_to == Mode.ITEMS:
-			_show_items()
-		else:
-			_show_abilities()
+		_return_to_origin()
 		_header.text = "Sem alvos válidos"
 		return
 	mode = Mode.TARGET

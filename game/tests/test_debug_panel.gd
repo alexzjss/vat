@@ -46,6 +46,7 @@ func test_text_shows_executing_elapsed_and_cast() -> void:
 	a.actor = ctrl.b.heroes[0]
 	a.ability = Fixtures.hit(1.0)
 	a.center = ctrl.b.enemies[0]
+	ctrl.session = SelectionSession.new(a.actor, ctrl.b)
 	ctrl.submit(a)
 	ctrl.tick(0.25)
 	var p: DebugPanel = _panel()

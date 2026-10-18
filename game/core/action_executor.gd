@@ -67,6 +67,9 @@ static func _apply_effect(e: EffectDef, actor: Combatant, t: Combatant, b: Battl
 			_credit_heal(actor, t, t.hp, b, enemies_alive)
 			_hit(r, t, e.kind, t.hp, false, -1)
 		EffectDef.Kind.RESTORE_AP:
+			# Sem contribuição ([P-plano] 16): Éter não gera XP.
+			if t.is_down():
+				return
 			var before: int = t.ap
 			t.ap = mini(StatCalculator.ap_max(t, b.cfg), t.ap + int(floor(e.potency)))
 			_hit(r, t, e.kind, maxi(0, t.ap - before), false, -1)

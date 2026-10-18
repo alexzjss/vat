@@ -267,3 +267,68 @@ func test_impact_and_finish_in_same_tick() -> void:
 	assert_eq(_log, ["started:x", "impact:x", "finished:x"])
 	assert_eq(x.atb, 0.0)
 	assert_null(ctrl.executing)
+
+func test_submit_null_errors_and_does_nothing() -> void:
+	var ctrl := _battle([10], [0])
+	ctrl.b.heroes[0].atb = 0.999
+	ctrl.tick(0.05)
+	assert_not_null(ctrl.session)
+	ctrl.submit(null)
+	assert_push_error("submit")
+	assert_null(ctrl.executing)
+	assert_not_null(ctrl.session, "sessão continua aberta")
+	assert_signal_emit_count(ctrl, "action_started", 0)
+
+func test_submit_without_session_errors() -> void:
+	var ctrl := _battle([10], [0])
+	var a := PendingAction.new()
+	a.actor = ctrl.b.heroes[0]
+	a.ability = Fixtures.hit(1.0)
+	a.center = ctrl.b.enemies[0]
+	ctrl.submit(a)
+	assert_push_error("submit")
+	assert_null(ctrl.executing)
+	assert_signal_emit_count(ctrl, "action_started", 0)
+
+func test_submit_while_executing_errors() -> void:
+	var ctrl := _battle([10], [0])
+	var b: BattleState = ctrl.b
+	b.heroes[0].atb = 0.999
+	ctrl.tick(0.05)
+	var running := PendingAction.new()
+	running.actor = b.enemies[0]
+	running.ability = Fixtures.hit(1.0)
+	running.center = b.heroes[0]
+	ctrl.executing = running
+	var s: SelectionSession = ctrl.session
+	assert_true(s.choose_ability(s.actor.basic_attack))
+	s.set_center(b.enemies[0])
+	ctrl.submit(s.confirm())
+	assert_push_error("submit")
+	assert_same(ctrl.executing, running, "ação em execução intacta")
+	assert_signal_emit_count(ctrl, "action_started", 0)
+
+func test_fizzle_keeps_ap_spent_resets_atb_and_finishes() -> void:
+	var ctrl := _battle([10], [0, 0])
+	var b: BattleState = ctrl.b
+	var h: Combatant = b.heroes[0]
+	h.atb = 0.999
+	ctrl.tick(0.05)
+	var costly := Fixtures.hit(1.0)
+	costly.ap_cost = 2
+	var ap0: int = h.ap
+	var s: SelectionSession = ctrl.session
+	assert_true(s.choose_ability(costly))
+	s.set_center(b.enemies[0])
+	var results: Array[ActionResult] = []
+	ctrl.action_impact.connect(func(_a: PendingAction, r: ActionResult) -> void: results.append(r))
+	ctrl.submit(s.confirm())
+	for e: Combatant in b.enemies:
+		e.hp = 0
+	ctrl.tick(costly.cast_time)
+	assert_eq(results.size(), 1)
+	assert_true(results[0].fizzled, "sem alvos válidos: falha")
+	assert_eq(h.ap, ap0 - 2, "AP gasto é perdido (spec §4.6)")
+	assert_eq(h.atb, 0.0)
+	assert_null(ctrl.executing)
+	assert_signal_emit_count(ctrl, "action_finished", 1)

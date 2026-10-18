@@ -132,6 +132,9 @@ func test_fight_again_keeps_same_hero_states_and_hp_ap() -> void:
 	_skip_level_ups(s)
 	var r: ResultScreen = _result(s)
 	assert_true(r.visible)
+	assert_eq(r.action_labels(), PackedStringArray(["Descansar e lutar", "Lutar de novo"]))
+	assert_eq(r.action_label(), "Descansar e lutar", "descansar é o padrão")
+	r.move(1)
 	assert_eq(r.action_label(), "Lutar de novo")
 	r.accept()
 	assert_ne(s.ctrl, old_ctrl, "nova batalha")
@@ -282,6 +285,7 @@ func test_defeat_retry_restores_start_snapshot() -> void:
 	assert_true(r.visible)
 	assert_eq(r.mode, ResultScreen.Mode.DEFEAT)
 	assert_string_contains("\n".join(r.lines()), "Derrota")
+	assert_eq(r.action_labels(), PackedStringArray(["Tentar de novo", "Descansar e tentar de novo"]))
 	assert_eq(r.action_label(), "Tentar de novo")
 	assert_eq(hs[0].xp, 15, "derrota não dá XP")
 	assert_false(_level_up(s).visible)
@@ -306,3 +310,101 @@ func test_snapshot_is_deep_copy() -> void:
 	_run_to_end(s)
 	_result(s).accept()
 	assert_eq(hs[0].allocated.strength, 0, "snapshot não compartilha Stats")
+
+func _full_hp(h: HeroState, cfg: BalanceConfig) -> int:
+	return StatCalculator.hp_max(Combatant.from_hero(h, Vector2.ZERO), cfg)
+
+func _full_ap(h: HeroState, cfg: BalanceConfig) -> int:
+	return StatCalculator.ap_max(Combatant.from_hero(h, Vector2.ZERO), cfg)
+
+func test_victory_rest_restores_full_and_revives() -> void:
+	var s: BattleScene = _scene(_weak())
+	var hs: Array[HeroState] = _heroes(s.balance)
+	hs[1].hp = 9
+	hs[1].ap = 0
+	hs[2].hp = 0
+	s.start(hs)
+	_run_to_end(s)
+	assert_eq(s.ctrl.outcome, BattleController.Outcome.VICTORY)
+	assert_eq(hs[2].hp, 0, "caído continua caído antes do descanso")
+	var old_ctrl: BattleController = s.ctrl
+	_skip_level_ups(s)
+	var r: ResultScreen = _result(s)
+	assert_eq(r.action_label(), "Descansar e lutar")
+	r.accept()
+	assert_ne(s.ctrl, old_ctrl, "nova batalha")
+	assert_false(r.visible)
+	for i: int in hs.size():
+		var h: HeroState = hs[i]
+		var c: Combatant = s.ctrl.b.heroes[i]
+		assert_same(c.hero_state, h, "mesmo HeroState")
+		assert_eq(h.hp, _full_hp(h, s.balance), "HP cheio (%s)" % h.def.id)
+		assert_eq(h.ap, _full_ap(h, s.balance), "AP cheio (%s)" % h.def.id)
+		assert_eq(c.hp, h.hp)
+		assert_eq(c.ap, h.ap)
+		assert_false(c.is_down(), "revivido pelo descanso")
+
+func test_victory_rest_uses_allocation_made_on_level_up() -> void:
+	var s: BattleScene = _scene(_weak())
+	var hs: Array[HeroState] = _heroes(s.balance)
+	s.start(hs)
+	_run_to_end(s)
+	_result(s).accept()
+	var lu: LevelUpScreen = _level_up(s)
+	assert_true(lu.visible)
+	var h: HeroState = lu.hero
+	var hp_before: int = _full_hp(h, s.balance)
+	assert_true(lu.increment(&"vitality"))
+	lu.confirm()
+	while _level_up(s).visible:
+		_level_up(s).leave()
+	_result(s).accept()
+	assert_eq(h.hp, _full_hp(h, s.balance))
+	assert_eq(h.hp, hp_before + s.balance.hp_per_vitality, "Vitalidade alocada entra no HP cheio")
+
+func test_defeat_rest_restores_snapshot_then_full() -> void:
+	var s: BattleScene = _scene(_strong())
+	var hs: Array[HeroState] = _heroes(s.balance)
+	hs[0].xp = 15
+	hs[0].level = 2
+	hs[0].pending_points = 1
+	hs[0].allocated = Stats.make(0, 0, 1, 1)
+	hs[0].hp = 20
+	hs[1].ap = 3
+	s.start(hs)
+	_run_to_end(s)
+	assert_eq(s.ctrl.outcome, BattleController.Outcome.DEFEAT)
+	# Mudança após o início: o snapshot deve prevalecer antes do descanso.
+	hs[0].allocated = Stats.make(0, 0, 9, 9)
+	hs[0].level = 5
+	var r: ResultScreen = _result(s)
+	r.move(1)
+	assert_eq(r.action_label(), "Descansar e tentar de novo")
+	var old_ctrl: BattleController = s.ctrl
+	r.accept()
+	assert_ne(s.ctrl, old_ctrl)
+	assert_eq(hs[0].xp, 15)
+	assert_eq(hs[0].level, 2)
+	assert_eq(hs[0].pending_points, 1)
+	assert_eq(hs[0].allocated.vitality, 1)
+	assert_eq(hs[0].allocated.aura, 1)
+	for i: int in hs.size():
+		var h: HeroState = hs[i]
+		assert_eq(h.hp, _full_hp(h, s.balance), "HP cheio (%s)" % h.def.id)
+		assert_eq(h.ap, _full_ap(h, s.balance), "AP cheio (%s)" % h.def.id)
+		assert_eq(s.ctrl.b.heroes[i].hp, h.hp)
+		assert_false(s.ctrl.b.heroes[i].is_down())
+	# Nv 2, Vitalidade base + 1 alocada (não os 9 posteriores).
+	var vit: int = hs[0].def.base.vitality + 1
+	assert_eq(hs[0].hp, vit * s.balance.hp_per_vitality + 2 * s.balance.hp_per_level)
+
+func test_result_actions_wrap_and_reset_on_show() -> void:
+	var s: BattleScene = _scene(_strong())
+	s.start(_heroes(s.balance))
+	_run_to_end(s)
+	var r: ResultScreen = _result(s)
+	r.move(1)
+	r.move(1)
+	assert_eq(r.action_label(), "Tentar de novo", "volta circular")
+	r.move(-1)
+	assert_eq(r.action_label(), "Descansar e tentar de novo")

@@ -2,23 +2,27 @@ class_name ResultScreen
 extends PanelContainer
 
 ## Tela de resultado: Vitória (XP por herói e níveis) ou Derrota.
-## Uma única ação (Enter): "Continuar", "Lutar de novo" ou "Tentar de novo".
-## O teclado chama accept(), que também serve aos testes.
+## Uma ou mais ações (↑/↓ escolhe, Enter confirma; a primeira é o padrão), ex.:
+## "Continuar"; "Descansar e lutar"/"Lutar de novo"; "Tentar de novo"/"Descansar e tentar de novo".
+## O teclado chama move()/accept(), que também servem aos testes.
 
-signal accepted
+signal accepted(index: int)
 
 enum Mode { HIDDEN, VICTORY, DEFEAT }
 
 const TITLE_COLOR: Color = Color(1.0, 0.85, 0.3)
 const DEFEAT_COLOR: Color = Color(0.95, 0.4, 0.4)
 const TEXT_COLOR: Color = Color(1.0, 1.0, 1.0)
+const IDLE_COLOR: Color = Color(0.75, 0.75, 0.8)
 
 var mode: Mode = Mode.HIDDEN
 
 var _title: Label
 var _list: VBoxContainer
-var _action: Label
-var _action_text: String = ""
+var _actions_box: VBoxContainer
+var _actions: PackedStringArray = PackedStringArray()
+## Índice da ação sob o cursor.
+var selected: int = 0
 var _lines: PackedStringArray = PackedStringArray()
 
 func _init() -> void:
@@ -40,11 +44,8 @@ func _init() -> void:
 	box.add_child(_title)
 	_list = VBoxContainer.new()
 	box.add_child(_list)
-	_action = Label.new()
-	_action.add_theme_font_size_override("font_size", 18)
-	_action.add_theme_color_override("font_color", TITLE_COLOR)
-	_action.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	box.add_child(_action)
+	_actions_box = VBoxContainer.new()
+	box.add_child(_actions_box)
 
 ## Vitória: uma linha por herói, "Nome: +N XP (Nv a → b)" ou "(Nv a)" sem subida.
 func show_for(xp: Dictionary[StringName, int], before_levels: Dictionary, heroes: Array[HeroState]) -> void:
@@ -55,20 +56,33 @@ func show_for(xp: Dictionary[StringName, int], before_levels: Dictionary, heroes
 		var gained: int = xp.get(h.def.id, 0)
 		var lv: String = "Nv %d → %d" % [before, h.level] if h.level != before else "Nv %d" % h.level
 		rows.append("%s: +%d XP (%s)" % [h.def.display_name, gained, lv])
-	_present("Vitória!", TITLE_COLOR, rows, "Continuar")
+	_present("Vitória!", TITLE_COLOR, rows, PackedStringArray(["Continuar"]))
 
 func show_defeat() -> void:
 	mode = Mode.DEFEAT
-	_present("Derrota", DEFEAT_COLOR, PackedStringArray(["Todos os heróis caíram."]), "Tentar de novo")
+	_present("Derrota", DEFEAT_COLOR, PackedStringArray(["Todos os heróis caíram."]),
+		PackedStringArray(["Tentar de novo", "Descansar e tentar de novo"]))
 
-## Troca o texto da ação e reexibe a tela (ex.: "Lutar de novo" após as telas de nível).
-func set_action(text: String) -> void:
-	_action_text = text
-	_action.text = "> %s   (Enter)" % text
+## Troca as ações (cursor volta à primeira) e reexibe a tela (ex.: após as telas de nível).
+func set_actions(texts: PackedStringArray) -> void:
+	_actions = texts
+	selected = 0
+	_render_actions()
 	visible = true
 
+func action_labels() -> PackedStringArray:
+	return _actions
+
+## Texto da ação sob o cursor.
 func action_label() -> String:
-	return _action_text
+	return _actions[selected] if selected < _actions.size() else ""
+
+## Move o cursor entre as ações, com volta circular.
+func move(delta: int) -> void:
+	if _actions.is_empty():
+		return
+	selected = posmod(selected + delta, _actions.size())
+	_render_actions()
 
 ## Título seguido das linhas de conteúdo.
 func lines() -> PackedStringArray:
@@ -83,16 +97,22 @@ func close() -> void:
 func accept() -> void:
 	if mode == Mode.HIDDEN or not visible:
 		return
-	accepted.emit()
+	accepted.emit(selected)
 
 func _unhandled_input(event: InputEvent) -> void:
 	if mode == Mode.HIDDEN or not visible:
 		return
-	if event.is_action_pressed("ui_accept"):
-		get_viewport().set_input_as_handled()
+	if event.is_action_pressed("ui_up"):
+		move(-1)
+	elif event.is_action_pressed("ui_down"):
+		move(1)
+	elif event.is_action_pressed("ui_accept"):
 		accept()
+	else:
+		return
+	get_viewport().set_input_as_handled()
 
-func _present(title: String, color: Color, rows: PackedStringArray, action: String) -> void:
+func _present(title: String, color: Color, rows: PackedStringArray, actions: PackedStringArray) -> void:
 	_title.text = title
 	_title.add_theme_color_override("font_color", color)
 	_lines = rows
@@ -105,4 +125,24 @@ func _present(title: String, color: Color, rows: PackedStringArray, action: Stri
 		l.add_theme_font_size_override("font_size", 18)
 		l.add_theme_color_override("font_color", TEXT_COLOR)
 		_list.add_child(l)
-	set_action(action)
+	set_actions(actions)
+
+func _render_actions() -> void:
+	for child: Node in _actions_box.get_children():
+		_actions_box.remove_child(child)
+		child.free()
+	for i: int in _actions.size():
+		var l := Label.new()
+		var on: bool = i == selected
+		l.text = ("> %s" if on else "  %s") % _actions[i]
+		l.add_theme_font_size_override("font_size", 18)
+		l.add_theme_color_override("font_color", TITLE_COLOR if on else IDLE_COLOR)
+		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		_actions_box.add_child(l)
+	if _actions.size() > 1:
+		var hint := Label.new()
+		hint.text = "↑/↓: escolher   Enter: confirmar"
+		hint.add_theme_font_size_override("font_size", 12)
+		hint.add_theme_color_override("font_color", IDLE_COLOR)
+		hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		_actions_box.add_child(hint)

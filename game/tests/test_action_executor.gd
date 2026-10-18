@@ -42,3 +42,52 @@ func test_damage_minimum_is_one() -> void:
 	var hp0 := x.hp
 	ActionExecutor.apply(_act(ab, x), b)
 	assert_eq(x.hp, hp0 - 1)
+
+func _ally_ability(effects: Array[EffectDef]) -> AbilityDef:
+	var ab := AbilityDef.new(); ab.shape = AbilityDef.Shape.SINGLE; ab.side = AbilityDef.Side.ALLIES
+	ab.effects = effects
+	return ab
+
+func _effect(kind: EffectDef.Kind, potency: float) -> EffectDef:
+	var e := EffectDef.new(); e.kind = kind; e.scale = EffectDef.Scale.FIXED; e.potency = potency
+	return e
+
+## Segundo herói caído (Vitalidade 5 -> hp_max 55), com dano recebido de x.
+func _fallen_ally() -> Combatant:
+	var h2 := Combatant.from_hero(HeroState.create(Fixtures.hero_def(&"b", Stats.make(1,0,5,2)), b.cfg), Vector2(10,0))
+	h2.hp = 0
+	h2.atb = 0.7
+	h2.damage_taken_from = {&"x": 30}
+	b.heroes.append(h2)
+	return h2
+
+func test_revive_sets_floor_hp_resets_atb_and_credits_ally_benefit() -> void:
+	var h2 := _fallen_ally()
+	var r := ActionExecutor.apply(_act(_ally_ability([_effect(EffectDef.Kind.REVIVE, 0.25)]), h2), b)
+	# floor(55 * 0.25) = 13
+	assert_eq(h2.hp, 13)
+	assert_eq(h2.atb, 0.0)
+	assert_eq(r.hits.size(), 1)
+	assert_eq(r.hits[0]["amount"], 13)
+	assert_eq(b.ledger.get_points(&"a", &"x"), 13.0, "benefício creditado ao inimigo que causou o dano")
+
+func test_revive_minimum_one_hp() -> void:
+	var h2 := _fallen_ally()
+	ActionExecutor.apply(_act(_ally_ability([_effect(EffectDef.Kind.REVIVE, 0.001)]), h2), b)
+	assert_eq(h2.hp, 1)
+
+func test_revive_ignores_standing_target() -> void:
+	var hp0: int = h.hp
+	var r := ActionExecutor.apply(_act(_ally_ability([_effect(EffectDef.Kind.REVIVE, 0.25)]), h), b)
+	assert_eq(h.hp, hp0)
+	assert_true(r.hits.is_empty())
+
+func test_restore_ap_skips_downed_target() -> void:
+	var h2 := _fallen_ally()
+	h2.ap = 2
+	# RESTORE_AP antes de REVIVE: o alvo ainda está caído quando o efeito de AP é avaliado.
+	var r := ActionExecutor.apply(_act(_ally_ability([_effect(EffectDef.Kind.RESTORE_AP, 5.0), _effect(EffectDef.Kind.REVIVE, 0.25)]), h2), b)
+	assert_eq(h2.ap, 2, "caído não recebe AP")
+	for hit: Dictionary in r.hits:
+		assert_ne(hit["kind"], EffectDef.Kind.RESTORE_AP)
+	assert_eq(h2.hp, 13, "revive ainda aplica")

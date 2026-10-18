@@ -28,6 +28,10 @@ var last_xp: Dictionary[StringName, int] = {}
 
 enum Phase { BATTLE, RESULT, LEVEL_UP, FIGHT_AGAIN, DEFEAT }
 
+## Índices das ações da tela de resultado (ordem de set_actions/show_defeat).
+const ACTION_REST: int = 0
+const ACTION_REST_RETRY: int = 1
+
 var phase: Phase = Phase.BATTLE
 var _snapshots: Array[Dictionary] = []
 var _level_queue: Array[HeroState] = []
@@ -164,7 +168,8 @@ func _on_battle_ended(outcome: BattleController.Outcome) -> void:
 	_menu.close()
 	_outcome_label.text = "Vitória!" if outcome == BattleController.Outcome.VICTORY else "Derrota..."
 	var b: BattleState = ctrl.b
-	# HP/AP persistem entre batalhas (spec §7); caídos ficam com HP 0, sem recuperação automática.
+	# HP/AP persistem entre batalhas (spec §7); caídos ficam com HP 0, sem recuperação automática
+	# (só as ações "Descansar..." da tela de resultado recuperam).
 	for c: Combatant in b.heroes:
 		c.hero_state.hp = c.hp
 		c.hero_state.ap = c.ap
@@ -186,7 +191,7 @@ func _grant_victory(b: BattleState) -> void:
 	phase = Phase.RESULT
 	_result.show_for(last_xp, before, hero_states)
 
-func _on_result_accepted() -> void:
+func _on_result_accepted(index: int) -> void:
 	match phase:
 		Phase.RESULT:
 			_result.visible = false
@@ -197,14 +202,14 @@ func _on_result_accepted() -> void:
 			phase = Phase.LEVEL_UP
 			_next_level_up()
 		Phase.FIGHT_AGAIN:
-			fight_again()
+			fight_again(index == ACTION_REST)
 		Phase.DEFEAT:
-			retry()
+			retry(index == ACTION_REST_RETRY)
 
 func _next_level_up() -> void:
 	if _level_queue.is_empty():
 		phase = Phase.FIGHT_AGAIN
-		_result.set_action("Lutar de novo")
+		_result.set_actions(PackedStringArray(["Descansar e lutar", "Lutar de novo"]))
 		return
 	_level_up.open(_level_queue.pop_front())
 
@@ -212,16 +217,26 @@ func _on_level_up_closed(_h: HeroState) -> void:
 	if phase == Phase.LEVEL_UP:
 		_next_level_up()
 
-## Nova batalha com os mesmos HeroState (HP/AP como terminaram); inimigos e inventário novos.
-func fight_again() -> void:
+## Nova batalha com os mesmos HeroState; inimigos e inventário novos.
+## rest = true: stand-in do ponto de descanso no M1 ([P-plano] 15), HP/AP cheios e caídos revividos;
+## senão HP/AP como terminaram.
+func fight_again(rest: bool = false) -> void:
+	if rest:
+		_rest_all(hero_states)
 	start(hero_states)
 
-## Restaura o estado do início da batalha perdida e recomeça.
-func retry() -> void:
+## Restaura o estado do início da batalha perdida e recomeça; rest = true descansa depois do snapshot.
+func retry(rest: bool = false) -> void:
 	var heroes: Array[HeroState] = hero_states
 	for i: int in heroes.size():
 		_restore(heroes[i], _snapshots[i])
+	if rest:
+		_rest_all(heroes)
 	start(heroes)
+
+func _rest_all(heroes: Array[HeroState]) -> void:
+	for h: HeroState in heroes:
+		h.rest(balance)
 
 func _snapshot(h: HeroState) -> Dictionary:
 	return {
@@ -275,11 +290,9 @@ func _run_demo(s: SelectionSession) -> void:
 		await _demo_wait(0.8)
 		_menu.move(1)
 		await _demo_wait(0.8)
-		_menu.cancel()
+		_menu.cancel()  # volta à lista de habilidades (um nível)
 		await _demo_wait(0.5)
 		if line != null:
-			_demo_pick("Habilidade")
-			await _demo_wait(0.4)
 			_demo_pick(line.display_name)
 			await _demo_wait(0.8)
 			_menu.move(1)

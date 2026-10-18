@@ -13,7 +13,12 @@ var ap: int = 0
 static func create(d: CharacterDef, cfg: BalanceConfig) -> HeroState:
 	var h := HeroState.new()
 	h.def = d
-	var c := Combatant.from_hero(h, Vector2.ZERO)
-	h.hp = StatCalculator.hp_max(c, cfg)
-	h.ap = StatCalculator.ap_max(c, cfg)
+	h.rest(cfg)
 	return h
+
+## HP e AP cheios (máximos via StatCalculator com nível, alocação e equipamento atuais);
+## revive caídos. Único lugar da recuperação total: criação e descanso ([P-plano] 15).
+func rest(cfg: BalanceConfig) -> void:
+	var c := Combatant.from_hero(self, Vector2.ZERO)
+	hp = StatCalculator.hp_max(c, cfg)
+	ap = StatCalculator.ap_max(c, cfg)

@@ -77,6 +77,7 @@ func test_menu_submit_resumes_battle() -> void:
 
 func test_auto_battle_runs_to_end() -> void:
 	var s: BattleScene = _scene(true)
+	s.dice_seed = 7
 	s.start(_heroes(s.balance))
 	s.ctrl.battle_ended.connect(_on_ended)
 	var menu: CommandMenu = s.get_node("UI/CommandMenu") as CommandMenu
@@ -97,3 +98,21 @@ func test_auto_start_on_ready() -> void:
 	await wait_process_frames(2)
 	assert_not_null(s.ctrl, "cena inicia sozinha (F5)")
 	assert_eq(s.ctrl.b.heroes.size(), 3)
+
+func _view_hit(amount: int, dodged: bool) -> String:
+	var v: CombatantView = (load("res://battle/combatant_view.tscn") as PackedScene).instantiate() as CombatantView
+	add_child_autofree(v)
+	v.show_hit({"target_id": &"x", "kind": EffectDef.Kind.DAMAGE, "amount": amount, "dodged": dodged, "status_result": -1})
+	var last: Label = null
+	for child: Node in v.get_children():
+		if child is Label:
+			last = child as Label
+	assert_not_null(last, "texto flutuante criado")
+	return last.text if last != null else ""
+
+func test_zero_damage_hit_shows_blocked() -> void:
+	assert_eq(_view_hit(0, false), "Bloqueado")
+
+func test_damage_hit_shows_amount_and_dodge() -> void:
+	assert_eq(_view_hit(7, false), "-7")
+	assert_eq(_view_hit(0, true), "Esquiva")

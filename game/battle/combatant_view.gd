@@ -82,7 +82,11 @@ func show_hit(hit: Dictionary) -> void:
 		return
 	match kind:
 		EffectDef.Kind.DAMAGE:
-			float_text("-%d" % amount, Color(1.0, 0.4, 0.4))
+			if amount == 0:
+				# Ex.: Barreira absorveu todo o dano.
+				float_text("Bloqueado", Color.WHITE)
+			else:
+				float_text("-%d" % amount, Color(1.0, 0.4, 0.4))
 		EffectDef.Kind.HEAL, EffectDef.Kind.REVIVE:
 			float_text("+%d" % amount, Color(0.4, 1.0, 0.5))
 		EffectDef.Kind.RESTORE_AP:

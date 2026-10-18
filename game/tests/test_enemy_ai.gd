@@ -105,3 +105,34 @@ func test_null_basic_attack_returns_null() -> void:
 func test_all_foes_down_returns_null() -> void:
 	var s := _setup([], [_hero(&"a", 0)])
 	assert_null(EnemyAI.decide(s[0], s[1]))
+
+## Curandeiro com regra ALLY_HP_BELOW 0.5 e aliados X (Vit 8 -> 85) e Y (Vit 7 -> 75).
+func _healer_setup(x_hp: int, y_hp: int) -> Array:
+	var cfg := Fixtures.cfg()
+	var heal := AbilityDef.new(); heal.side = AbilityDef.Side.ALLIES
+	var e := EffectDef.new(); e.kind = EffectDef.Kind.HEAL; e.scale = EffectDef.Scale.FIXED; e.potency = 10
+	heal.effects = [e]
+	var r := AiRule.new(); r.condition = AiRule.Condition.ALLY_HP_BELOW; r.threshold = 0.5; r.ability = heal; r.pick = AiRule.TargetPick.LOWEST_HP_ALLY
+	var hd := Fixtures.enemy_def(&"healer", Stats.make(1,1,5,5))
+	hd.ai_rules = [r]
+	var healer := Combatant.from_enemy(hd, &"healer", Vector2.ZERO, cfg)
+	var ex := Combatant.from_enemy(Fixtures.enemy_def(&"x", Stats.make(1,1,8,1)), &"x", Vector2.ZERO, cfg)
+	var ey := Combatant.from_enemy(Fixtures.enemy_def(&"y", Stats.make(1,1,7,1)), &"y", Vector2.ZERO, cfg)
+	assert_eq(StatCalculator.hp_max(ex, cfg), 85)
+	assert_eq(StatCalculator.hp_max(ey, cfg), 75)
+	ex.hp = x_hp
+	ey.hp = y_hp
+	var b := BattleState.create(cfg, ScriptedDice.new(), [_hero(&"a", 20)], [healer, ex, ey])
+	return [healer, b, ex, ey, heal]
+
+func test_ally_hp_below_heals_ally_below_threshold_not_lowest_absolute() -> void:
+	# X 42/85 = 0.494 (abaixo de 0.5); Y 40/75 = 0.533 (acima): cura X mesmo com Y tendo menos HP.
+	var s := _healer_setup(42, 40)
+	var pa := EnemyAI.decide(s[0], s[1])
+	assert_eq(pa.ability, s[4])
+	assert_eq(pa.center, s[2])
+
+func test_ally_hp_below_picks_lowest_ratio_among_below() -> void:
+	# X 30/85 = 0.353; Y 28/75 = 0.373: ambos abaixo; menor fração é X.
+	var s := _healer_setup(30, 28)
+	assert_eq(EnemyAI.decide(s[0], s[1]).center, s[2])

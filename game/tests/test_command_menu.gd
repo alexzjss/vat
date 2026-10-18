@@ -112,7 +112,7 @@ func test_cancel_in_target_refunds_ap() -> void:
 	assert_true(preview.visible)
 	menu.cancel()
 	assert_eq(h.ap, ap0, "Cancelar devolve o AP")
-	assert_eq(menu.mode, CommandMenu.Mode.ROOT)
+	assert_eq(menu.mode, CommandMenu.Mode.ABILITIES, "volta um nível (spec §4.4)")
 	assert_eq(ctrl.session.step, SelectionSession.Step.COMMAND)
 	assert_false(preview.visible)
 
@@ -175,3 +175,79 @@ func test_cancel_in_root_does_nothing() -> void:
 	menu.cancel()
 	assert_eq(menu.mode, CommandMenu.Mode.ROOT)
 	assert_true(menu.visible)
+
+func _reviver() -> ItemDef:
+	var e := EffectDef.new()
+	e.kind = EffectDef.Kind.REVIVE
+	e.scale = EffectDef.Scale.FIXED
+	e.potency = 0.25
+	var it := ItemDef.new()
+	it.id = &"reviver"
+	it.display_name = "Reviver"
+	it.shape = AbilityDef.Shape.SINGLE
+	it.side = AbilityDef.Side.ALLIES
+	it.effects = [e]
+	return it
+
+func test_cancel_from_ability_target_returns_to_list_with_cursor() -> void:
+	_setup(0, 4)
+	var ap0: int = h.ap
+	_select("Habilidade")
+	_select("Golpe em área")
+	assert_eq(menu.mode, CommandMenu.Mode.TARGET)
+	menu.cancel()
+	assert_eq(menu.mode, CommandMenu.Mode.ABILITIES)
+	assert_eq(menu.cursor, 1, "cursor na habilidade de origem")
+	assert_eq(h.ap, ap0)
+	assert_eq(ctrl.session.step, SelectionSession.Step.COMMAND)
+	assert_false(preview.visible)
+	assert_true(menu.entry_enabled(0), "entradas recalculadas com o AP devolvido")
+	menu.cancel()
+	assert_eq(menu.mode, CommandMenu.Mode.ROOT)
+	assert_eq(menu.cursor, 1)
+
+func test_cancel_from_attack_target_returns_to_root() -> void:
+	_setup(0, 4)
+	_select("Atacar")
+	assert_eq(menu.mode, CommandMenu.Mode.TARGET)
+	menu.cancel()
+	assert_eq(menu.mode, CommandMenu.Mode.ROOT)
+	assert_eq(menu.cursor, 0)
+	assert_eq(ctrl.session.step, SelectionSession.Step.COMMAND)
+
+func test_cancel_from_item_target_returns_to_items() -> void:
+	_setup(2, 4)
+	ctrl.b.inventory.add(_reviver(), 1)
+	var fallen: Combatant = Combatant.from_hero(HeroState.create(Fixtures.hero_def(&"b", Stats.make(1, 1, 1, 1)), ctrl.b.cfg), Vector2.ZERO)
+	fallen.hp = 0
+	ctrl.b.heroes.append(fallen)
+	_select("Item")
+	_select("Reviver")
+	assert_eq(menu.mode, CommandMenu.Mode.TARGET)
+	assert_eq(ctrl.b.inventory.available(&"reviver"), 0, "reservado")
+	menu.cancel()
+	assert_eq(menu.mode, CommandMenu.Mode.ITEMS)
+	assert_eq(menu.cursor, 1)
+	assert_eq(ctrl.b.inventory.available(&"reviver"), 1, "reserva desfeita")
+
+func test_no_valid_targets_item_returns_to_items_and_refunds() -> void:
+	_setup(1, 4)
+	ctrl.b.inventory.add(_reviver(), 1)
+	_select("Item")
+	_select("Reviver")
+	assert_eq(menu.mode, CommandMenu.Mode.ITEMS)
+	assert_eq(menu.cursor, 1, "cursor no item de origem")
+	assert_eq(menu.header_text(), "Sem alvos válidos")
+	assert_eq(ctrl.b.inventory.available(&"reviver"), 1, "reserva devolvida")
+	assert_eq(ctrl.session.step, SelectionSession.Step.COMMAND)
+	assert_true(ctrl.is_paused())
+
+func test_no_valid_targets_attack_returns_to_root() -> void:
+	_setup(0, 4)
+	x.hp = 0
+	y.hp = 0
+	_select("Atacar")
+	assert_eq(menu.mode, CommandMenu.Mode.ROOT)
+	assert_eq(menu.cursor, 0)
+	assert_eq(menu.header_text(), "Sem alvos válidos")
+	assert_eq(ctrl.session.step, SelectionSession.Step.COMMAND)
