@@ -8,7 +8,7 @@ enum Side { ENEMIES, ALLIES, BOTH }
 @export var display_name: String = ""
 @export var ap_cost: int = 0
 @export var shape: Shape = Shape.SINGLE
-@export var side: Side = Side.ENEMIES
+@export var side: AbilityDef.Side = AbilityDef.Side.ENEMIES
 @export var radius: float = 0.0
 @export var width: float = 0.0
 @export var cast_time: float = 1.0
