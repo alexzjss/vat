@@ -403,3 +403,27 @@ Fecham antes do M2/M3:
 8. Material narrativo: tom e cenário detalhados, quando o usuário quiser compartilhar.
 
 O catálogo de fórmulas pendentes da v3.7 (seção 11 do guia) continua integralmente válido.
+
+---
+
+## 12. Decisões de implementação do M1 [P-plano]
+
+Decisões tomadas no plano de implementação do M1 ([`docs/superpowers/plans/2026-10-18-m1-batalha-isolada.md`](../plans/2026-10-18-m1-batalha-isolada.md)) que a spec não cobria. Todas são **[P-plano]**: propostas de implementação, **a revisar pelo usuário**.
+
+1. **Ordem da fila [P-plano]:** Velocidade efetiva decrescente → `entry_tick` crescente (quem ficou pronto antes) → `tie_key` crescente (sorteado uma vez na entrada). Empates "juntos" = mesmo `entry_tick`.
+2. **Incapacitação [P-plano]:** ao chegar a 0 HP, o combatente perde todos os estados, tem o ATB zerado e sai da fila. Ao ser revivido, o ATB começa em 0.
+3. **Ordem em `on_atb_full` [P-plano]:** (a) dano de Veneno; (b) se ainda de pé, verifica bloqueio (Sono/Paralisia); (c) decrementa a duração de todos os estados e remove os expirados; (d) se bloqueado, perde a oportunidade e o ATB volta a 0; senão entra na fila.
+4. **Contribuição de benefício a aliado [P-plano]:** cura, buff e barreira aplicada são distribuídos entre os inimigos proporcionalmente ao dano que **aquele aliado** recebeu de cada inimigo na batalha; se não recebeu dano, divide-se igualmente entre os inimigos vivos. Proteção absorvida por Barreira é creditada ao inimigo atacante (sem distribuição).
+5. **Controle [P-plano]:** cada oportunidade perdida por bloqueio credita `control_value_per_turn` ao aplicador do **primeiro** estado bloqueador ativo (nunca duplica).
+6. **Renovação [P-plano]:** reaplicar um estado ativo com `remaining = r` e `duration = d` credita `apply_contribution × (d − r) / d`.
+7. **Sono acorda [P-plano]:** somente se o dano reduziu HP (> 0 após a Barreira).
+8. **Linha [P-plano]:** segmento do executor até o centro escolhido, com largura `width`.
+9. **Fim de batalha [P-plano]:** verificado quando não há ação executando: todos os inimigos caídos = vitória; todos os heróis caídos = derrota.
+
+Decisões adicionais tomadas durante a implementação (a revisar pelo usuário):
+
+10. **Veneno e Sono [P-plano]:** Veneno não acorda Sono; só dano direto acorda.
+11. **Renovação de estado [P-plano]:** renovar um estado atualiza a fonte (`source`) e recarrega a Barreira.
+12. **Persistência entre batalhas [P-plano]:** HP/AP persistem entre batalhas sem recuperação automática; heróis caídos começam a próxima batalha caídos.
+13. **Reinício de batalha [P-plano]:** "Lutar de novo"/"Tentar de novo" restauram o inventário inicial (apenas no M1).
+14. **Seleção de alvo [P-plano]:** confirmar o alvo já confirma a ação (sem etapa extra de confirmação).
