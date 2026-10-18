@@ -1,0 +1,74 @@
+# VALORES DE TESTE — NÃO CANÔNICOS (spec v4.0 §8): todos os números vêm de BalanceConfig.
+class_name Targeting
+extends RefCounted
+
+static func wants_downed(effects: Array[EffectDef]) -> bool:
+	for e: EffectDef in effects:
+		if e.kind == EffectDef.Kind.REVIVE:
+			return true
+	return false
+
+static func _sides(side: AbilityDef.Side, actor: Combatant, b: BattleState) -> Array[Combatant]:
+	match side:
+		AbilityDef.Side.ENEMIES:
+			return b.foes_of(actor)
+		AbilityDef.Side.ALLIES:
+			return b.allies_of(actor)
+	return b.all()
+
+static func _valid(arr: Array[Combatant], effects: Array[EffectDef]) -> Array[Combatant]:
+	var downed: bool = wants_downed(effects)
+	var out: Array[Combatant] = []
+	for c: Combatant in arr:
+		if c.is_down() == downed:
+			out.append(c)
+	return out
+
+static func candidates(shape: AbilityDef.Shape, side: AbilityDef.Side, effects: Array[EffectDef], actor: Combatant, b: BattleState) -> Array[Combatant]:
+	if shape == AbilityDef.Shape.CIRCLE_SELF:
+		return [actor]
+	return _valid(_sides(side, actor, b), effects)
+
+static func _dist_to_segment(p: Vector2, a: Vector2, c: Vector2) -> float:
+	var closest: Vector2 = Geometry2D.get_closest_point_to_segment(p, a, c)
+	return p.distance_to(closest)
+
+static func area(shape: AbilityDef.Shape, side: AbilityDef.Side, effects: Array[EffectDef], radius: float, width: float, actor: Combatant, center: Combatant, b: BattleState) -> Array[Combatant]:
+	var valid: Array[Combatant] = _valid(_sides(side, actor, b), effects)
+	var out: Array[Combatant] = []
+	match shape:
+		AbilityDef.Shape.SINGLE:
+			out.append(center)
+		AbilityDef.Shape.GROUP:
+			for c: Combatant in _valid(b.allies_of(center), effects):
+				out.append(c)
+		AbilityDef.Shape.ALL:
+			out = valid
+		AbilityDef.Shape.CIRCLE_TARGET:
+			for c: Combatant in valid:
+				if c.position.distance_to(center.position) <= radius:
+					out.append(c)
+		AbilityDef.Shape.CIRCLE_SELF:
+			for c: Combatant in valid:
+				if c.position.distance_to(actor.position) <= radius:
+					out.append(c)
+		AbilityDef.Shape.LINE:
+			for c: Combatant in valid:
+				if _dist_to_segment(c.position, actor.position, center.position) <= width / 2.0:
+					out.append(c)
+	return out
+
+static func redirect(shape: AbilityDef.Shape, side: AbilityDef.Side, effects: Array[EffectDef], actor: Combatant, original_center: Combatant, original_pos: Vector2, b: BattleState) -> Combatant:
+	if shape == AbilityDef.Shape.CIRCLE_SELF:
+		return actor
+	var cands: Array[Combatant] = candidates(shape, side, effects, actor, b)
+	if cands.has(original_center):
+		return original_center
+	var best: Combatant = null
+	var best_d: float = INF
+	for c: Combatant in cands:
+		var d: float = c.position.distance_to(original_pos)
+		if d < best_d:
+			best_d = d
+			best = c
+	return best
