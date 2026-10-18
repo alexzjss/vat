@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="EncounterDef" format=3]
+
+[ext_resource type="Resource" path="res://data/test/enemies/inimigo_x.tres" id="1_r"]
+[ext_resource type="Resource" path="res://data/test/enemies/inimigo_y.tres" id="2_r"]
+[ext_resource type="Script" path="res://core/defs/enemy_def.gd" id="3_r"]
+[ext_resource type="Script" path="res://core/defs/encounter_def.gd" id="4_r"]
+
+[resource]
+script = ExtResource("4_r")
+id = &"encontro_xy"
+enemies = Array[ExtResource("3_r")]([ExtResource("1_r"), ExtResource("2_r")])

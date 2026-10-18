@@ -121,3 +121,11 @@ func test_builds_battle_state() -> void:
 		assert_gt(c.hp, 0, String(c.id))
 		assert_not_null(c.basic_attack, String(c.id))
 		assert_gt(StatCalculator.atb_rate(c, cfg), 0.0)
+
+func test_encounter() -> void:
+	var e: EncounterDef = load(ROOT + "/encounters/encontro_xy.tres") as EncounterDef
+	assert_not_null(e)
+	assert_eq(e.id, &"encontro_xy")
+	assert_eq(e.enemies.size(), 2)
+	assert_eq(e.enemies[0].id, &"inimigo_x")
+	assert_eq(e.enemies[1].id, &"inimigo_y")
