@@ -17,10 +17,8 @@ static func decide(actor: Combatant, b: BattleState) -> PendingAction:
 	if actor.basic_attack == null:
 		push_error("EnemyAI: %s sem ataque basico" % actor.id)
 		return null
-	var target: Combatant = null
-	for h: Combatant in b.living(b.foes_of(actor)):
-		if target == null or h.hp < target.hp:
-			target = h
+	# Assume-se que basic_attack nao custa AP (custo 0).
+	var target: Combatant = _lowest_hp(b.living(b.foes_of(actor)))
 	if target == null:
 		return null
 	return _make(actor, actor.basic_attack, target)
@@ -51,8 +49,12 @@ static func _pick_center(rule: AiRule, actor: Combatant, b: BattleState) -> Comb
 			return actor if cands.has(actor) else null
 		AiRule.TargetPick.RANDOM_ENEMY:
 			return cands[b.dice.pick_index(cands.size())]
+	return _lowest_hp(cands)
+
+## Menor HP; empate: o primeiro.
+static func _lowest_hp(arr: Array[Combatant]) -> Combatant:
 	var best: Combatant = null
-	for c: Combatant in cands:
+	for c: Combatant in arr:
 		if best == null or c.hp < best.hp:
 			best = c
 	return best
