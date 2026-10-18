@@ -16,6 +16,7 @@
 [ext_resource type="Resource" path="res://data/test/items/reviver.tres" id="14_ir"]
 [ext_resource type="Script" path="res://battle/target_preview.gd" id="15_tp"]
 [ext_resource type="Script" path="res://battle/command_menu.gd" id="16_cm"]
+[ext_resource type="Script" path="res://battle/debug_panel.gd" id="17_dp"]
 
 [node name="BattleScene" type="Node2D"]
 script = ExtResource("1_bs")
@@ -67,3 +68,11 @@ offset_top = 470.0
 offset_right = 304.0
 offset_bottom = 620.0
 script = ExtResource("16_cm")
+
+[node name="DebugPanel" type="Control" parent="UI"]
+anchors_preset = 0
+offset_left = 936.0
+offset_top = 8.0
+offset_right = 1272.0
+offset_bottom = 712.0
+script = ExtResource("17_dp")

@@ -3,7 +3,8 @@ extends Node2D
 
 ## Cena de batalha: monta combatentes nos marcadores, avança o BattleController,
 ## atualiza as views e abre o CommandMenu no turno de herói.
-## Debug: `-- --demo-menu` roteiriza entradas no menu (verificação com --write-movie).
+## Debug: `-- --demo-menu` roteiriza entradas no menu; `-- --demo-debug` abre o painel F1 com auto_battle
+## (verificação com --write-movie).
 
 const VIEW_SCENE: PackedScene = preload("res://battle/combatant_view.tscn")
 
@@ -24,9 +25,14 @@ var _demo_area_done: bool = false
 @onready var _outcome_label: Label = $OutcomeLabel
 @onready var _menu: CommandMenu = $UI/CommandMenu
 @onready var _preview: TargetPreview = $TargetPreview
+@onready var _debug: DebugPanel = $UI/DebugPanel
 
 func _ready() -> void:
-	_demo = OS.get_cmdline_user_args().has("--demo-menu")
+	var args: PackedStringArray = OS.get_cmdline_user_args()
+	_demo = args.has("--demo-menu")
+	if args.has("--demo-debug"):
+		auto_battle = true
+		_debug.visible = true
 	_menu.submitted.connect(_on_menu_submitted)
 	_auto_start.call_deferred()
 
@@ -68,6 +74,7 @@ func start(heroes: Array[HeroState]) -> void:
 func _process(delta: float) -> void:
 	if ctrl != null:
 		ctrl.tick(delta)
+		_debug.refresh(ctrl.b, ctrl)
 
 func _spot(node_name: String) -> Vector2:
 	return (get_node(node_name) as Marker2D).position
