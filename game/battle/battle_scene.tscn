@@ -1,0 +1,55 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://battle/battle_scene.gd" id="1_bs"]
+[ext_resource type="Resource" path="res://data/test/balance.tres" id="2_bal"]
+[ext_resource type="Script" path="res://core/defs/character_def.gd" id="3_cd"]
+[ext_resource type="Resource" path="res://data/test/heroes/teste_a.tres" id="4_ha"]
+[ext_resource type="Resource" path="res://data/test/heroes/teste_b.tres" id="5_hb"]
+[ext_resource type="Resource" path="res://data/test/heroes/teste_c.tres" id="6_hc"]
+[ext_resource type="Script" path="res://core/defs/enemy_def.gd" id="7_ed"]
+[ext_resource type="Resource" path="res://data/test/enemies/inimigo_x.tres" id="8_ex"]
+[ext_resource type="Resource" path="res://data/test/enemies/inimigo_y.tres" id="9_ey"]
+[ext_resource type="Resource" path="res://data/test/enemies/inimigo_z.tres" id="10_ez"]
+[ext_resource type="Script" path="res://core/defs/item_def.gd" id="11_id"]
+[ext_resource type="Resource" path="res://data/test/items/pocao.tres" id="12_ip"]
+[ext_resource type="Resource" path="res://data/test/items/eter.tres" id="13_ie"]
+[ext_resource type="Resource" path="res://data/test/items/reviver.tres" id="14_ir"]
+
+[node name="BattleScene" type="Node2D"]
+script = ExtResource("1_bs")
+balance = ExtResource("2_bal")
+test_heroes = Array[ExtResource("3_cd")]([ExtResource("4_ha"), ExtResource("5_hb"), ExtResource("6_hc")])
+enemy_defs = Array[ExtResource("7_ed")]([ExtResource("8_ex"), ExtResource("9_ey"), ExtResource("10_ez")])
+start_items = Array[ExtResource("11_id")]([ExtResource("12_ip"), ExtResource("13_ie"), ExtResource("14_ir")])
+start_item_counts = Array[int]([3, 2, 1])
+
+[node name="Background" type="ColorRect" parent="."]
+offset_right = 1280.0
+offset_bottom = 720.0
+mouse_filter = 2
+color = Color(0.08, 0.09, 0.12, 1)
+
+[node name="HeroSpot1" type="Marker2D" parent="."]
+position = Vector2(420, 200)
+
+[node name="HeroSpot2" type="Marker2D" parent="."]
+position = Vector2(360, 360)
+
+[node name="HeroSpot3" type="Marker2D" parent="."]
+position = Vector2(420, 520)
+
+[node name="EnemySpot1" type="Marker2D" parent="."]
+position = Vector2(860, 200)
+
+[node name="EnemySpot2" type="Marker2D" parent="."]
+position = Vector2(920, 360)
+
+[node name="EnemySpot3" type="Marker2D" parent="."]
+position = Vector2(860, 520)
+
+[node name="OutcomeLabel" type="Label" parent="."]
+offset_left = 540.0
+offset_top = 40.0
+offset_right = 740.0
+offset_bottom = 80.0
+horizontal_alignment = 1

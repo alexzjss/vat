@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="EnemyDef" format=3]
+
+[ext_resource type="Resource" path="res://data/test/abilities/golpe.tres" id="1_r"]
+[ext_resource type="Script" path="res://core/defs/ai_rule.gd" id="2_r"]
+[ext_resource type="Script" path="res://core/defs/stats.gd" id="3_r"]
+[ext_resource type="Script" path="res://core/defs/ability_def.gd" id="4_r"]
+[ext_resource type="Script" path="res://core/defs/enemy_def.gd" id="5_r"]
+
+[sub_resource type="Resource" id="ai_rule_1"]
+script = ExtResource("2_r")
+condition = 0
+threshold = 0.0
+ability = ExtResource("1_r")
+pick = 0
+
+[sub_resource type="Resource" id="stats_2"]
+script = ExtResource("3_r")
+strength = 11
+speed = 9
+vitality = 8
+aura = 0
+
+[resource]
+script = ExtResource("5_r")
+id = &"inimigo_x"
+display_name = "Inimigo X"
+level = 1
+base = SubResource("stats_2")
+xp_base = 100
+abilities = Array[ExtResource("4_r")]([ExtResource("1_r")])
+ai_rules = Array[ExtResource("2_r")]([SubResource("ai_rule_1")])
