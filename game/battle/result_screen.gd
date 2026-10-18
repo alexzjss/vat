@@ -1,7 +1,7 @@
 class_name ResultScreen
 extends PanelContainer
 
-## Tela de resultado: Vitória (XP por herói e níveis) ou Derrota.
+## Tela de resultado: Vitória (XP por herói e níveis) ou Derrota (título configurável, ex.: "Game Over").
 ## Uma ou mais ações (↑/↓ escolhe, Enter confirma; a primeira é o padrão), ex.:
 ## "Continuar"; "Descansar e lutar"/"Lutar de novo"; "Tentar de novo"/"Descansar e tentar de novo".
 ## O teclado chama move()/accept(), que também servem aos testes.
@@ -58,10 +58,11 @@ func show_for(xp: Dictionary[StringName, int], before_levels: Dictionary, heroes
 		rows.append("%s: +%d XP (%s)" % [h.def.display_name, gained, lv])
 	_present("Vitória!", TITLE_COLOR, rows, PackedStringArray(["Continuar"]))
 
-func show_defeat() -> void:
+## Derrota; título e ações configuráveis (ex.: "Game Over"/["Continuar"] no modo mapa).
+func show_defeat(title: String = "Derrota",
+		actions: PackedStringArray = PackedStringArray(["Tentar de novo", "Descansar e tentar de novo"])) -> void:
 	mode = Mode.DEFEAT
-	_present("Derrota", DEFEAT_COLOR, PackedStringArray(["Todos os heróis caíram."]),
-		PackedStringArray(["Tentar de novo", "Descansar e tentar de novo"]))
+	_present(title, DEFEAT_COLOR, PackedStringArray(["Todos os heróis caíram."]), actions)
 
 ## Troca as ações (cursor volta à primeira) e reexibe a tela (ex.: após as telas de nível).
 func set_actions(texts: PackedStringArray) -> void:

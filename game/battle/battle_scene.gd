@@ -19,6 +19,14 @@ const VIEW_SCENE: PackedScene = preload("res://battle/combatant_view.tscn")
 ## Semente do Dice da batalha (-1 = aleatório). Testes usam valor fixo para desfecho determinístico.
 @export var dice_seed: int = -1
 
+## STANDALONE: cena do M1 (F5), com "Descansar…/Lutar de novo/Tentar de novo".
+## MAP: roda dentro do mapa; sem fundo, aceitar o resultado emite `finished` (sem reiniciar).
+enum Mode { STANDALONE, MAP }
+
+## Só no modo MAP: o jogador escolheu "Continuar" (após as telas de nível ou no Game Over).
+signal finished(outcome: BattleController.Outcome)
+
+var mode: Mode = Mode.STANDALONE
 var ctrl: BattleController
 var views: Dictionary[StringName, CombatantView] = {}
 ## Os HeroState da batalha atual (os mesmos objetos passam para a próxima).
@@ -26,7 +34,7 @@ var hero_states: Array[HeroState] = []
 ## XP concedida na última vitória, por id de herói.
 var last_xp: Dictionary[StringName, int] = {}
 
-enum Phase { BATTLE, RESULT, LEVEL_UP, FIGHT_AGAIN, DEFEAT }
+enum Phase { BATTLE, RESULT, LEVEL_UP, FIGHT_AGAIN, DEFEAT, CONTINUE, DONE }
 
 ## Índices das ações da tela de resultado (ordem de set_actions/show_defeat).
 const ACTION_REST: int = 0
@@ -36,10 +44,14 @@ var phase: Phase = Phase.BATTLE
 var _snapshots: Array[Dictionary] = []
 var _level_queue: Array[HeroState] = []
 var _demo_result: bool = false
+## Deslize de entrada (modo mapa): views vão de _slide_from até a posição; sem tick enquanto dura.
+var _slide_from: Vector2 = Vector2.INF
+var _slide_left: float = 0.0
 
 var _demo: bool = false
 var _demo_area_done: bool = false
 
+@onready var _background: CanvasItem = $Background
 @onready var _outcome_label: Label = $OutcomeLabel
 @onready var _menu: CommandMenu = $UI/CommandMenu
 @onready var _preview: TargetPreview = $TargetPreview
@@ -69,8 +81,27 @@ func _auto_start() -> void:
 		heroes.append(HeroState.create(d, balance))
 	start(heroes)
 
+## Standalone (M1): posições dos marcadores, inimigos de enemy_defs e inventário novo de start_items.
 func start(heroes: Array[HeroState]) -> void:
+	var hero_pos: Array[Vector2] = []
+	for i: int in heroes.size():
+		hero_pos.append(_spot("HeroSpot%d" % (i + 1)))
+	var enemy_pos: Array[Vector2] = []
+	for i: int in enemy_defs.size():
+		enemy_pos.append(_spot("EnemySpot%d" % (i + 1)))
+	var inv := Inventory.new()
+	for i: int in start_items.size():
+		inv.add(start_items[i], start_item_counts[i])
+	start_with(heroes, enemy_defs, hero_pos, enemy_pos, inv)
+
+## Monta a batalha com essas posições e esse objeto de inventário (não copia).
+## from_pos finito: as views começam lá e deslizam até a posição em cfg.battle_slide_time;
+## o ctrl só avança depois do deslize.
+func start_with(heroes: Array[HeroState], enemies: Array[EnemyDef], hero_pos: Array[Vector2],
+		enemy_pos: Array[Vector2], inventory: Inventory, from_pos: Vector2 = Vector2.INF) -> void:
 	_clear()
+	_background.visible = mode == Mode.STANDALONE
+	_outcome_label.visible = mode == Mode.STANDALONE
 	hero_states = heroes
 	_snapshots = []
 	for h: HeroState in heroes:
@@ -83,14 +114,15 @@ func start(heroes: Array[HeroState]) -> void:
 		_level_up.leave()
 	var hero_cs: Array[Combatant] = []
 	for i: int in heroes.size():
-		hero_cs.append(Combatant.from_hero(heroes[i], _spot("HeroSpot%d" % (i + 1))))
+		hero_cs.append(Combatant.from_hero(heroes[i], hero_pos[i]))
 	var enemy_cs: Array[Combatant] = []
-	for i: int in enemy_defs.size():
-		var d: EnemyDef = enemy_defs[i]
-		enemy_cs.append(Combatant.from_enemy(d, d.id, _spot("EnemySpot%d" % (i + 1)), balance))
+	for i: int in enemies.size():
+		var d: EnemyDef = enemies[i]
+		# No mapa o encontro pode repetir um inimigo: id indexado. Standalone mantém def.id (testes do M1).
+		var id: StringName = d.id if mode == Mode.STANDALONE else StringName("%s_%d" % [d.id, i])
+		enemy_cs.append(Combatant.from_enemy(d, id, enemy_pos[i], balance))
 	var b: BattleState = BattleState.create(balance, Dice.new(dice_seed), hero_cs, enemy_cs)
-	for i: int in start_items.size():
-		b.inventory.add(start_items[i], start_item_counts[i])
+	b.inventory = inventory
 	if _demo_result:
 		# Só debug: o auto_battle (ataque básico no primeiro alvo) perde com o conteúdo de teste;
 		# enfraquece os inimigos para o roteiro chegar à vitória e às telas de nível.
@@ -105,6 +137,12 @@ func start(heroes: Array[HeroState]) -> void:
 		add_child(v)
 		v.bind(c, balance)
 		views[c.id] = v
+	_slide_from = from_pos
+	_slide_left = 0.0
+	if from_pos.is_finite() and balance.battle_slide_time > 0.0:
+		_slide_left = balance.battle_slide_time
+		for v: CombatantView in views.values():
+			v.position = from_pos
 	ctrl.hero_turn.connect(_on_hero_turn)
 	ctrl.action_impact.connect(_on_action_impact)
 	ctrl.status_tick.connect(_on_status_tick)
@@ -112,9 +150,19 @@ func start(heroes: Array[HeroState]) -> void:
 	ctrl.battle_ended.connect(_on_battle_ended)
 
 func _process(delta: float) -> void:
-	if ctrl != null:
+	if ctrl == null:
+		return
+	if _slide_left > 0.0:
+		_advance_slide(delta)
+	else:
 		ctrl.tick(delta)
-		_debug.refresh(ctrl.b, ctrl)
+	_debug.refresh(ctrl.b, ctrl)
+
+func _advance_slide(delta: float) -> void:
+	_slide_left = maxf(0.0, _slide_left - delta)
+	var t: float = 1.0 - _slide_left / balance.battle_slide_time
+	for v: CombatantView in views.values():
+		v.position = _slide_from.lerp(v.combatant.position, t) if _slide_left > 0.0 else v.combatant.position
 
 func _spot(node_name: String) -> Vector2:
 	return (get_node(node_name) as Marker2D).position
@@ -177,7 +225,10 @@ func _on_battle_ended(outcome: BattleController.Outcome) -> void:
 		_grant_victory(b)
 	else:
 		phase = Phase.DEFEAT
-		_result.show_defeat()
+		if mode == Mode.MAP:
+			_result.show_defeat("Game Over", PackedStringArray(["Continuar"]))
+		else:
+			_result.show_defeat()
 	if _demo_result:
 		_run_demo_result()
 
@@ -203,13 +254,28 @@ func _on_result_accepted(index: int) -> void:
 			_next_level_up()
 		Phase.FIGHT_AGAIN:
 			fight_again(index == ACTION_REST)
+		Phase.CONTINUE:
+			_finish(BattleController.Outcome.VICTORY)
 		Phase.DEFEAT:
-			retry(index == ACTION_REST_RETRY)
+			if mode == Mode.MAP:
+				_finish(BattleController.Outcome.DEFEAT)
+			else:
+				retry(index == ACTION_REST_RETRY)
+
+## Modo MAP: fecha o resultado e devolve o desfecho a quem hospeda a cena (uma única vez).
+func _finish(outcome: BattleController.Outcome) -> void:
+	phase = Phase.DONE
+	_result.close()
+	finished.emit(outcome)
 
 func _next_level_up() -> void:
 	if _level_queue.is_empty():
-		phase = Phase.FIGHT_AGAIN
-		_result.set_actions(PackedStringArray(["Descansar e lutar", "Lutar de novo"]))
+		if mode == Mode.MAP:
+			phase = Phase.CONTINUE
+			_result.set_actions(PackedStringArray(["Continuar"]))
+		else:
+			phase = Phase.FIGHT_AGAIN
+			_result.set_actions(PackedStringArray(["Descansar e lutar", "Lutar de novo"]))
 		return
 	_level_up.open(_level_queue.pop_front())
 
