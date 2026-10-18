@@ -22,3 +22,20 @@ func rest(cfg: BalanceConfig) -> void:
 	var c := Combatant.from_hero(self, Vector2.ZERO)
 	hp = StatCalculator.hp_max(c, cfg)
 	ap = StatCalculator.ap_max(c, cfg)
+
+## Cópia dos valores mutáveis do herói (usada por retry de batalha e ponto de salvamento).
+func snapshot() -> Dictionary:
+	return {
+		"hp": hp, "ap": ap, "xp": xp, "level": level, "pending": pending_points,
+		"allocated": Stats.make(allocated.strength, allocated.speed, allocated.vitality, allocated.aura),
+	}
+
+## Restaura os valores de [method snapshot]; `allocated` ganha uma cópia nova.
+func restore(snap: Dictionary) -> void:
+	hp = snap["hp"]
+	ap = snap["ap"]
+	xp = snap["xp"]
+	level = snap["level"]
+	pending_points = snap["pending"]
+	var a: Stats = snap["allocated"]
+	allocated = Stats.make(a.strength, a.speed, a.vitality, a.aura)

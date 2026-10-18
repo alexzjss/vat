@@ -39,3 +39,12 @@ func listing() -> Array[ItemDef]:
 		if _counts[id] > 0:
 			out.append(_defs[id])
 	return out
+
+## Cópia independente: contagens e defs copiadas, reservas zeradas.
+func copy() -> Inventory:
+	var c := Inventory.new()
+	for id: StringName in _defs:
+		c._defs[id] = _defs[id]
+		c._counts[id] = _counts[id]
+		c._reserved[id] = 0
+	return c

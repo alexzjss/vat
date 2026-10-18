@@ -74,7 +74,7 @@ func start(heroes: Array[HeroState]) -> void:
 	hero_states = heroes
 	_snapshots = []
 	for h: HeroState in heroes:
-		_snapshots.append(_snapshot(h))
+		_snapshots.append(h.snapshot())
 	last_xp = {}
 	_level_queue = []
 	phase = Phase.BATTLE
@@ -229,7 +229,7 @@ func fight_again(rest: bool = false) -> void:
 func retry(rest: bool = false) -> void:
 	var heroes: Array[HeroState] = hero_states
 	for i: int in heroes.size():
-		_restore(heroes[i], _snapshots[i])
+		heroes[i].restore(_snapshots[i])
 	if rest:
 		_rest_all(heroes)
 	start(heroes)
@@ -237,21 +237,6 @@ func retry(rest: bool = false) -> void:
 func _rest_all(heroes: Array[HeroState]) -> void:
 	for h: HeroState in heroes:
 		h.rest(balance)
-
-func _snapshot(h: HeroState) -> Dictionary:
-	return {
-		"hp": h.hp, "ap": h.ap, "xp": h.xp, "level": h.level, "pending": h.pending_points,
-		"allocated": Stats.make(h.allocated.strength, h.allocated.speed, h.allocated.vitality, h.allocated.aura),
-	}
-
-func _restore(h: HeroState, snap: Dictionary) -> void:
-	h.hp = snap["hp"]
-	h.ap = snap["ap"]
-	h.xp = snap["xp"]
-	h.level = snap["level"]
-	h.pending_points = snap["pending"]
-	var a: Stats = snap["allocated"]
-	h.allocated = Stats.make(a.strength, a.speed, a.vitality, a.aura)
 
 # --- Roteiro de debug (--demo-result) -----------------------------------------------
 
