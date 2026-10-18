@@ -118,6 +118,17 @@ func test_touch_starts_battle_at_arena_positions() -> void:
 	var cam: MapCamera = map.get_node("MapCamera") as MapCamera
 	assert_almost_eq(cam.global_position, _arena().center(), Vector2(1, 1))
 
+func test_exit_label_is_utf8() -> void:
+	assert_eq(_exit().label_text, "Saída")
+	assert_eq(_exit().zone_id, &"exit")
+
+func test_touch_without_encounter_is_ignored() -> void:
+	_enemy().encounter = null
+	_enemy().touched.emit(_enemy())
+	assert_push_error("sem encontro")
+	assert_null(map.battle)
+	assert_true(_player().enabled)
+
 func test_touch_twice_starts_one_battle() -> void:
 	var s: BattleScene = _touch(_weak())
 	_enemy().touched.emit(_enemy())

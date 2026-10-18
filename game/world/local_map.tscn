@@ -168,7 +168,7 @@ color = Color(0.25, 0.4, 0.6, 1)
 position = Vector2(60, 360)
 script = ExtResource("5")
 zone_id = &"exit"
-label_text = "SaÃ­da"
+label_text = "Saída"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Exit"]
 shape = SubResource("shape_exit")

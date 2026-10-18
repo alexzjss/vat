@@ -67,6 +67,9 @@ func _arena_for(enemy: MapEnemy) -> BattleArena:
 func _on_enemy_touched(enemy: MapEnemy) -> void:
 	if battle != null or locked or state == null:
 		return
+	if enemy.encounter == null:
+		push_error("LocalMap: inimigo '%s' sem encontro" % enemy.name)
+		return
 	_battle_enemy = enemy
 	var arena: BattleArena = _arena_for(enemy)
 	player.enabled = false
