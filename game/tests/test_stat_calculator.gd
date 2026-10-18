@@ -28,3 +28,13 @@ func test_effective_never_negative_and_atb_has_floor() -> void:
 	assert_eq(StatCalculator.effective(c, &"strength", cfg), 0)
 	cfg.atb_base_rate = 0.0
 	assert_almost_eq(StatCalculator.atb_rate(c, cfg), cfg.atb_min_rate, 0.0001)
+func test_attr_mod_after_diminishing() -> void:
+	var c := _c(Stats.make(30, 0, 0, 0))
+	var m := Fixtures.status_def(StatusDef.Kind.ATTR_MOD, 3, 5); m.attr = &"strength"
+	c.statuses.append(ActiveStatus.create(m, &"a", 1))
+	assert_eq(StatCalculator.effective(c, &"strength", cfg), 30)
+func test_slow_halves_atb_rate() -> void:
+	var c := _c(Stats.make(0, 10, 4, 6))
+	var s := Fixtures.status_def(StatusDef.Kind.SLOW, 3, 50)
+	c.statuses.append(ActiveStatus.create(s, &"a", 1))
+	assert_almost_eq(StatCalculator.atb_rate(c, cfg), 0.2, 0.0001)
