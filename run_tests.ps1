@@ -7,7 +7,8 @@ if (-not $godot -or -not (Test-Path $godot)) {
     $found = Get-ChildItem (Join-Path $pkgs "GodotEngine.GodotEngine*") -Recurse -Filter "*console*.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
     if ($found) { $godot = $found.FullName }
     if (-not $godot) {
-        $cmd = Get-Command godot*console*, godot* -ErrorAction SilentlyContinue | Select-Object -First 1
+        # So executaveis de console: o executavel de GUI nao devolve saida nem codigo de saida ao terminal.
+        $cmd = Get-Command "godot*console*.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
         if ($cmd) { $godot = $cmd.Source }
     }
 }
@@ -16,10 +17,17 @@ if (-not $godot) {
     exit 1
 }
 
-# Gera o cache global de classes (class_name) necessario em modo headless.
-& $godot --headless --path game --import *> $null
+$project = Join-Path $PSScriptRoot "game"
 
-$gutArgs = @("--headless", "--path", "game", "-s", "addons/gut/gut_cmdln.gd", "-gdir=res://tests", "-ginclude_subdirs", "-gexit")
+# Gera o cache global de classes (class_name) necessario em modo headless.
+$importOut = & $godot --headless --path $project --import 2>&1
+if ($LASTEXITCODE -ne 0) {
+    $importOut | ForEach-Object { Write-Host $_ }
+    Write-Error "Falha no passo de importacao do Godot (codigo $LASTEXITCODE)."
+    exit $LASTEXITCODE
+}
+
+$gutArgs = @("--headless", "--path", $project, "-s", "addons/gut/gut_cmdln.gd", "-gdir=res://tests", "-ginclude_subdirs", "-gexit")
 if ($Filter) { $gutArgs += "-gselect=$Filter" }
 & $godot @gutArgs
 exit $LASTEXITCODE

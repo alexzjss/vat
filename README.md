@@ -18,17 +18,26 @@ winget install --id GodotEngine.GodotEngine -e
 - rode o executavel de console com `--path game`:
 
 ```powershell
-godot_console.exe --path game
+& "<Godot_v4.x-stable_win64_console.exe>" --path game
 ```
+
+O winget instala o executavel em `%LOCALAPPDATA%\Microsoft\WinGet\Packages\GodotEngine.GodotEngine_<...>\` (ex.: `Godot_v4.7.2-stable_win64_console.exe`); use o caminho completo ou defina `$env:GODOT` com ele.
 
 ## Controles
 
 | Tecla | Acao |
 |-------|------|
-| Setas | Navegar menus e escolher alvos |
+| Setas | Navegar menus, escolher alvos e as acoes da tela de resultado |
 | Enter | Confirmar |
-| Esc | Voltar/cancelar |
+| Esc | Voltar um nivel de menu (na etapa de alvo, volta a lista de onde o comando veio) |
 | F1 | Painel de debug (fila ATB, acao em execucao, estados, contribuicao) |
+
+## Fluxo da batalha
+
+- Vitoria: tela de resultado (XP por heroi) -> telas de alocacao de pontos para quem subiu de nivel -> escolha entre **Descansar e lutar** (padrao: HP/AP cheios e caidos revividos, depois nova batalha) e **Lutar de novo** (HP/AP como terminaram).
+- Derrota: **Tentar de novo** (volta ao estado do inicio da batalha) ou **Descansar e tentar de novo** (volta ao inicio e enche HP/AP).
+- O descanso e um substituto provisorio do ponto de descanso, que ainda nao existe no M1 (spec, secao 12, item 15).
+- A verificacao manual dos menus e das telas de resultado/nivel ainda depende do playtest do usuario; ate agora foram verificados por testes automatizados e por quadros gravados com `--write-movie`.
 
 ## Testes
 
@@ -46,9 +55,9 @@ Codigo de saida 0 significa que tudo passou. Se o Godot nao for encontrado, defi
 Passadas depois de `--` (argumentos de usuario), roteirizam entradas para verificacao visual:
 
 ```powershell
-godot_console.exe --path game -- --demo-menu     # roteiriza entradas no menu de comandos
-godot_console.exe --path game -- --demo-debug    # abre o painel F1 com auto_battle
-godot_console.exe --path game -- --demo-result   # auto_battle ate o fim; telas de resultado e nivel
+& "<Godot_v4.x-stable_win64_console.exe>" --path game -- --demo-menu     # roteiriza entradas no menu de comandos
+& "<Godot_v4.x-stable_win64_console.exe>" --path game -- --demo-debug    # abre o painel F1 com auto_battle
+& "<Godot_v4.x-stable_win64_console.exe>" --path game -- --demo-result   # auto_battle ate o fim; telas de resultado e nivel
 ```
 
 ## Estrutura

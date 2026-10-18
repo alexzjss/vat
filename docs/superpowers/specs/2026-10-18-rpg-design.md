@@ -10,6 +10,7 @@
 > - **[P]** Proposta provisória, aprovada como ponto de partida, sujeita a revisão em testes.
 > - **[P*]** Proposta nova escrita neste documento, **ainda não revisada** pelo usuário.
 > - **[A]** Em aberto.
+> - **[P-plano]** Decisão de implementação do M1, a revisar pelo usuário (ver §12).
 
 ---
 
@@ -424,6 +425,11 @@ Decisões adicionais tomadas durante a implementação (a revisar pelo usuário)
 
 10. **Veneno e Sono [P-plano]:** Veneno não acorda Sono; só dano direto acorda.
 11. **Renovação de estado [P-plano]:** renovar um estado atualiza a fonte (`source`) e recarrega a Barreira.
-12. **Persistência entre batalhas [P-plano]:** HP/AP persistem entre batalhas sem recuperação automática; heróis caídos começam a próxima batalha caídos.
-13. **Reinício de batalha [P-plano]:** "Lutar de novo"/"Tentar de novo" restauram o inventário inicial (apenas no M1).
-14. **Seleção de alvo [P-plano]:** confirmar o alvo já confirma a ação (sem etapa extra de confirmação).
+12. **Persistência entre batalhas [P-plano]:** HP/AP persistem entre batalhas sem recuperação automática; heróis caídos começam a próxima batalha caídos (exceto pelas ações de descanso do item 15).
+13. **Reinício de batalha [P-plano]:** "Lutar de novo"/"Tentar de novo" (e as variantes com descanso) restauram o inventário inicial (apenas no M1).
+14. **Seleção de alvo [P-plano]:** confirmar o alvo já confirma a ação (sem etapa extra de confirmação). **Sobrepõe** a etapa "confirmação" do ciclo da §4.2 e o submenu de confirmação citado na §4.4; cancelar na etapa de alvo volta ao nível de onde o comando foi escolhido (raiz para Atacar; lista de habilidades/itens com o mesmo cursor).
+15. **Descanso provisório [P-plano]:** como o M1 não tem pontos de descanso (§3.5), a tela de resultado oferece um substituto. Após a vitória (e as telas de nível): "Descansar e lutar" (padrão; todos os heróis com HP/AP cheios, calculados pelo nível e alocação atuais, caídos revividos) ou "Lutar de novo" (HP/AP como terminaram). Na derrota: "Tentar de novo" (restaura o estado do início da batalha) ou "Descansar e tentar de novo" (restaura e depois enche HP/AP).
+16. **Restaurar AP [P-plano]:** não gera contribuição (Éter não dá XP) e não afeta combatentes caídos.
+17. **IA de inimigos, alternativa [P-plano]:** sem regra aplicável, o inimigo usa o ataque básico no herói vivo com menor HP (empate: o primeiro).
+18. **Inimigo sem ação possível [P-plano]:** perde o turno (ATB volta a 0), sem ação.
+19. **Regra ALLY_HP_BELOW [P-plano]:** o alvo é um aliado abaixo do limiar; entre esses, o de menor fração de HP (HP/HP máx.).
