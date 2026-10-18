@@ -22,7 +22,10 @@ func resume_follow(time: float) -> void:
 		_following = true
 		return
 	_tween = create_tween()
-	_tween.tween_property(self, "global_position", follow.global_position, time)
+	var start: Vector2 = global_position
+	_tween.tween_method(func(t: float) -> void:
+		if follow != null:
+			global_position = start.lerp(follow.global_position, t), 0.0, 1.0, time)
 	_tween.finished.connect(func() -> void: _following = true)
 
 func set_bounds(r: Rect2) -> void:

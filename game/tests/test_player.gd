@@ -62,11 +62,14 @@ func test_camera_follows_then_slides_and_resumes() -> void:
 	assert_almost_eq(cam.global_position, player.global_position, Vector2(1, 1))
 	player.override_dir = Vector2.RIGHT
 	await wait_physics_frames(5)
-	assert_almost_eq(cam.global_position, player.global_position, Vector2(2, 2))
+	player.override_dir = Vector2.ZERO
+	await wait_physics_frames(3)
+	assert_almost_eq(cam.global_position, player.global_position, Vector2(1, 1))
 
 func test_camera_bounds() -> void:
 	var cam: MapCamera = autofree(MapCamera.new())
 	cam.set_bounds(Rect2(0, 0, 1000, 800))
 	assert_eq(cam.limit_left, 0)
+	assert_eq(cam.limit_top, 0)
 	assert_eq(cam.limit_right, 1000)
 	assert_eq(cam.limit_bottom, 800)
