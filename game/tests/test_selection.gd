@@ -72,3 +72,16 @@ func test_back_in_command_does_nothing_and_invalid_center_rejected() -> void:
 	assert_eq(s.step, SelectionSession.Step.TARGET)
 	assert_null(s.center)
 	assert_push_error_count(1)
+
+func test_confirm_before_confirm_step_returns_null() -> void:
+	var s := SelectionSession.new(h, b)
+	assert_null(s.confirm())
+	assert_push_error_count(1)
+
+func test_inventory_add_guards() -> void:
+	b.inventory.add(null, 1)
+	var it := ItemDef.new()
+	it.id = &"p"
+	b.inventory.add(it, 0)
+	assert_push_error_count(2)
+	assert_eq(b.inventory.listing().size(), 0)

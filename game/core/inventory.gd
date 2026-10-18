@@ -6,6 +6,9 @@ var _reserved: Dictionary[StringName, int] = {}
 var _defs: Dictionary[StringName, ItemDef] = {}
 
 func add(item: ItemDef, n: int) -> void:
+	if item == null or n <= 0:
+		push_error("Inventory.add invalido")
+		return
 	if not _defs.has(item.id):
 		_defs[item.id] = item
 		_counts[item.id] = 0
