@@ -17,6 +17,8 @@
 [ext_resource type="Script" path="res://battle/target_preview.gd" id="15_tp"]
 [ext_resource type="Script" path="res://battle/command_menu.gd" id="16_cm"]
 [ext_resource type="Script" path="res://battle/debug_panel.gd" id="17_dp"]
+[ext_resource type="Script" path="res://battle/result_screen.gd" id="18_rs"]
+[ext_resource type="Script" path="res://battle/level_up_screen.gd" id="19_lu"]
 
 [node name="BattleScene" type="Node2D"]
 script = ExtResource("1_bs")
@@ -76,3 +78,17 @@ offset_top = 8.0
 offset_right = 1272.0
 offset_bottom = 712.0
 script = ExtResource("17_dp")
+
+[node name="ResultScreen" type="PanelContainer" parent="UI"]
+offset_left = 430.0
+offset_top = 220.0
+offset_right = 850.0
+offset_bottom = 260.0
+script = ExtResource("18_rs")
+
+[node name="LevelUpScreen" type="PanelContainer" parent="UI"]
+offset_left = 460.0
+offset_top = 170.0
+offset_right = 820.0
+offset_bottom = 210.0
+script = ExtResource("19_lu")

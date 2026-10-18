@@ -87,5 +87,5 @@ func _executing_line(ctrl: BattleController) -> String:
 	var a: PendingAction = ctrl.executing
 	if a == null:
 		return "Executando: -"
-	var name: String = a.item.display_name if a.item != null else a.ability.display_name
-	return "Executando: %s -> %s %.2f/%.2f" % [a.actor.id, name, a.elapsed, a.cast_time(ctrl.b.cfg)]
+	var cmd_name: String = a.item.display_name if a.item != null else a.ability.display_name
+	return "Executando: %s -> %s %.2f/%.2f" % [a.actor.id, cmd_name, a.elapsed, a.cast_time(ctrl.b.cfg)]
