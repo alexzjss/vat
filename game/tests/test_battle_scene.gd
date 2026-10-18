@@ -52,11 +52,35 @@ func test_hero_turn_without_auto_leaves_session_open() -> void:
 			break
 	assert_true(s.ctrl.is_paused(), "tempo para no turno do heroi")
 	assert_eq(s.ctrl.session.actor.team, Combatant.Team.HERO)
+	var menu: CommandMenu = s.get_node("UI/CommandMenu") as CommandMenu
+	assert_true(menu.visible, "menu abre sozinho no turno do heroi")
+	assert_eq(menu.session, s.ctrl.session)
+	assert_eq(menu.ctrl, s.ctrl)
+
+func test_menu_submit_resumes_battle() -> void:
+	var s: BattleScene = _scene(false)
+	s.start(_heroes(s.balance))
+	for i: int in 300:
+		s.ctrl.tick(0.1)
+		if s.ctrl.is_paused():
+			break
+	var menu: CommandMenu = s.get_node("UI/CommandMenu") as CommandMenu
+	menu.accept()
+	assert_eq(menu.mode, CommandMenu.Mode.TARGET)
+	assert_true((s.get_node("TargetPreview") as TargetPreview).visible)
+	menu.accept()
+	assert_false(s.ctrl.is_paused())
+	assert_not_null(s.ctrl.executing)
+	assert_false(menu.visible)
+	for v: CombatantView in s.views.values():
+		assert_false(v.highlighted)
 
 func test_auto_battle_runs_to_end() -> void:
 	var s: BattleScene = _scene(true)
 	s.start(_heroes(s.balance))
 	s.ctrl.battle_ended.connect(_on_ended)
+	var menu: CommandMenu = s.get_node("UI/CommandMenu") as CommandMenu
+	s.ctrl.hero_turn.connect(func(_ss: SelectionSession) -> void: assert_false(menu.visible, "auto_battle ignora o menu"))
 	var steps: int = 0
 	while _outcomes.is_empty() and steps < 20000:
 		s.ctrl.tick(0.1)

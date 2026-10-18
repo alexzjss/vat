@@ -94,3 +94,13 @@ func confirm() -> PendingAction:
 		b.inventory.commit(item.id)
 	step = Step.DONE
 	return a
+
+## Forma/raio/largura do comando escolhido (para a prévia da UI). SINGLE/0 sem comando.
+func shape() -> AbilityDef.Shape:
+	return _draft.shape() if _draft != null else AbilityDef.Shape.SINGLE
+
+func radius() -> float:
+	return _draft.radius() if _draft != null else 0.0
+
+func width() -> float:
+	return _draft.width() if _draft != null else 0.0

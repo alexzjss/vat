@@ -1,8 +1,9 @@
 class_name BattleScene
 extends Node2D
 
-## Cena de batalha somente leitura (o menu entra na Task 13).
-## Monta combatentes nos marcadores, avança o BattleController e atualiza as views.
+## Cena de batalha: monta combatentes nos marcadores, avança o BattleController,
+## atualiza as views e abre o CommandMenu no turno de herói.
+## Debug: `-- --demo-menu` roteiriza entradas no menu (verificação com --write-movie).
 
 const VIEW_SCENE: PackedScene = preload("res://battle/combatant_view.tscn")
 
@@ -17,9 +18,16 @@ const VIEW_SCENE: PackedScene = preload("res://battle/combatant_view.tscn")
 var ctrl: BattleController
 var views: Dictionary[StringName, CombatantView] = {}
 
+var _demo: bool = false
+var _demo_area_done: bool = false
+
 @onready var _outcome_label: Label = $OutcomeLabel
+@onready var _menu: CommandMenu = $UI/CommandMenu
+@onready var _preview: TargetPreview = $TargetPreview
 
 func _ready() -> void:
+	_demo = OS.get_cmdline_user_args().has("--demo-menu")
+	_menu.submitted.connect(_on_menu_submitted)
 	_auto_start.call_deferred()
 
 func _auto_start() -> void:
@@ -43,6 +51,9 @@ func start(heroes: Array[HeroState]) -> void:
 	for i: int in start_items.size():
 		b.inventory.add(start_items[i], start_item_counts[i])
 	ctrl = BattleController.new(b)
+	_menu.close()
+	_menu.ctrl = ctrl
+	_menu.preview = _preview
 	for c: Combatant in b.all():
 		var v: CombatantView = VIEW_SCENE.instantiate() as CombatantView
 		add_child(v)
@@ -73,6 +84,13 @@ func _on_hero_turn(session: SelectionSession) -> void:
 		v.highlighted = v.combatant == session.actor
 	if auto_battle:
 		_auto_confirm(session)
+		return
+	_menu.open(session)
+	if _demo:
+		_run_demo(session)
+
+func _on_menu_submitted(_a: PendingAction) -> void:
+	_set_highlight_off()
 
 func _auto_confirm(session: SelectionSession) -> void:
 	session.choose_ability(session.actor.basic_attack)
@@ -101,3 +119,48 @@ func _on_turn_lost(c: Combatant) -> void:
 func _on_battle_ended(outcome: BattleController.Outcome) -> void:
 	_set_highlight_off()
 	_outcome_label.text = "Vitória!" if outcome == BattleController.Outcome.VICTORY else "Derrota..."
+
+# --- Roteiro de debug (--demo-menu) -------------------------------------------------
+
+func _run_demo(s: SelectionSession) -> void:
+	var area: AbilityDef = null
+	var line: AbilityDef = null
+	for ab: AbilityDef in s.actor.abilities:
+		if ab.shape == AbilityDef.Shape.CIRCLE_TARGET and area == null:
+			area = ab
+		elif ab.shape == AbilityDef.Shape.LINE and line == null:
+			line = ab
+	await _demo_wait(0.6)
+	if area != null and not _demo_area_done:
+		_demo_area_done = true
+		_demo_pick("Habilidade")
+		await _demo_wait(0.6)
+		_demo_pick(area.display_name)
+		await _demo_wait(0.8)
+		_menu.move(1)
+		await _demo_wait(0.8)
+		_menu.cancel()
+		await _demo_wait(0.5)
+		if line != null:
+			_demo_pick("Habilidade")
+			await _demo_wait(0.4)
+			_demo_pick(line.display_name)
+			await _demo_wait(0.8)
+			_menu.move(1)
+			await _demo_wait(0.8)
+			_menu.accept()
+			return
+	_demo_pick("Atacar")
+	await _demo_wait(0.4)
+	_menu.accept()
+
+func _demo_wait(t: float) -> void:
+	await get_tree().create_timer(t).timeout
+
+func _demo_pick(prefix: String) -> void:
+	var labels: PackedStringArray = _menu.entry_labels()
+	for i: int in labels.size():
+		if labels[i].begins_with(prefix):
+			_menu.move(i - _menu.cursor)
+			_menu.accept()
+			return

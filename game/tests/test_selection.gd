@@ -85,3 +85,17 @@ func test_inventory_add_guards() -> void:
 	b.inventory.add(it, 0)
 	assert_push_error_count(2)
 	assert_eq(b.inventory.listing().size(), 0)
+
+func test_shape_accessors_follow_draft() -> void:
+	var s := SelectionSession.new(h, b)
+	assert_eq(s.shape(), AbilityDef.Shape.SINGLE)
+	assert_eq(s.radius(), 0.0)
+	var ab: AbilityDef = Fixtures.hit(1.0, AbilityDef.Shape.LINE)
+	ab.width = 80.0
+	ab.radius = 5.0
+	s.choose_ability(ab)
+	assert_eq(s.shape(), AbilityDef.Shape.LINE)
+	assert_eq(s.width(), 80.0)
+	assert_eq(s.radius(), 5.0)
+	s.back()
+	assert_eq(s.width(), 0.0)
