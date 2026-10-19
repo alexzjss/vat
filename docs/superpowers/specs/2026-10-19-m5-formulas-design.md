@@ -68,3 +68,50 @@ Estrutura de arquivos do simulador, formato do cenário, nomes dos enums, como a
 ## 7. Validação (M5a)
 
 Testes: cada opção de fórmula com casos numéricos; padrão A idêntico ao atual (os 326 testes passam sem alteração); simulador determinístico (mesma semente → mesmas métricas); política `smart` nunca trava (sempre submete uma ação válida); relatório gerado por comando. Revisão final confere que o comportamento padrão do jogo não mudou.
+
+## Decisões do M5b
+
+> **Estado:** decisões aprovadas pelo usuário e aplicadas no código (M5b, 2026-10-19). Os coeficientes abaixo são **valores de teste**, ajustáveis no `BalanceConfig`, não canônicos. Marcador adicional: **[I]** inferência do Claude a partir da decisão, a revisar.
+>
+> Relatórios: [relatório final](../../balance/2026-10-19-relatorio-final.md) (padrão escolhido, metas do M5b) · [relatório de opções](../../balance/2026-10-19-relatorio-opcoes.md) (M5a, tudo A; defasado, gerado antes do reajuste do conteúdo).
+
+### Escolhas do usuário
+
+| # | Fórmula | Escolha | Modo no código |
+|---|---|---|---|
+| F1 | Retornos decrescentes | B: faixas, estilo Souls | `DrMode.B` |
+| F2 | HP máximo | B: estilo FF | `HpMode.B` |
+| F3 | AP máximo | B | `ApMode.B` |
+| F4 | Velocidade → ATB | A: linear | `AtbMode.A` |
+| F5 | Dano físico e de habilidade | B: razão, estilo FF | `DamageMode.B` |
+| F6 | Variação de dano | B: ±6% | `VarianceMode.B` |
+| F7 | Esquiva | B: relativa, estilo CT | `DodgeMode.B` |
+| F8 | Curva de XP | C: quadrática com termo linear | `XpMode.C` |
+| F9 | Nível máximo | 99 | `max_level = 99` |
+| F10 | Reviver | A: 25% do HP máximo | `ReviveMode.A` |
+| F11 | Veneno | B: % do HP máximo por turno | `PoisonMode.B` |
+| F12 | Durações de estado | A: duração por estado | `DurationMode.A` |
+
+Os enums de modo (`DrMode`, `HpMode`, `ApMode`, `AtbMode`, `DodgeMode`, `DamageMode`, `VarianceMode`, `XpMode`, `ReviveMode`, `PoisonMode`, `DurationMode`) continuam em `game/core/defs/balance_config.gd`, junto com as opções não escolhidas: o simulador usa essas opções para comparar alternativas **[I]**. O padrão do jogo é sempre o escolhido acima.
+
+### Fórmulas finais
+
+Legenda: `Vit`, `Aura`, `Vel` são os atributos efetivos (base + alocado + equipamento + estados, depois dos retornos decrescentes); `Nv` é o nível; `⌊ ⌋` arredonda para baixo. Os valores são os de `game/data/test/balance.tres`; quando o `.tres` não define um coeficiente, vale o padrão de `balance_config.gd`, indicado entre parênteses.
+
+- **F1 — Retornos decrescentes** (valor bruto `r`): até 13 integral (padrão: 20); de 14 a 40 com fator 0,45 (padrão: 0,5); acima de 40 com fator 0,25 (padrão: 0,25).
+  - `r ≤ 13`: valor = `r`
+  - `13 < r ≤ 40`: valor = 13 + ⌊(r − 13) × 0,45⌋
+  - `r > 40`: valor = 25 + ⌊(r − 40) × 0,25⌋
+- **F2 — HP máximo:** `5 × Vit + 3 × Nv + ⌊0,2 × Vit × Nv⌋` (padrão: `30 + 8 × Vit + 4 × Nv + ⌊0,4 × Vit × Nv⌋`).
+- **F3 — AP máximo:** `4 × Aura + 1 × Nv` (4 e 1 são os padrões; o `balance.tres` não os altera).
+- **F4 — Taxa do ATB:** `max(0,05; 0,2 + 0,02 × Vel)`. Pressa multiplica a taxa por `1 + potência/100` e Lentidão por `1 − potência/100`.
+- **F5 — Dano de ataque e habilidade:** `⌊P × Atr × 20 / (20 + 0,5 × Vit_alvo)⌋`, onde `P` é a potência do efeito e `Atr` o atributo efetivo do atacante usado pelo efeito (efeito de escala fixa usa só a potência). O 0,5 é o padrão de `defense_per_vitality`. O dano nunca zera: o mínimo final é 1.
+- **F6 — Variação:** `dano × (1 + (2r − 1) × 0,06)`, arredondado ao inteiro mais próximo, com `r` do dado no intervalo [0, 1). Mínimo 1.
+- **F7 — Esquiva:** `clamp((Vel_alvo − Vel_atacante) × 0,005; 0; 0,15)`. Sem atacante informado: `min(0,15; Vel_alvo × 0,005)`.
+- **F8 — XP acumulada para atingir o nível `L`:** `15 × n² + 30 × n`, com `n = L − 1` (coeficientes iguais aos padrões). Exemplos: nível 2 = 45; nível 3 = 120; nível 4 = 225; nível 5 = 360.
+- **F9 — Nível máximo:** 99. Ao atingi-lo, o XP guardado é limitado ao necessário para o nível 99.
+- **F10 — Reviver:** `máx(1; ⌊25% × HP máx.⌋)`, com a potência do `EffectDef` de Reviver (25% no conteúdo de teste).
+- **F11 — Veneno:** `máx(1; ⌊6% × HP máx.⌋)` de dano a cada ATB cheio do afetado (`poison_pct` = 0,06 no teste e no padrão).
+- **F12 — Durações de estado:** `StatusDef.duration` de cada estado (conteúdo de teste). A `duration_table` do `BalanceConfig` continua existindo, mas não é usada.
+
+Métricas e metas de aceitação estão no [relatório final](../../balance/2026-10-19-relatorio-final.md).

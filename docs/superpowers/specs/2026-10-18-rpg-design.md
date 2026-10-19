@@ -331,7 +331,7 @@ Regras da v3.7 (seção 9.1) continuam válidas [C]. Catálogo inicial [P]:
 O M1 precisa de números para rodar. Regra:
 
 - Todos os números ficam em Resources de balanceamento identificados como **"valores de teste — não canônicos"**.
-- As fórmulas de teste são **deliberadamente simples** (ex.: lineares) e existem apenas para exercitar as regras; serão substituídas pelas fórmulas aprovadas na Etapa C da v3.7.
+- As fórmulas de teste são **deliberadamente simples** (ex.: lineares) e existem apenas para exercitar as regras; serão substituídas pelas fórmulas aprovadas na Etapa C da v3.7. **Decidido no M5:** as escolhas F1–F12 estão em [Decisões do M5b](2026-10-19-m5-formulas-design.md#decisões-do-m5b).
 - Nenhum valor de teste deve ser citado como decisão de design.
 
 ---
@@ -394,7 +394,7 @@ Acrescentados na v4.0:
 Fecham antes ou durante o M1:
 1. Raios/larguras de áreas e se existe fogo amigo (4.7).
 2. Comando para "passar a vez"/defender (4.4).
-3. Forma da curva de retornos decrescentes (5.2) — começa com valores de teste.
+3. Forma da curva de retornos decrescentes (5.2) — começa com valores de teste. **Decidido no M5 (F1, faixas estilo Souls):** ver [Decisões do M5b](2026-10-19-m5-formulas-design.md#decisões-do-m5b).
 
 Fecham antes do M2/M3:
 4. Mecânica de fuga e iniciativa por contato (3.4).
@@ -403,7 +403,7 @@ Fecham antes do M2/M3:
 7. Slots e restrições de equipamento (5.3).
 8. Material narrativo: tom e cenário detalhados, quando o usuário quiser compartilhar.
 
-O catálogo de fórmulas pendentes da v3.7 (seção 11 do guia) continua integralmente válido.
+O catálogo de fórmulas pendentes da v3.7 (seção 11 do guia) continua integralmente válido. **Decidido no M5:** F1–F12 (HP e AP máximos, ATB, dano, variação, esquiva, XP, nível máximo, reviver, veneno e durações) estão em [Decisões do M5b](2026-10-19-m5-formulas-design.md#decisões-do-m5b).
 
 ---
 

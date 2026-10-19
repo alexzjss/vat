@@ -108,6 +108,20 @@ O `--demo-m2` roda no jogo principal (sem `--scene`) e leva cerca de 40 s de jog
 
 O `--demo-m3` leva cerca de 50 s (use `--quit-after 950` com `--fixed-fps 10`). O `--demo-m4` leva cerca de 55 s (`--quit-after 600`).
 
+## Fórmulas e balanceamento
+
+As fórmulas do jogo foram escolhidas no M5 (ver [decisões do M5b](docs/superpowers/specs/2026-10-19-m5-formulas-design.md#decisões-do-m5b)). Os relatórios do simulador de batalhas ficam em [docs/balance/](docs/balance/):
+
+- [Relatório final](docs/balance/2026-10-19-relatorio-final.md): padrão escolhido, com as metas de vitória e duração.
+- [Relatório de opções](docs/balance/2026-10-19-relatorio-opcoes.md): as opções A/B/C de cada fórmula lado a lado (M5a).
+
+Para gerar os relatórios de novo, na raiz do repositório:
+
+```powershell
+./run_sim.ps1                  # relatório de opções (cerca de 9 minutos com os padrões)
+./run_sim.ps1 -Final -Runs 30  # relatório final
+```
+
 ## Estrutura
 
 - `docs/` - spec, plano e historico
