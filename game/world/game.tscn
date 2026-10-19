@@ -13,6 +13,7 @@
 [ext_resource type="Script" path="res://world/fade.gd" id="11_fade"]
 [ext_resource type="Resource" path="res://data/test/heroes/teste_d.tres" id="12_hd"]
 [ext_resource type="Resource" path="res://data/test/heroes/teste_e.tres" id="13_he"]
+[ext_resource type="PackedScene" path="res://ui/field_menu/field_menu.tscn" id="14_fm"]
 
 [node name="Game" type="Node"]
 script = ExtResource("1_game")
@@ -34,3 +35,5 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 color = Color(0, 0, 0, 1)
+
+[node name="FieldMenu" parent="." instance=ExtResource("14_fm")]

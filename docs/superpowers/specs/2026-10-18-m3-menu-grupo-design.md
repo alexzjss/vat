@@ -69,3 +69,23 @@ Nomes de nós e cenas, layout exato e cores, como o menu congela o mapa, onde vi
 ## 5. Validação
 
 Testes do estado de formação (regras de 1–4, líder, troca, reserva fora da XP), efeitos fora de combate (mesmos números da batalha, sem gasto quando não há efeito), menu (abrir/fechar só quando permitido, navegação, cada submenu), batalha com 4 nos pontos certos, salvamento com formação. Demo `--demo-m3` com quadros conferidos. Os 208 testes atuais continuam passando. No fim, partida manual pelo usuário.
+
+## 6. Decisões de implementação do M3
+
+Tomadas durante a construção; cada uma está marcada **[I]** para revisão do usuário.
+
+1. **[I]** A interface chama o recurso de **"AP"** em todo o menu (cartões, Técnicas, Status), e não "Aura" como diz o texto desta spec — consistente com a batalha do M1. O atributo continua "Aura".
+2. **[I]** Itens e técnicas de alvo único podem ter como alvo **heróis da reserva** (o painel do grupo inclui a reserva na seleção). Técnicas de grupo/todos afetam só os ativos.
+3. **[I]** Nas listas das páginas, o cursor **pode parar em entradas cinza** (aceitar mostra um aviso, ex.: "AP insuficiente.", "Não pode ser usado aqui."); já na seleção de alvo no painel do grupo, heróis sem efeito são **pulados**.
+4. **[I]** **Esc/Tab** dentro do menu é "voltar": desfaz um passo da página (seleção de alvo, ficha do Status, herói escolhido na Formação), depois volta à raiz, e na raiz fecha. O evento é sempre consumido pelo menu, então nunca reabre o menu no mesmo toque. Fora do menu, o Game trata `open_menu` só quando o menu está fechado.
+5. **[I]** `FieldActions.can_use_technique` recebe um argumento opcional `state`: sem ele, técnicas de grupo/todos só olham o usuário; a UI sempre passa o estado.
+6. **[I]** O menu só abre fora de transição (`Game.busy`), sem batalha no mapa (o que cobre as telas de resultado e de nível) e com o mapa não travado (Game Over). Enquanto aberto, o mapa atual fica com `process_mode = DISABLED` (mesmo mecanismo do fade, M2 §8.17); ao fechar volta a `INHERIT`. Um toque de inimigo que já estava encostado ao abrir pode disparar logo depois de fechar (igual ao fim do fade).
+7. **[I]** O marcador do jogador mostra a **inicial da última palavra do nome do líder** ("Teste D" → "D"), porque todos os nomes de teste começam com "Teste". É atualizado ao entrar num mapa e ao fechar o menu.
+8. **[I]** Grupo inicial: A, B, C, D ativos e E na reserva (`MAX_ACTIVE = 4`); Teste D tem Golpe em área e Cura, Teste E tem Pulso.
+9. **[I]** Batalha com 4: pontos de herói em zigue-zague com 150 px entre eles (batalha isolada e arena da área local). Na batalha do mapa a margem vertical é de ~15 px.
+10. **[I]** O ponto de salvamento guarda a formação por ids (ativos e reserva) mais os valores de cada herói; restaurar reordena as mesmas instâncias de `HeroState`.
+11. **[I]** Painel do grupo: 4 cartões grandes (nome, nível, "Caído", "+N pts", barras de HP/AP) e cartões pequenos da reserva em grade de 2 colunas; a seleção de alvo usa `pick_accept()` (não `accept`) para não confundir com o `accept` do menu.
+12. **[I]** Páginas compartilham uma base `FieldPage` (lista com cursor, linha de aviso); o FieldMenu roteia o teclado para a página ativa por `set_page_input` e o "voltar" por `set_page_cancel`.
+13. **[I]** Formação no estilo FF: escolher um herói e depois outro troca os dois; com um herói escolhido aparece a ação extra "Para reserva" / "Para o grupo". Recusas mostram aviso ("Grupo cheio", "O grupo precisa de pelo menos 1 herói").
+14. **[I]** Itens não usáveis em campo aparecem em cinza; se ninguém seria afetado, "Ninguém precisa disso." e nada é gasto.
+15. **[I]** Demos de debug: `-- --demo-m3` (DemoM3: fere A e C, usa Poção e Cura, abre Status, troca D↔E, fecha e entrega ao DemoM2 para entrar na área e vencer a batalha com a nova formação) e `-- --demo-field-menu` (DemoFieldMenu, movido do game.gd para um nó próprio).

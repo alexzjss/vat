@@ -40,6 +40,17 @@ No mapa:
 | Tecla | Acao |
 |-------|------|
 | Setas / WASD | Andar |
+| Tab / Esc | Abrir o menu de campo (fora de batalha e de transicao) |
+
+No menu de campo (paginas Itens, Tecnicas, Status, Atributos, Formacao e Fechar; o mapa fica congelado enquanto ele esta aberto):
+
+| Tecla | Acao |
+|-------|------|
+| Setas | Navegar comandos, listas e herois do painel do grupo (esquerda/direita nos atributos) |
+| Enter | Confirmar |
+| Tab / Esc | Voltar um nivel (na raiz, fecha o menu) |
+
+O quadrado azul do mapa mostra a inicial do lider (primeiro ativo de pe). A ordem da Formacao vale na proxima batalha (ativo 1 -> ponto 1, ...); a reserva nao luta nem recebe XP de combate.
 
 Na batalha:
 
@@ -82,6 +93,8 @@ Passadas depois de `--` (argumentos de usuario), roteirizam entradas para verifi
 & "<Godot_v4.x-stable_win64_console.exe>" --path game --scene res://battle/battle_scene.tscn -- --demo-result   # auto_battle ate o fim; telas de resultado e nivel
 & "<Godot_v4.x-stable_win64_console.exe>" --path game --scene res://world/local_map.tscn -- --demo-local   # area local sozinha: leva o jogador ate o inimigo (auto_battle)
 & "<Godot_v4.x-stable_win64_console.exe>" --path game -- --demo-m2   # jogo inteiro: ciclo do M2 sozinho (mapa-mundi -> area -> batalha -> saida -> mapa-mundi)
+& "<Godot_v4.x-stable_win64_console.exe>" --path game -- --demo-m3   # menu de campo (Pocao, Cura, Status, troca D<->E) e depois o ciclo do M2 com a nova formacao
+& "<Godot_v4.x-stable_win64_console.exe>" --path game -- --demo-field-menu   # abre o menu de campo e percorre as paginas
 ```
 
 O `--demo-m2` roda no jogo principal (sem `--scene`) e leva cerca de 40 s de jogo. Ele anda com o jogador por pontos fixos dos mapas de teste, liga o `auto_battle`, deixa os inimigos do encontro com 2 de HP (so no demo) e aceita as telas de resultado e de nivel. Para gravar quadros:
@@ -89,6 +102,8 @@ O `--demo-m2` roda no jogo principal (sem `--scene`) e leva cerca de 40 s de jog
 ```powershell
 & "<Godot_v4.x-stable_win64_console.exe>" --path game --write-movie <pasta>/f.png --fixed-fps 10 --quit-after 420 -- --demo-m2
 ```
+
+O `--demo-m3` leva cerca de 50 s (use `--quit-after 950` com `--fixed-fps 10`).
 
 ## Estrutura
 
