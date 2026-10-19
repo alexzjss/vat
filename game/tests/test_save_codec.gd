@@ -125,3 +125,11 @@ func test_malformed_dictionaries_return_null() -> void:
 	var d2: Dictionary = _game().to_dict()
 	d2["heroes"][0].erase("hp")
 	assert_null(GameState.from_dict(d2, _reg, Fixtures.cfg(), null))
+
+func test_save_pos_round_trip_and_optional() -> void:
+	var g: GameState = _game()
+	assert_false(_round_trip(g).has_save_pos(), "sem posição por padrão")
+	g.save(&"overworld", &"Start", Vector2(12.5, 40.0))
+	var r: GameState = _round_trip(g)
+	assert_true(r.has_save_pos())
+	assert_eq(r.save_pos, Vector2(12.5, 40.0))

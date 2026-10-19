@@ -3,6 +3,8 @@ extends RefCounted
 
 var cfg: BalanceConfig
 const MAX_ACTIVE: int = 4
+## Sem posição exata gravada no save.
+const NO_POS: Vector2 = Vector2.INF
 ## Item-chave que reinicia os atributos de um herói (usado no ponto de descanso).
 const RESET_ITEM_ID: StringName = &"cristal_reinicio"
 
@@ -17,6 +19,8 @@ var settings: GameSettings
 var play_time: float = 0.0
 var save_map: StringName
 var save_spawn: StringName
+## Posição exata do jogador no mapa-múndi ao salvar (NO_POS = usar só o marcador `save_spawn`).
+var save_pos: Vector2 = NO_POS
 var _saved_heroes: Array[Dictionary] = []
 var _saved_active_ids: Array[StringName] = []
 var _saved_reserve_ids: Array[StringName] = []
@@ -132,10 +136,13 @@ func to_dict() -> Dictionary:
 	var rs: Array = []
 	for h: HeroState in reserve:
 		rs.append(h.to_dict())
-	return {
+	var out: Dictionary = {
 		"heroes": hs, "reserve": rs, "inventory": inventory.to_dict(), "bag": bag.to_dict(),
 		"save_map": String(save_map), "save_spawn": String(save_spawn), "play_time": play_time,
 	}
+	if has_save_pos():
+		out["save_pos"] = [save_pos.x, save_pos.y]
+	return out
 
 ## Reconstroi o estado e grava o ponto de salvamento em memoria. Null se o formato for invalido
 ## ou algum id for desconhecido (o slot e tratado como corrompido).
@@ -158,7 +165,13 @@ static func from_dict(d: Dictionary, registry: DefRegistry, p_cfg: BalanceConfig
 	if g.inventory == null or g.bag == null:
 		return null
 	g.play_time = float(pt)
-	g.save(StringName(str(d.get("save_map", ""))), StringName(str(d.get("save_spawn", ""))))
+	var pos: Vector2 = NO_POS
+	var sp: Variant = d.get("save_pos")
+	if sp is Array and (sp as Array).size() == 2:
+		var a: Array = sp
+		if (a[0] is float or a[0] is int) and (a[1] is float or a[1] is int):
+			pos = Vector2(float(a[0]), float(a[1]))
+	g.save(StringName(str(d.get("save_map", ""))), StringName(str(d.get("save_spawn", ""))), pos)
 	return g
 
 static func _load_heroes(src: Variant, registry: DefRegistry, out: Array[HeroState]) -> bool:
@@ -171,10 +184,14 @@ static func _load_heroes(src: Variant, registry: DefRegistry, out: Array[HeroSta
 		out.append(h)
 	return true
 
+func has_save_pos() -> bool:
+	return save_pos != NO_POS
+
 ## Grava o ponto de salvamento: valores e formação dos heróis e cópia do inventário.
-func save(map: StringName, spawn: StringName) -> void:
+func save(map: StringName, spawn: StringName, pos: Vector2 = NO_POS) -> void:
 	save_map = map
 	save_spawn = spawn
+	save_pos = pos
 	_saved_heroes = []
 	_saved_active_ids = []
 	_saved_reserve_ids = []

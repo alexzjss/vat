@@ -30,5 +30,11 @@ func setup(game_state: GameState, spawn: StringName) -> void:
 	camera.global_position = player.global_position
 	camera.reset_smoothing()
 
+## Põe o jogador numa posição exata (restauração de save) e recentra a câmera.
+func place_player(pos: Vector2) -> void:
+	player.global_position = pos
+	camera.global_position = pos
+	camera.reset_smoothing()
+
 func _on_zone_entered(zone_id: StringName) -> void:
 	location_entered.emit(zone_id)

@@ -114,6 +114,9 @@ func continue_from_slot(slot: int) -> bool:
 	state = loaded
 	in_title = false
 	go_to(loaded.save_map, loaded.save_spawn, false)
+	var world: Overworld = current as Overworld
+	if world != null and loaded.has_save_pos():
+		world.place_player(loaded.save_pos)
 	return true
 
 func _show_title() -> void:
@@ -152,7 +155,11 @@ func rest_here() -> void:
 func save_to_slot(slot: int) -> bool:
 	if not can_save():
 		return false
-	state.save(current_map, save_spawn_here())
+	var pos: Vector2 = GameState.NO_POS
+	var world: Overworld = current as Overworld
+	if world != null:
+		pos = world.player.global_position
+	state.save(current_map, save_spawn_here(), pos)
 	return store.write(slot, state)
 
 ## Aplica as configurações que não dependem de uma cena (volume do bus Master).

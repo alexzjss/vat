@@ -240,7 +240,8 @@ func _on_battle_ended(outcome: BattleController.Outcome) -> void:
 	else:
 		phase = Phase.DEFEAT
 		if mode == Mode.MAP:
-			_result.show_defeat("Game Over", PackedStringArray(["Continuar"]))
+			# O Game dono do mapa mostra a única tela de Game Over; aqui só devolve o desfecho.
+			_finish(BattleController.Outcome.DEFEAT)
 		else:
 			_result.show_defeat()
 	if demo_result:

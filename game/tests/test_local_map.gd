@@ -187,8 +187,6 @@ func test_defeat_emits_game_over() -> void:
 	var s: BattleScene = _touch(_strong())
 	_run_to_end(s)
 	assert_eq(s.ctrl.outcome, BattleController.Outcome.DEFEAT)
-	assert_signal_not_emitted(map, "game_over")
-	_accept_all(s)
 	assert_signal_emit_count(map, "game_over", 1)
 
 func test_exit_only_when_not_in_battle() -> void:

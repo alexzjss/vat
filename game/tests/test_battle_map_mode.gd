@@ -137,17 +137,14 @@ func test_map_mode_victory_emits_finished_after_continue() -> void:
 	r.accept()
 	assert_eq(_finished.size(), 1, "emitido uma vez")
 
-func test_map_mode_defeat_shows_game_over_and_emits() -> void:
+func test_map_mode_defeat_emits_without_own_screen() -> void:
 	var s: BattleScene = _scene()
 	_start(s, _strong(), 3)
 	_run_to_end(s)
 	assert_eq(s.ctrl.outcome, BattleController.Outcome.DEFEAT)
 	var r: ResultScreen = _result(s)
-	assert_true(r.visible)
-	assert_eq(r.lines()[0], "Game Over")
-	assert_eq(r.action_labels(), PackedStringArray(["Continuar"]))
+	assert_false(r.visible, "sem tela própria: o Game mostra o Game Over")
 	var old_ctrl: BattleController = s.ctrl
-	r.accept()
 	assert_eq(_finished, [BattleController.Outcome.DEFEAT] as Array[BattleController.Outcome])
 	assert_same(s.ctrl, old_ctrl, "a batalha não reinicia")
 	assert_eq(s.ctrl.outcome, BattleController.Outcome.DEFEAT)

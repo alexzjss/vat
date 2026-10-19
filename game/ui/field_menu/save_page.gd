@@ -7,6 +7,9 @@ var picker: SaveSlotPicker
 
 func _init() -> void:
 	super._init()
+	# Esta página usa só o seletor de slots: some com a lista e o aviso vazios da base (lacuna no topo).
+	_list.visible = false
+	_message.visible = false
 	picker = SaveSlotPicker.new()
 	picker.chosen.connect(_on_chosen)
 	add_child(picker)

@@ -161,3 +161,18 @@ func test_play_time_counts_outside_title() -> void:
 	game.start_new_game()
 	game._process(2.0)
 	assert_almost_eq(game.state.play_time, 2.0, 0.001)
+
+func test_overworld_save_restores_player_position() -> void:
+	var first: Game = _make(true)
+	var pos := Vector2(777.0, 555.0)
+	(first.current as Overworld).player.global_position = pos
+	assert_true(first.save_to_slot(1))
+	assert_eq(first.state.save_pos, pos)
+	first.queue_free()
+	await get_tree().process_frame
+	game = _make(true)
+	assert_true(game.continue_from_slot(1))
+	await _wait_idle()
+	var world: Overworld = game.current as Overworld
+	assert_not_null(world)
+	assert_eq(world.player.global_position, pos)
