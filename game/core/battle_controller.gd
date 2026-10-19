@@ -103,6 +103,7 @@ func _check_end() -> void:
 	else:
 		return
 	_drop_session()
+	_discard_queued()
 	battle_ended.emit(outcome)
 
 func _start_next() -> void:
@@ -141,8 +142,17 @@ func _begin_queued() -> void:
 	var a: PendingAction = _queued
 	_queued = null
 	if a.actor.is_down():
+		_refund(a)
 		return
 	_begin(a)
+
+## Ação enfileirada que nunca vai começar (herói caiu, batalha acabou): devolve item ou AP.
+func _discard_queued() -> void:
+	if _queued == null:
+		return
+	var a: PendingAction = _queued
+	_queued = null
+	_refund(a)
 
 ## Revalida o alvo no começo da ação (ele pode ter caído durante a espera): mantém, redireciona
 ## pela regra do Targeting ou devolve false se não há mais nenhum alvo.
@@ -157,12 +167,15 @@ func _retarget(a: PendingAction) -> bool:
 
 ## Ação sem alvo: perdida sem gastar AP nem item; o turno termina.
 func _lose(a: PendingAction) -> void:
+	_refund(a)
+	a.actor.atb = 0.0
+	turn_lost.emit(a.actor)
+
+func _refund(a: PendingAction) -> void:
 	if a.item != null:
 		b.inventory.refund(a.item.id)
 	elif a.ability != null:
 		a.actor.ap += a.ability.ap_cost
-	a.actor.atb = 0.0
-	turn_lost.emit(a.actor)
 
 func _cancel_session_if_down() -> void:
 	if session != null and session.actor.is_down():

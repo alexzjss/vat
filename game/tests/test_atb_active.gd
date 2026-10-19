@@ -144,3 +144,29 @@ func test_other_hero_waits_while_a_session_is_open() -> void:
 	assert_eq(ctrl.session.actor.id, first)
 	assert_eq(_log.count("turn:a") + _log.count("turn:b"), 1)
 	assert_true(ctrl.b.queue.has(ctrl.b.heroes[1]) or ctrl.b.heroes[1].atb >= 1.0)
+
+func test_queued_item_is_refunded_when_hero_falls_before_it_starts() -> void:
+	var ctrl := _battle([20, 5], [10])
+	var a: Combatant = ctrl.b.heroes[0]
+	var x: Combatant = ctrl.b.enemies[0]
+	var potion := ItemDef.new()
+	potion.id = &"potion"
+	potion.display_name = "Pocao"
+	var fx := EffectDef.new()
+	fx.kind = EffectDef.Kind.HEAL
+	fx.scale = EffectDef.Scale.FIXED
+	fx.potency = 10.0
+	potion.effects = [fx]
+	ctrl.b.inventory.add(potion, 2)
+	assert_true(_until(ctrl, func() -> bool: return ctrl.session != null))
+	assert_true(_until(ctrl, func() -> bool: return ctrl.executing != null))
+	var s: SelectionSession = ctrl.session
+	assert_true(s.choose_item(potion))
+	s.set_center(a)
+	ctrl.submit(s.confirm())
+	assert_eq(ctrl.b.inventory.available(&"potion"), 1, "consumido ao confirmar")
+	a.hp = 0
+	assert_true(_until(ctrl, func() -> bool: return ctrl.executing == null and ctrl._queued == null))
+	assert_eq(ctrl.b.inventory.available(&"potion"), 2, "item devolvido")
+	assert_false(_log.has("started:a>a"))
+	assert_gt(x.hp, -1)
