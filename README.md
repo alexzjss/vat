@@ -72,13 +72,20 @@ Codigo de saida 0 significa que tudo passou. Se o Godot nao for encontrado, defi
 
 ## Flags de debug
 
-Passadas depois de `--` (argumentos de usuario), roteirizam entradas para verificacao visual. As flags de batalha exigem a cena isolada (`--scene`):
+Passadas depois de `--` (argumentos de usuario), roteirizam entradas para verificacao visual. As flags de batalha exigem a cena isolada (`--scene`); o `--demo-local` exige a cena da area local:
 
 ```powershell
 & "<Godot_v4.x-stable_win64_console.exe>" --path game --scene res://battle/battle_scene.tscn -- --demo-menu     # roteiriza entradas no menu de comandos
 & "<Godot_v4.x-stable_win64_console.exe>" --path game --scene res://battle/battle_scene.tscn -- --demo-debug    # abre o painel F1 com auto_battle
 & "<Godot_v4.x-stable_win64_console.exe>" --path game --scene res://battle/battle_scene.tscn -- --demo-result   # auto_battle ate o fim; telas de resultado e nivel
 & "<Godot_v4.x-stable_win64_console.exe>" --path game --scene res://world/local_map.tscn -- --demo-local   # area local sozinha: leva o jogador ate o inimigo (auto_battle)
+& "<Godot_v4.x-stable_win64_console.exe>" --path game -- --demo-m2   # jogo inteiro: ciclo do M2 sozinho (mapa-mundi -> area -> batalha -> saida -> mapa-mundi)
+```
+
+O `--demo-m2` roda no jogo principal (sem `--scene`) e leva cerca de 40 s de jogo. Ele anda com o jogador por pontos fixos dos mapas de teste, liga o `auto_battle`, deixa os inimigos do encontro com 2 de HP (so no demo) e aceita as telas de resultado e de nivel. Para gravar quadros:
+
+```powershell
+& "<Godot_v4.x-stable_win64_console.exe>" --path game --write-movie <pasta>/f.png --fixed-fps 10 --quit-after 420 -- --demo-m2
 ```
 
 ## Estrutura
