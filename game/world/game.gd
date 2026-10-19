@@ -3,7 +3,7 @@ extends Node
 
 ## Jogo raiz: guarda o GameState, troca o mapa atual com fade e trata o Game Over
 ## (volta ao ponto de salvamento). Reentrar numa área a instancia de novo (inimigos reaparecem).
-## Debug: `-- --demo-field-menu` abre o menu de campo com um caído e pontos pendentes.
+## Debug: `-- --demo-field-menu` abre o menu de campo (um caído, pontos pendentes) e percorre as páginas.
 ## Debug: `-- --demo-m2` adiciona o DemoM2, que percorre o ciclo do M2 sozinho (verificação com --write-movie).
 
 const MAPS: Dictionary[StringName, PackedScene] = {
@@ -113,3 +113,22 @@ func _demo_field_menu() -> void:
 	var menu: FieldMenu = (load("res://ui/field_menu/field_menu.tscn") as PackedScene).instantiate() as FieldMenu
 	add_child(menu)
 	menu.open(state)
+	# Roteiro (1,5 s por tela): raiz → Itens com alvo → Status → Formação com um herói escolhido.
+	await get_tree().create_timer(1.5, true).timeout
+	menu.cursor = 0
+	menu.accept()
+	menu.item_page.accept()
+	await get_tree().create_timer(1.5, true).timeout
+	menu.cancel()
+	menu.cancel()
+	menu.cursor = 2
+	menu.accept()
+	menu.status_page.move(2)
+	menu.status_page.accept()
+	await get_tree().create_timer(1.5, true).timeout
+	menu.cancel()
+	menu.cancel()
+	menu.cursor = 4
+	menu.accept()
+	menu.formation_page.accept()
+	menu.formation_page.move(4)

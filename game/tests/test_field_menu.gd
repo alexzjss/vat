@@ -37,6 +37,9 @@ func test_open_shows_commands_and_party_cards() -> void:
 	assert_string_contains(panel.card_text(4), "e")
 
 func test_navigation_and_close() -> void:
+	# Atributos só abre com alguém com pontos pendentes (Task 5).
+	g.reserve[0].pending_points = 1
+	menu.party_panel.refresh(g)
 	watch_signals(menu)
 	menu.move(1)
 	assert_eq(menu.cursor, 1)

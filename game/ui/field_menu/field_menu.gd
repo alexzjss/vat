@@ -2,8 +2,9 @@ class_name FieldMenu
 extends CanvasLayer
 
 ## Menu de campo (camada 5: acima do mapa, abaixo do Fade). Raiz: lista de comandos + painel do grupo.
-## Cada comando abre uma página (um Control filho em `_pages`, preenchido pelas páginas reais).
-## O teclado (_unhandled_input) chama move/accept/cancel, que também servem aos testes.
+## Cada comando abre uma página (FieldPage em `_pages`); o menu só roteia: numa página, o teclado vai
+## primeiro para o handler registrado em set_page_input, e cancel() deixa a página desfazer um passo
+## (seleção de alvo, sub-tela) antes de voltar à raiz. Na raiz, move/accept/cancel servem aos testes.
 ## Esc é "voltar" aqui dentro e sempre é consumido, então nunca reabre o menu.
 
 signal closed
@@ -14,7 +15,9 @@ const PAGE_TITLES: Dictionary[StringName, String] = {
 	&"items": "Itens", &"techniques": "Técnicas", &"status": "Status",
 	&"attributes": "Atributos", &"formation": "Formação",
 }
+const ATTRIBUTES_INDEX: int = 3
 const ENABLED_COLOR: Color = Color(1.0, 1.0, 1.0)
+const DISABLED_COLOR: Color = Color(0.45, 0.45, 0.5)
 const CURSOR_COLOR: Color = Color(1.0, 0.85, 0.3)
 
 var state: GameState
@@ -22,6 +25,11 @@ var is_open: bool = false
 var cursor: int = 0
 var page: StringName = &"root"
 var party_panel: PartyPanel
+var item_page: ItemPage
+var technique_page: TechniquePage
+var status_page: StatusPage
+var attributes_page: AttributesPage
+var formation_page: FormationPage
 
 var _root: Control
 var _command_list: VBoxContainer
@@ -29,6 +37,9 @@ var _command_labels: Array[Label] = []
 var _page_panel: PanelContainer
 var _page_title: Label
 var _pages: Dictionary[StringName, Control] = {}
+var _page_input: Dictionary[StringName, Callable] = {}
+var _page_cancel: Dictionary[StringName, Callable] = {}
+var _message: Label
 
 func _init() -> void:
 	layer = 5
@@ -42,6 +53,7 @@ func open(s: GameState) -> void:
 	cursor = 0
 	party_panel.end_pick()
 	party_panel.refresh(s)
+	_message.text = ""
 	_show_page(&"root")
 
 func close() -> void:
@@ -49,6 +61,7 @@ func close() -> void:
 		return
 	is_open = false
 	visible = false
+	_leave_page()
 	party_panel.end_pick()
 	page = &"root"
 	closed.emit()
@@ -56,13 +69,42 @@ func close() -> void:
 func command_labels() -> PackedStringArray:
 	return PackedStringArray(COMMANDS)
 
-## Control da página (`&"root"` é o painel do grupo, sempre visível para seleção de alvo);
-## as páginas reais (Task 5) preenchem o Control da sua página.
+func command_enabled(i: int) -> bool:
+	if i == ATTRIBUTES_INDEX:
+		return state != null and AttributesPage.anyone_pending(state)
+	return true
+
+## Aviso da raiz (ex.: comando desabilitado).
+func message() -> String:
+	return _message.text
+
+## Control da página (`&"root"` é o painel do grupo, sempre visível para seleção de alvo).
 func page_control(p: StringName) -> Control:
 	return _pages.get(p, null)
 
+## Handler de teclado da página `p`: recebe o evento e devolve true se o consumiu.
+func set_page_input(p: StringName, handler: Callable) -> void:
+	_page_input[p] = handler
+
+## "Voltar" da página `p`: devolve true se desfez um passo interno (o menu fica na página).
+func set_page_cancel(p: StringName, handler: Callable) -> void:
+	_page_cancel[p] = handler
+
+## Atualiza o painel do grupo e os comandos da raiz após uma ação de página.
+func refresh_party() -> void:
+	party_panel.refresh(state)
+	_render()
+
+func return_to_root() -> void:
+	if is_open and page != &"root":
+		_leave_page()
+		_show_page(&"root")
+
 func _unhandled_input(event: InputEvent) -> void:
 	if not is_open:
+		return
+	if page != &"root" and _page_input.has(page) and bool(_page_input[page].call(event)):
+		get_viewport().set_input_as_handled()
 		return
 	if event.is_action_pressed("ui_up"):
 		move(-1)
@@ -80,6 +122,7 @@ func move(delta: int) -> void:
 	if not is_open or page != &"root":
 		return
 	cursor = posmod(cursor + delta, COMMANDS.size())
+	_message.text = ""
 	_render()
 
 func accept() -> void:
@@ -88,7 +131,10 @@ func accept() -> void:
 	var target: StringName = COMMAND_PAGES[cursor]
 	if target == &"":
 		close()
+	elif not command_enabled(cursor):
+		_message.text = "Ninguém tem pontos para distribuir."
 	else:
+		_message.text = ""
 		_show_page(target)
 
 ## Numa página: volta à raiz (cursor no comando da página). Na raiz: fecha.
@@ -97,8 +143,16 @@ func cancel() -> void:
 		return
 	if page == &"root":
 		close()
-	else:
-		_show_page(&"root")
+		return
+	if _page_cancel.has(page) and bool(_page_cancel[page].call()):
+		return
+	_leave_page()
+	_show_page(&"root")
+
+func _leave_page() -> void:
+	var fp: FieldPage = _pages.get(page, null) as FieldPage
+	if fp != null:
+		fp.leave()
 
 func _show_page(p: StringName) -> void:
 	page = p
@@ -107,6 +161,9 @@ func _show_page(p: StringName) -> void:
 			_pages[key].visible = key == p
 	_page_panel.visible = p != &"root"
 	_page_title.text = PAGE_TITLES.get(p, "")
+	var fp: FieldPage = _pages.get(p, null) as FieldPage
+	if fp != null:
+		fp.enter()
 	_render()
 
 func _render() -> void:
@@ -114,7 +171,10 @@ func _render() -> void:
 		var l: Label = _command_labels[i]
 		var selected: bool = i == cursor
 		l.text = ("> " if selected else "  ") + COMMANDS[i]
-		l.add_theme_color_override("font_color", CURSOR_COLOR if selected else ENABLED_COLOR)
+		var color: Color = CURSOR_COLOR if selected else ENABLED_COLOR
+		if not command_enabled(i):
+			color = DISABLED_COLOR
+		l.add_theme_color_override("font_color", color)
 
 func _build() -> void:
 	_root = Control.new()
@@ -158,6 +218,11 @@ func _build() -> void:
 	hint.add_theme_font_size_override("font_size", 12)
 	hint.add_theme_color_override("font_color", Color(0.6, 0.6, 0.65))
 	cbox.add_child(hint)
+	_message = Label.new()
+	_message.add_theme_font_size_override("font_size", 13)
+	_message.add_theme_color_override("font_color", FieldPage.MESSAGE_COLOR)
+	_message.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	cbox.add_child(_message)
 
 	var party_holder: PanelContainer = _panel()
 	party_holder.custom_minimum_size = Vector2(420.0, 0.0)
@@ -178,13 +243,24 @@ func _build() -> void:
 	_page_title.add_theme_font_size_override("font_size", 20)
 	_page_title.add_theme_color_override("font_color", CURSOR_COLOR)
 	pbox.add_child(_page_title)
+	item_page = ItemPage.new()
+	technique_page = TechniquePage.new()
+	status_page = StatusPage.new()
+	attributes_page = AttributesPage.new()
+	formation_page = FormationPage.new()
+	var pages: Dictionary[StringName, FieldPage] = {
+		&"items": item_page, &"techniques": technique_page, &"status": status_page,
+		&"attributes": attributes_page, &"formation": formation_page,
+	}
 	for p: StringName in PAGE_TITLES:
-		var content := VBoxContainer.new()
+		var content: FieldPage = pages[p]
 		content.name = String(p)
-		content.size_flags_vertical = Control.SIZE_EXPAND_FILL
 		content.visible = false
+		content.setup(self)
 		pbox.add_child(content)
 		_pages[p] = content
+		set_page_input(p, content.handle_input)
+		set_page_cancel(p, content.cancel)
 	_render()
 
 func _panel() -> PanelContainer:

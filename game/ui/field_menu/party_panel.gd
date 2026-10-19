@@ -109,6 +109,10 @@ func end_pick() -> void:
 	_pick_index = -1
 	_render_pick()
 
+## Se o herói i (ordem do roster) pode ser escolhido no modo de seleção atual.
+func is_pick_enabled(i: int) -> bool:
+	return picking and i >= 0 and i < _heroes.size() and _enabled(i)
+
 func _enabled(i: int) -> bool:
 	return not _filter.is_valid() or bool(_filter.call(_heroes[i]))
 
