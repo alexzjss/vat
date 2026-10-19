@@ -3,6 +3,7 @@ extends Node
 
 ## Jogo raiz: guarda o GameState, troca o mapa atual com fade e trata o Game Over
 ## (volta ao ponto de salvamento). Reentrar numa área a instancia de novo (inimigos reaparecem).
+## Debug: `-- --demo-field-menu` abre o menu de campo com um caído e pontos pendentes.
 ## Debug: `-- --demo-m2` adiciona o DemoM2, que percorre o ciclo do M2 sozinho (verificação com --write-movie).
 
 const MAPS: Dictionary[StringName, PackedScene] = {
@@ -32,6 +33,8 @@ func _ready() -> void:
 		var demo := DemoM2.new()
 		demo.name = "DemoM2"
 		add_child(demo)
+	if OS.get_cmdline_user_args().has("--demo-field-menu"):
+		_demo_field_menu()
 
 ## Troca o mapa atual por `map`, com o jogador no marcador `spawn`.
 ## Os dois mapas ficam congelados durante a transição (sem física, sem sinais de Area2D):
@@ -101,3 +104,12 @@ func _on_game_over() -> void:
 		return
 	state.restore_save()
 	go_to(state.save_map, state.save_spawn)
+
+## Só debug (`--demo-field-menu`): abre o FieldMenu sobre o mapa para verificação com --write-movie.
+func _demo_field_menu() -> void:
+	state.heroes[1].hp = 0
+	state.heroes[2].pending_points = 2
+	state.reserve[0].hp = maxi(1, state.reserve[0].hp / 2)
+	var menu: FieldMenu = (load("res://ui/field_menu/field_menu.tscn") as PackedScene).instantiate() as FieldMenu
+	add_child(menu)
+	menu.open(state)
