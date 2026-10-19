@@ -121,3 +121,25 @@ Menu estilo FF (Itens, Técnicas, Status, Atributos, Formação) com painel do g
 - **Barra de Limite** (estilo FF7): uma barra que enche ao sofrer dano e libera um golpe especial quando cheia. Entra como marco novo **M8.5 — Limite**, depois do Suporte.
 - **Techs combinadas continuam fora.**
 - **Dificuldade clássica**: lutas comuns tranquilas (quase nunca perder), chefes exigem tática. Metas do M5b passam a ser: luta comum 20–60 s com `smart` e vitória ≥ 95%; com `basic`, vitória ≥ 75%.
+
+## Decisões do usuário (2026-10-19, rodada 3) — "finalizar a base"
+
+**Escopo:** M5b, M6, M7, M8, M8.5, M9, M10 e M11. Cada marco termina com revisão final do Sonnet, testes verdes e merge ff na `main` local, sem pedir aprovação (nunca push). Paro só se surgir uma dúvida de design.
+
+- **M5b:** aproveitar o trabalho sem commit (revisar e completar).
+- **ATB:** modos Espera e Ativo, escolhidos no menu Config.
+- **Config:** modo do ATB, velocidade da batalha, memória do cursor, velocidade do texto e volume (placeholder, ainda sem áudio).
+- **Movimento:** correr segurando uma tecla; membros do grupo seguem o líder em fila (CT).
+- **Save:** 3 slots, só em ponto de descanso e no mapa-múndi; tela de título Novo/Continuar. **Game Over** → carregar o último save.
+- **Fuga:** segurar uma tecla enche uma barra de fuga em tempo real, mais rápido com a Velocidade do grupo. Chefes bloqueiam a fuga. Sem XP.
+- **Inimigos no mapa:** perseguir ao ver (cone), patrulha por rota, grupo que se junta, emboscada escondida (ATB inimigo adiantado). Iniciativa por contato como já previsto.
+- **Limite:** um golpe por herói. A barra enche só com dano sofrido (proporcional ao HP máximo), esvazia ao usar e persiste entre lutas.
+- **Suporte:** custa **50% da barra de Limite** de quem chama. Qualquer herói ativo pode chamar, sem limite de usos por luta. Não dá XP.
+  - Consequência [I]: como o Suporte depende do Limite, a ordem passa a ser **M8 Limite → M8.5 Suporte**.
+- **Reserva:** não ganha XP. Não há troca de membros durante a batalha.
+- **Técnicas (M9):** uma técnica no nível 1; 4–6 técnicas até o nível 20; algumas só por evento. Nomes são placeholders.
+- **Estados (M11):** Pare, Confusão, buffs e debuffs de Força, Vitalidade e Velocidade, Silêncio, Cegueira, Regeneração e Barreira. **Elementos continuam fora.**
+- **Chefe de teste (M11):** fases por HP, ataque anunciado, contra-ataque e partes múltiplas (CT).
+- **M10:** baús, portas e chaves, interruptores, armadilhas; caixa de diálogo com nome e escolhas que gravam flags, cenas roteirizadas, NPCs e placas, XP narrativa.
+
+**Ordem:** M5b → M6 (descanso, save, título, Config, ATB Ativo) → M7 (fuga, iniciativa, IA no mapa, corrida, seguidores) → M8 Limite → M8.5 Suporte → M9 Técnicas → M10 Eventos/dungeon → M11 Chefes/estados.
