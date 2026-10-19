@@ -114,3 +114,10 @@ Menu estilo FF (Itens, Técnicas, Status, Atributos, Formação) com painel do g
 6. **C4 Eventos/diálogo + C5 Dungeon** — preparam o conteúdo.
 7. **A5 IA e chefes** → **M3 fatia vertical** (cidade, dungeon, chefe) juntando tudo.
 8. **B4 Fórmulas** pode entrar em qualquer ponto; quanto antes, menos rebalanceamento depois.
+
+## Decisões do usuário (2026-10-19, rodada 2)
+
+- **Habilidades fixas por personagem** (estilo Chrono Trigger): cada herói aprende as próprias técnicas por nível e por eventos (M9). Nada de sistema de orbes equipáveis.
+- **Barra de Limite** (estilo FF7): uma barra que enche ao sofrer dano e libera um golpe especial quando cheia. Entra como marco novo **M8.5 — Limite**, depois do Suporte.
+- **Techs combinadas continuam fora.**
+- **Dificuldade clássica**: lutas comuns tranquilas (quase nunca perder), chefes exigem tática. Metas do M5b passam a ser: luta comum 20–60 s com `smart` e vitória ≥ 95%; com `basic`, vitória ≥ 75%.
