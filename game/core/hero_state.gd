@@ -34,6 +34,49 @@ func clamp_to_max(cfg: BalanceConfig) -> void:
 	hp = mini(hp, StatCalculator.hp_max(c, cfg))
 	ap = mini(ap, StatCalculator.ap_max(c, cfg))
 
+## Estado completo para o save: o herói e identificado por def.id; equipamento por id.
+func to_dict() -> Dictionary:
+	var eq: Dictionary = {}
+	for slot: StringName in equipment:
+		eq[String(slot)] = String(equipment[slot].id)
+	return {
+		"id": String(def.id), "level": level, "xp": xp, "pending": pending_points,
+		"allocated": {
+			"strength": allocated.strength, "speed": allocated.speed,
+			"vitality": allocated.vitality, "aura": allocated.aura,
+		},
+		"equipment": eq, "hp": hp, "ap": ap,
+	}
+
+## Null se o id do heroi ou de algum equipamento for desconhecido, ou se o formato for invalido.
+static func from_dict(d: Dictionary, registry: DefRegistry) -> HeroState:
+	var cd: CharacterDef = registry.character(StringName(str(d.get("id", ""))))
+	var al: Variant = d.get("allocated")
+	var eq: Variant = d.get("equipment")
+	if cd == null or not al is Dictionary or not eq is Dictionary:
+		return null
+	for key: String in ["level", "xp", "pending", "hp", "ap"]:
+		if not (d.get(key) is float or d.get(key) is int):
+			return null
+	var h := HeroState.new()
+	h.def = cd
+	h.level = int(d["level"])
+	h.xp = int(d["xp"])
+	h.pending_points = int(d["pending"])
+	h.hp = int(d["hp"])
+	h.ap = int(d["ap"])
+	var a: Dictionary = al
+	for attr: StringName in Stats.ATTRS:
+		if not (a.get(String(attr)) is float or a.get(String(attr)) is int):
+			return null
+	h.allocated = Stats.make(int(a["strength"]), int(a["speed"]), int(a["vitality"]), int(a["aura"]))
+	for slot: Variant in (eq as Dictionary):
+		var e: EquipmentDef = registry.equipment(StringName(str((eq as Dictionary)[slot])))
+		if e == null:
+			return null
+		h.equipment[StringName(str(slot))] = e
+	return h
+
 ## Cópia dos valores mutáveis do herói (usada por retry de batalha e ponto de salvamento).
 func snapshot() -> Dictionary:
 	return {

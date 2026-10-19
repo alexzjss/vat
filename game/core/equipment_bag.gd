@@ -33,6 +33,27 @@ func listing() -> Array[EquipmentDef]:
 			out.append(_defs[id])
 	return out
 
+func to_dict() -> Dictionary:
+	var counts: Dictionary = {}
+	for id: StringName in _defs:
+		counts[String(id)] = _counts[id]
+	return {"counts": counts}
+
+## Null se algum id for desconhecido ou o formato for invalido.
+static func from_dict(d: Dictionary, registry: DefRegistry) -> EquipmentBag:
+	var counts: Variant = d.get("counts")
+	if not counts is Dictionary:
+		return null
+	var bag := EquipmentBag.new()
+	for key: Variant in (counts as Dictionary):
+		var e: EquipmentDef = registry.equipment(StringName(str(key)))
+		var n: Variant = (counts as Dictionary)[key]
+		if e == null or not (n is float or n is int) or int(n) < 0:
+			return null
+		bag._defs[e.id] = e
+		bag._counts[e.id] = int(n)
+	return bag
+
 func copy() -> EquipmentBag:
 	var b := EquipmentBag.new()
 	b._counts = _counts.duplicate()

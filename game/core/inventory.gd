@@ -45,6 +45,29 @@ func listing() -> Array[ItemDef]:
 			out.append(_defs[id])
 	return out
 
+## Contagens por id (reservas nao entram no save).
+func to_dict() -> Dictionary:
+	var counts: Dictionary = {}
+	for id: StringName in _defs:
+		counts[String(id)] = _counts[id]
+	return {"counts": counts}
+
+## Null se algum id for desconhecido ou o formato for invalido.
+static func from_dict(d: Dictionary, registry: DefRegistry) -> Inventory:
+	var counts: Variant = d.get("counts")
+	if not counts is Dictionary:
+		return null
+	var inv := Inventory.new()
+	for key: Variant in (counts as Dictionary):
+		var it: ItemDef = registry.item(StringName(str(key)))
+		var n: Variant = (counts as Dictionary)[key]
+		if it == null or not (n is float or n is int) or int(n) < 0:
+			return null
+		inv._defs[it.id] = it
+		inv._counts[it.id] = int(n)
+		inv._reserved[it.id] = 0
+	return inv
+
 ## Cópia independente: contagens e defs copiadas, reservas zeradas.
 func copy() -> Inventory:
 	var c := Inventory.new()

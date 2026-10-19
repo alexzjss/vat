@@ -11,6 +11,8 @@ var bag: EquipmentBag
 var dice: Dice
 ## Configurações do jogador (menu Config); fora do save. Quem hospeda carrega/persiste.
 var settings: GameSettings
+## Segundos jogados (soma feita por quem hospeda o jogo).
+var play_time: float = 0.0
 var save_map: StringName
 var save_spawn: StringName
 var _saved_heroes: Array[Dictionary] = []
@@ -106,6 +108,53 @@ func _list_of(h: HeroState) -> Array[HeroState]:
 	if reserve.has(h):
 		return reserve
 	return []
+
+## Estado completo para o save em disco. `settings` fica de fora (valem para todos os slots).
+func to_dict() -> Dictionary:
+	var hs: Array = []
+	for h: HeroState in heroes:
+		hs.append(h.to_dict())
+	var rs: Array = []
+	for h: HeroState in reserve:
+		rs.append(h.to_dict())
+	return {
+		"heroes": hs, "reserve": rs, "inventory": inventory.to_dict(), "bag": bag.to_dict(),
+		"save_map": String(save_map), "save_spawn": String(save_spawn), "play_time": play_time,
+	}
+
+## Reconstroi o estado e grava o ponto de salvamento em memoria. Null se o formato for invalido
+## ou algum id for desconhecido (o slot e tratado como corrompido).
+static func from_dict(d: Dictionary, registry: DefRegistry, p_cfg: BalanceConfig, p_dice: Dice) -> GameState:
+	var g := GameState.new()
+	g.cfg = p_cfg
+	g.dice = p_dice
+	g.settings = GameSettings.new(p_cfg)
+	if not _load_heroes(d.get("heroes"), registry, g.heroes) or not _load_heroes(d.get("reserve"), registry, g.reserve):
+		return null
+	if g.heroes.is_empty() or g.heroes.size() > MAX_ACTIVE:
+		return null
+	var inv: Variant = d.get("inventory")
+	var bg: Variant = d.get("bag")
+	var pt: Variant = d.get("play_time")
+	if not inv is Dictionary or not bg is Dictionary or not (pt is float or pt is int):
+		return null
+	g.inventory = Inventory.from_dict(inv, registry)
+	g.bag = EquipmentBag.from_dict(bg, registry)
+	if g.inventory == null or g.bag == null:
+		return null
+	g.play_time = float(pt)
+	g.save(StringName(str(d.get("save_map", ""))), StringName(str(d.get("save_spawn", ""))))
+	return g
+
+static func _load_heroes(src: Variant, registry: DefRegistry, out: Array[HeroState]) -> bool:
+	if not src is Array:
+		return false
+	for e: Variant in (src as Array):
+		var h: HeroState = HeroState.from_dict(e, registry) if e is Dictionary else null
+		if h == null:
+			return false
+		out.append(h)
+	return true
 
 ## Grava o ponto de salvamento: valores e formação dos heróis e cópia do inventário.
 func save(map: StringName, spawn: StringName) -> void:
