@@ -18,6 +18,18 @@ static func cfg() -> BalanceConfig:
 	c.control_value_per_turn = 10
 	c.item_cast_time = 0.6
 	c.item_impact_time = 0.3
+	c.dr_mode = BalanceConfig.DrMode.A
+	c.hp_mode = BalanceConfig.HpMode.A
+	c.ap_mode = BalanceConfig.ApMode.A
+	c.atb_mode = BalanceConfig.AtbMode.A
+	c.damage_mode = BalanceConfig.DamageMode.A
+	c.variance_mode = BalanceConfig.VarianceMode.A
+	c.dodge_mode = BalanceConfig.DodgeMode.A
+	c.xp_mode = BalanceConfig.XpMode.A
+	c.max_level = 0
+	c.revive_mode = BalanceConfig.ReviveMode.A
+	c.poison_mode = BalanceConfig.PoisonMode.A
+	c.duration_mode = BalanceConfig.DurationMode.A
 	return c
 
 static func hit(potency: float, shape: AbilityDef.Shape = AbilityDef.Shape.SINGLE) -> AbilityDef:

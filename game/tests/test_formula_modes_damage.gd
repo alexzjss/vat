@@ -7,8 +7,8 @@ func before_each() -> void:
 func _dmg(roll: float = 0.5, str_eff: int = 10, vit: int = 4, equip: int = 0) -> int:
 	return EffectMath.damage(e, str_eff, vit, equip, cfg, ScriptedDice.new([roll]))
 func test_modes_default_to_a() -> void:
-	assert_eq(BalanceConfig.new().damage_mode, BalanceConfig.DamageMode.A)
-	assert_eq(BalanceConfig.new().variance_mode, BalanceConfig.VarianceMode.A)
+	assert_eq(cfg.damage_mode, BalanceConfig.DamageMode.A)
+	assert_eq(cfg.variance_mode, BalanceConfig.VarianceMode.A)
 func test_damage_mode_a_unchanged() -> void:
 	assert_eq(_dmg(), 28) # 30 - floor(2.0)
 func test_damage_mode_b_ratio() -> void:

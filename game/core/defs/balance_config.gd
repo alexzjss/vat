@@ -40,43 +40,43 @@ enum DurationMode { A, B }
 @export var battle_slide_time: float = 0.4
 
 # Modos de formula (M5a) - todos os coeficientes abaixo sao "valor de teste".
-@export var dr_mode: DrMode = DrMode.A
+@export var dr_mode: DrMode = DrMode.B
 @export var dr_band2_start: int = 20 # valor de teste (B)
 @export var dr_band3_start: int = 40 # valor de teste (B)
 @export var dr_band2_factor: float = 0.5 # valor de teste (B)
 @export var dr_band3_factor: float = 0.25 # valor de teste (B)
 @export var dr_smooth_limit: float = 60.0 # valor de teste (C)
 @export var dr_smooth_k: float = 30.0 # valor de teste (C)
-@export var hp_mode: HpMode = HpMode.A
+@export var hp_mode: HpMode = HpMode.B
 @export var hp_base: int = 30 # valor de teste (B, C)
 @export var hp_vit_a: int = 8 # valor de teste (B, C)
 @export var hp_lvl_b: int = 4 # valor de teste (B)
 @export var hp_vit_lvl_c: float = 0.4 # valor de teste (B)
 @export var hp_c_level_mult: float = 0.08 # valor de teste (C)
-@export var ap_mode: ApMode = ApMode.A
+@export var ap_mode: ApMode = ApMode.B
 @export var ap_aura_a: int = 4 # valor de teste (B, C)
 @export var ap_lvl_b: int = 1 # valor de teste (B)
 @export var ap_c_level_mult: float = 0.05 # valor de teste (C)
 @export var atb_mode: AtbMode = AtbMode.A
 @export var atb_turn_time: float = 4.0 # valor de teste (C)
 @export var atb_c_r: float = 20.0 # valor de teste (C)
-@export var dodge_mode: DodgeMode = DodgeMode.A
-@export var damage_mode: DamageMode = DamageMode.A
+@export var dodge_mode: DodgeMode = DodgeMode.B
+@export var damage_mode: DamageMode = DamageMode.B
 @export var dmg_ratio_k: float = 20.0 # valor de teste (B)
 @export var dmg_c_equip_factor: float = 1.0 # valor de teste (C)
-@export var variance_mode: VarianceMode = VarianceMode.A
+@export var variance_mode: VarianceMode = VarianceMode.B
 @export var variance_b: float = 0.06 # valor de teste (B)
 @export var variance_c: float = 0.12 # valor de teste (C)
-@export var xp_mode: XpMode = XpMode.A
+@export var xp_mode: XpMode = XpMode.C
 @export var xp_coef_b: int = 25 # valor de teste (B)
 @export var xp_coef_c: int = 15 # valor de teste (C)
 @export var xp_linear_c: int = 30 # valor de teste (C)
-@export var max_level: int = 0 # valor de teste (0 = sem limite; opcoes 50, 99)
+@export var max_level: int = 99 # valor de teste (0 = sem limite; opcoes 50, 99)
 @export var revive_mode: ReviveMode = ReviveMode.A
 @export var revive_b: float = 0.5 # valor de teste (B)
 @export var revive_c_flat: int = 10 # valor de teste (C)
 @export var revive_c_pct: float = 0.10 # valor de teste (C)
-@export var poison_mode: PoisonMode = PoisonMode.A
+@export var poison_mode: PoisonMode = PoisonMode.B
 @export var poison_pct: float = 0.06 # valor de teste (B, C)
 @export var duration_mode: DurationMode = DurationMode.A
 @export var duration_table: Dictionary[StringName, int] = {&"poison": 4, &"sleep": 2, &"paralysis": 2, &"haste": 4, &"slow": 3, &"barrier": 4, &"str_up": 3} # valor de teste (B)

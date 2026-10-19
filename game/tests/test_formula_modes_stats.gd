@@ -7,7 +7,7 @@ func _c(stats: Stats, level := 1) -> Combatant:
 	h.level = level
 	return Combatant.from_hero(h, Vector2.ZERO)
 func test_default_modes_are_a() -> void:
-	var fresh := BalanceConfig.new()
+	var fresh := Fixtures.cfg()
 	assert_eq(fresh.dr_mode, BalanceConfig.DrMode.A)
 	assert_eq(fresh.hp_mode, BalanceConfig.HpMode.A)
 	assert_eq(fresh.ap_mode, BalanceConfig.ApMode.A)

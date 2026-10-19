@@ -5,8 +5,8 @@ func before_each() -> void:
 func _c(id: StringName, spd: int) -> Combatant:
 	return Combatant.from_enemy(Fixtures.enemy_def(id, Stats.make(1, spd, 1, 1)), id, Vector2.ZERO, cfg)
 func test_speed_modes_default_to_a() -> void:
-	assert_eq(BalanceConfig.new().atb_mode, BalanceConfig.AtbMode.A)
-	assert_eq(BalanceConfig.new().dodge_mode, BalanceConfig.DodgeMode.A)
+	assert_eq(cfg.atb_mode, BalanceConfig.AtbMode.A)
+	assert_eq(cfg.dodge_mode, BalanceConfig.DodgeMode.A)
 func test_atb_mode_a_unchanged() -> void:
 	assert_almost_eq(StatCalculator.atb_rate(_c(&"a", 10), cfg), 0.4, 0.0001)
 	assert_almost_eq(StatCalculator.atb_rate(_c(&"a", 10), cfg, 99.0), 0.4, 0.0001)

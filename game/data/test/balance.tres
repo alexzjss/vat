@@ -4,3 +4,15 @@
 
 [resource]
 script = ExtResource("1_r")
+dr_mode = 1
+hp_mode = 1
+ap_mode = 1
+atb_mode = 0
+damage_mode = 1
+variance_mode = 1
+dodge_mode = 1
+xp_mode = 2
+max_level = 99
+revive_mode = 0
+poison_mode = 1
+duration_mode = 0

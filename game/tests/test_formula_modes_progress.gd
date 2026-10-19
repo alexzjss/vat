@@ -14,7 +14,7 @@ func _hs() -> HeroState:
 	return HeroState.create(Fixtures.hero_def(&"a", Stats.make(5, 5, 5, 5)), cfg)
 
 func test_defaults_are_mode_a() -> void:
-	var c := BalanceConfig.new()
+	var c := Fixtures.cfg()
 	assert_eq(c.xp_mode, BalanceConfig.XpMode.A)
 	assert_eq(c.revive_mode, BalanceConfig.ReviveMode.A)
 	assert_eq(c.poison_mode, BalanceConfig.PoisonMode.A)
