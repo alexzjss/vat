@@ -82,3 +82,21 @@ Nomes de classes e arquivos, layout e cores da página, como as restrições sã
 ## 5. Validação
 
 Testes de: equipar/remover/trocar sem perder nem duplicar item; restrições por tipo de arma e por lista; prévia usando as mesmas contas da batalha; HP/AP atuais limitados quando o máximo cai; imunidade, resistência e "começa com" funcionando na batalha; salvamento cobrindo equipamento e mochila; página Equipar navegável por teclado e Esc voltando um passo. Demo `--demo-m4` com quadros conferidos. Os 282 testes atuais continuam passando. No fim, partida manual pelo usuário.
+
+## 6. Decisões de implementação do M4
+
+Tomadas durante a construção; todas **[I]** (para revisão do usuário).
+
+1. **[I]** Classes: `EquipmentDef` (nome, espaço, modificadores, `weapon_type`, `allowed_ids`, `passives`), `EquipmentPassive` (tipo + estado + valor), `EquipmentBag` (mochila indexada pelo id) e `EquipmentRules` (`can_equip`, `immunities`, `resistances`, `start_statuses`, `preview`) — o lugar único da soma dos passivos, usado por prévia, Status e batalha.
+2. **[I]** A prévia monta um `HeroState` descartável (def, nível, pontos alocados e cópia do equipamento) e lê dele os valores efetivos; o herói real nunca é tocado. (Ressalva menor: o clone compartilha a referência de `allocated`; só leitura.)
+3. **[I]** Equipamento inicial aplicado em `HeroState.create` antes do descanso inicial, validado por `can_equip` (item inválido gera `push_error` e é ignorado); não consome a mochila. Dois itens iniciais no mesmo espaço: o último sobrescreve sem aviso.
+4. **[I]** Itens de teste: armas `lamina/bastao/arco_simples` (iniciais) e `lamina_aco`, `bastao_carvalho`, `arco_longo`; `armadura_simples` (inicial) e `armadura_pesada`; `capacete_leve`, `capacete_teste_b` (só Teste B); `amuleto_sono` (Anti-Sono), `amuleto_veneno` (Anti-Veneno 50%), `amuleto_pressa` (Começa com Pressa).
+5. **[I]** O jogo raiz (`game.tscn`) tem `start_equipment`/`start_equipment_counts`: uma unidade de cada item de teste que não é inicial; passados para `GameState.new_game` (parâmetros `bag_items`/`bag_counts`, opcionais).
+6. **[I]** `GameState.equip` devolve o item antigo para a mochila e limita HP/AP atuais (`HeroState.clamp_to_max`); `unequip` idem. `save`/`restore_save` guardam cópias do equipamento (por herói) e da mochila.
+7. **[I]** Inimigos: `Combatant.immunities`/`resistances` são leituras vivas de `enemy_def` (o setter é ignorado para inimigos), e não cópias — assim os testes de estados existentes, que alteram o def depois de criar o combatente, continuam valendo sem mudança. Heróis guardam os valores do equipamento.
+8. **[I]** "Começa com" é aplicado em `BattleController._init` por `StatusSystem.apply_forced` (sem sorteio, sem resistência, sem crédito/contribuição, mas respeitando imunidade); heróis caídos no início da batalha são pulados. Se o estado já existe, renova sem sorteio.
+9. **[I]** Página Equipar: comando "Equipar" entre "Técnicas" e "Status" no menu (as posições dos comandos seguintes mudam; testes do M3 passaram a usar `COMMAND_PAGES.find`/`ATTRIBUTES_INDEX`). Fluxo: herói → 4 espaços ("Arma: Nome" / "Arma: —") → itens usáveis da mochila ("Nome xN") + "Remover" só se ocupado; espaço vazio sem nada usável mostra "Nada para equipar aqui." e não abre lista. Ao confirmar, volta à lista de espaços com o cursor no espaço.
+10. **[I]** Prévia: uma linha por atributo/HP máx./AP máx. "antes → depois" (verde sobe, vermelho desce, branco igual), "Tipo: Lâmina|Bastão|Arco" para armas e "Passivos: ..." do equipamento resultante.
+11. **[I]** Nomes de estados na interface vêm de um mapa no lado da UI (`EquipPage.STATUS_NAMES`), pois `StatusDef` não tem nome de exibição; id sem entrada aparece com a inicial maiúscula. Rótulos de tipo de arma também ficam na UI.
+12. **[I]** Status: bloco "Equipamento:" (4 espaços + "Passivos:") antes de Habilidades; linha de atributo no formato "base + alocado [+ equip] = efetivo" (o termo do equipamento só aparece se não for zero; "(retornos decrescentes)" é acrescentado quando a soma difere do efetivo).
+13. **[I]** Demo `--demo-m4` segue o `DemoM3`: abre o menu, em Equipar põe no Teste A a Armadura Pesada (mostrando a prévia) e o Amuleto Anti-Sono, mostra o Status, fecha e entrega ao `DemoM2` (área, batalha com inimigos enfraquecidos, volta).

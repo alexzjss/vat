@@ -7,7 +7,7 @@ extends Node
 ## o mapa atual fica congelado (process_mode DISABLED, o mesmo mecanismo do fade). Ao fechar, o marcador do
 ## jogador passa a mostrar o líder atual.
 ## Debug: `-- --demo-field-menu` (DemoFieldMenu) percorre as páginas do menu; `-- --demo-m2` (DemoM2) e
-## `-- --demo-m3` (DemoM3) percorrem os ciclos dos marcos sozinhos (verificação com --write-movie).
+## `-- --demo-m3` (DemoM3) / `-- --demo-m4` (DemoM4) percorrem os ciclos dos marcos sozinhos (verificação com --write-movie).
 
 const MAPS: Dictionary[StringName, PackedScene] = {
 	&"overworld": preload("res://world/overworld.tscn"),
@@ -18,6 +18,9 @@ const MAPS: Dictionary[StringName, PackedScene] = {
 @export var party: Array[CharacterDef] = []
 @export var start_items: Array[ItemDef] = []
 @export var start_item_counts: Array[int] = []
+## Mochila inicial de equipamento (o equipamento vestido vem de CharacterDef.starting_equipment).
+@export var start_equipment: Array[EquipmentDef] = []
+@export var start_equipment_counts: Array[int] = []
 ## Semente do Dice do jogo (-1 = aleatório).
 @export var world_seed: int = -1
 
@@ -31,7 +34,7 @@ var busy: bool = false
 
 func _ready() -> void:
 	state = GameState.new_game(balance, party, start_items, start_item_counts, Dice.new(world_seed),
-			&"overworld", &"Start")
+			&"overworld", &"Start", GameState.MAX_ACTIVE, start_equipment, start_equipment_counts)
 	menu.closed.connect(_on_menu_closed)
 	go_to(&"overworld", &"Start", false)
 	var args: PackedStringArray = OS.get_cmdline_user_args()
@@ -39,6 +42,8 @@ func _ready() -> void:
 		_add_demo(DemoM2.new(), "DemoM2")
 	if args.has("--demo-m3"):
 		_add_demo(DemoM3.new(), "DemoM3")
+	if args.has("--demo-m4"):
+		_add_demo(DemoM4.new(), "DemoM4")
 	if args.has("--demo-field-menu"):
 		_add_demo(DemoFieldMenu.new(), "DemoFieldMenu")
 

@@ -23,11 +23,13 @@ var enemy_def: EnemyDef
 ## ajustes no def depois de criar o combatente continuem valendo.
 var _immunities: Array[StringName] = []
 var _resistances: Dictionary[StringName, float] = {}
+## inimigo: leitura viva de enemy_def; o setter é ignorado
 var immunities: Array[StringName]:
 	get:
 		return enemy_def.immunities if enemy_def != null else _immunities
 	set(v):
 		_immunities = v
+## inimigo: leitura viva de enemy_def; o setter é ignorado
 var resistances: Dictionary[StringName, float]:
 	get:
 		return enemy_def.resistances if enemy_def != null else _resistances

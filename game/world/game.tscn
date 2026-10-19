@@ -14,6 +14,16 @@
 [ext_resource type="Resource" path="res://data/test/heroes/teste_d.tres" id="12_hd"]
 [ext_resource type="Resource" path="res://data/test/heroes/teste_e.tres" id="13_he"]
 [ext_resource type="PackedScene" path="res://ui/field_menu/field_menu.tscn" id="14_fm"]
+[ext_resource type="Script" path="res://core/defs/equipment_def.gd" id="15_ed"]
+[ext_resource type="Resource" path="res://data/test/equipment/lamina_aco.tres" id="16_e1"]
+[ext_resource type="Resource" path="res://data/test/equipment/bastao_carvalho.tres" id="17_e2"]
+[ext_resource type="Resource" path="res://data/test/equipment/arco_longo.tres" id="18_e3"]
+[ext_resource type="Resource" path="res://data/test/equipment/armadura_pesada.tres" id="19_e4"]
+[ext_resource type="Resource" path="res://data/test/equipment/capacete_leve.tres" id="20_e5"]
+[ext_resource type="Resource" path="res://data/test/equipment/capacete_teste_b.tres" id="21_e6"]
+[ext_resource type="Resource" path="res://data/test/equipment/amuleto_sono.tres" id="22_e7"]
+[ext_resource type="Resource" path="res://data/test/equipment/amuleto_veneno.tres" id="23_e8"]
+[ext_resource type="Resource" path="res://data/test/equipment/amuleto_pressa.tres" id="24_e9"]
 
 [node name="Game" type="Node"]
 script = ExtResource("1_game")
@@ -21,6 +31,8 @@ balance = ExtResource("2_bal")
 party = Array[ExtResource("3_cd")]([ExtResource("4_ha"), ExtResource("5_hb"), ExtResource("6_hc"), ExtResource("12_hd"), ExtResource("13_he")])
 start_items = Array[ExtResource("7_id")]([ExtResource("8_ip"), ExtResource("9_ie"), ExtResource("10_ir")])
 start_item_counts = Array[int]([3, 2, 1])
+start_equipment = Array[ExtResource("15_ed")]([ExtResource("16_e1"), ExtResource("17_e2"), ExtResource("18_e3"), ExtResource("19_e4"), ExtResource("20_e5"), ExtResource("21_e6"), ExtResource("22_e7"), ExtResource("23_e8"), ExtResource("24_e9")])
+start_equipment_counts = Array[int]([1, 1, 1, 1, 1, 1, 1, 1, 1])
 
 [node name="Fade" type="CanvasLayer" parent="."]
 layer = 10

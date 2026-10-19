@@ -42,7 +42,7 @@ No mapa:
 | Setas / WASD | Andar |
 | Tab / Esc | Abrir o menu de campo (fora de batalha e de transicao) |
 
-No menu de campo (paginas Itens, Tecnicas, Status, Atributos, Formacao e Fechar; o mapa fica congelado enquanto ele esta aberto):
+No menu de campo (paginas Itens, Tecnicas, Equipar, Status, Atributos, Formacao e Fechar; o mapa fica congelado enquanto ele esta aberto):
 
 | Tecla | Acao |
 |-------|------|
@@ -51,6 +51,8 @@ No menu de campo (paginas Itens, Tecnicas, Status, Atributos, Formacao e Fechar;
 | Tab / Esc | Voltar um nivel (na raiz, fecha o menu) |
 
 O quadrado azul do mapa mostra a inicial do lider (primeiro ativo de pe). A ordem da Formacao vale na proxima batalha (ativo 1 -> ponto 1, ...); a reserva nao luta nem recebe XP de combate.
+
+**Equipar** (M4): escolha o heroi, depois um dos 4 espacos (Arma, Armadura, Capacete, Acessorio) e um item da mochila (ou **Remover**). Ao mover o cursor na lista de itens, a previa mostra os atributos efetivos, HP max. e AP max. antes -> depois (verde sobe, vermelho desce) e os passivos resultantes. O item antigo volta para a mochila; HP/AP atuais ficam limitados ao novo maximo. Armas tem tipo (Lamina, Bastao, Arco) e cada heroi usa um ou mais tipos; armaduras e capacetes podem ter lista de quem pode usar. Acessorios dao passivos: "Imune a X", "Resiste a X N%" e "Comeca com X" (aplicado no inicio de cada batalha). O **Status** mostra o equipamento e a conta "base + alocado [+ equip] = efetivo". Cada heroi de teste comeca com uma arma e uma armadura simples; a mochila inicial tem uma unidade de cada outro item de teste. O salvamento (e o Game Over) cobre equipamento e mochila.
 
 Na batalha:
 
@@ -94,6 +96,7 @@ Passadas depois de `--` (argumentos de usuario), roteirizam entradas para verifi
 & "<Godot_v4.x-stable_win64_console.exe>" --path game --scene res://world/local_map.tscn -- --demo-local   # area local sozinha: leva o jogador ate o inimigo (auto_battle)
 & "<Godot_v4.x-stable_win64_console.exe>" --path game -- --demo-m2   # jogo inteiro: ciclo do M2 sozinho (mapa-mundi -> area -> batalha -> saida -> mapa-mundi)
 & "<Godot_v4.x-stable_win64_console.exe>" --path game -- --demo-m3   # menu de campo (Pocao, Cura, Status, troca D<->E) e depois o ciclo do M2 com a nova formacao
+& "<Godot_v4.x-stable_win64_console.exe>" --path game -- --demo-m4   # Equipar no Teste A (Armadura Pesada com previa, Amuleto Anti-Sono), Status e depois o ciclo do M2
 & "<Godot_v4.x-stable_win64_console.exe>" --path game -- --demo-field-menu   # abre o menu de campo e percorre as paginas
 ```
 
@@ -103,7 +106,7 @@ O `--demo-m2` roda no jogo principal (sem `--scene`) e leva cerca de 40 s de jog
 & "<Godot_v4.x-stable_win64_console.exe>" --path game --write-movie <pasta>/f.png --fixed-fps 10 --quit-after 420 -- --demo-m2
 ```
 
-O `--demo-m3` leva cerca de 50 s (use `--quit-after 950` com `--fixed-fps 10`).
+O `--demo-m3` leva cerca de 50 s (use `--quit-after 950` com `--fixed-fps 10`). O `--demo-m4` leva cerca de 55 s (`--quit-after 600`).
 
 ## Estrutura
 
