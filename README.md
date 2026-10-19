@@ -2,6 +2,8 @@
 
 Prototipo de um RPG com combate em tempo real por barra de ATB, feito em Godot 4 com GDScript tipado. O marco atual (M1) contem apenas uma batalha isolada, com placeholders geometricos: ATB com modo Wait, fila de prontos, pontos de Aura, itens, estados, areas de efeito, contribuicao e XP. Nao ha conteudo narrativo; personagens e inimigos sao genericos.
 
+O M2 adiciona o mapa: o jogo abre num mapa-mundi de teste, de onde se entra numa area local com um inimigo de mapa; tocar o inimigo inicia a batalha no proprio mapa. Na derrota (Game Over), o grupo volta ao ultimo ponto de salvamento (inicio do mapa-mundi).
+
 **Os numeros em `game/data/test` sao valores de teste, nao canonicos** (spec v4.0, secao 8).
 
 ## Requisitos
@@ -23,7 +25,21 @@ winget install --id GodotEngine.GodotEngine -e
 
 O winget instala o executavel em `%LOCALAPPDATA%\Microsoft\WinGet\Packages\GodotEngine.GodotEngine_<...>\` (ex.: `Godot_v4.7.2-stable_win64_console.exe`); use o caminho completo ou defina `$env:GODOT` com ele.
 
+O jogo abre no mapa-mundi (`res://world/game.tscn`). A batalha isolada do M1 continua disponivel: abra `game/battle/battle_scene.tscn` no editor e pressione **F6**, ou rode:
+
+```powershell
+& "<Godot_v4.x-stable_win64_console.exe>" --path game --scene res://battle/battle_scene.tscn
+```
+
 ## Controles
+
+No mapa:
+
+| Tecla | Acao |
+|-------|------|
+| Setas / WASD | Andar |
+
+Na batalha:
 
 | Tecla | Acao |
 |-------|------|
@@ -33,6 +49,10 @@ O winget instala o executavel em `%LOCALAPPDATA%\Microsoft\WinGet\Packages\Godot
 | F1 | Painel de debug (fila ATB, acao em execucao, estados, contribuicao) |
 
 ## Fluxo da batalha
+
+No mapa (M2): ao tocar um inimigo, a batalha roda sobre o mapa. Na vitoria, depois das telas de resultado/nivel, **Continuar** devolve o controle no mapa (o inimigo some ate a area ser reaberta). Na derrota, **Continuar** leva ao Game Over: HP/AP e inventario voltam ao ponto de salvamento e o jogo volta ao inicio do mapa-mundi.
+
+Na batalha isolada (M1, `--scene res://battle/battle_scene.tscn`):
 
 - Vitoria: tela de resultado (XP por heroi) -> telas de alocacao de pontos para quem subiu de nivel -> escolha entre **Descansar e lutar** (padrao: HP/AP cheios e caidos revividos, depois nova batalha) e **Lutar de novo** (HP/AP como terminaram).
 - Derrota: **Tentar de novo** (volta ao estado do inicio da batalha) ou **Descansar e tentar de novo** (volta ao inicio e enche HP/AP).
@@ -52,12 +72,13 @@ Codigo de saida 0 significa que tudo passou. Se o Godot nao for encontrado, defi
 
 ## Flags de debug
 
-Passadas depois de `--` (argumentos de usuario), roteirizam entradas para verificacao visual:
+Passadas depois de `--` (argumentos de usuario), roteirizam entradas para verificacao visual. As flags de batalha exigem a cena isolada (`--scene`):
 
 ```powershell
-& "<Godot_v4.x-stable_win64_console.exe>" --path game -- --demo-menu     # roteiriza entradas no menu de comandos
-& "<Godot_v4.x-stable_win64_console.exe>" --path game -- --demo-debug    # abre o painel F1 com auto_battle
-& "<Godot_v4.x-stable_win64_console.exe>" --path game -- --demo-result   # auto_battle ate o fim; telas de resultado e nivel
+& "<Godot_v4.x-stable_win64_console.exe>" --path game --scene res://battle/battle_scene.tscn -- --demo-menu     # roteiriza entradas no menu de comandos
+& "<Godot_v4.x-stable_win64_console.exe>" --path game --scene res://battle/battle_scene.tscn -- --demo-debug    # abre o painel F1 com auto_battle
+& "<Godot_v4.x-stable_win64_console.exe>" --path game --scene res://battle/battle_scene.tscn -- --demo-result   # auto_battle ate o fim; telas de resultado e nivel
+& "<Godot_v4.x-stable_win64_console.exe>" --path game --scene res://world/local_map.tscn -- --demo-local   # area local sozinha: leva o jogador ate o inimigo (auto_battle)
 ```
 
 ## Estrutura
@@ -65,8 +86,10 @@ Passadas depois de `--` (argumentos de usuario), roteirizam entradas para verifi
 - `docs/` - spec, plano e historico
   - `docs/superpowers/specs/2026-10-18-rpg-design.md` - [spec v4.0](docs/superpowers/specs/2026-10-18-rpg-design.md)
   - `docs/superpowers/plans/2026-10-18-m1-batalha-isolada.md` - [plano do M1](docs/superpowers/plans/2026-10-18-m1-batalha-isolada.md)
+  - `docs/superpowers/plans/2026-10-18-m2-mapa.md` - [plano do M2](docs/superpowers/plans/2026-10-18-m2-mapa.md)
   - `docs/historico/` - guia de continuidade v3.7
 - `game/core/` - regras de combate (sem nos, cenas ou Input; aleatoriedade via `Dice` injetado)
 - `game/battle/` - apresentacao da batalha (cena, menus, painel de debug, telas de resultado)
+- `game/world/` - jogo raiz (`game.tscn`: transicoes com fade e Game Over), mapa-mundi, area local, jogador, inimigos de mapa e zonas
 - `game/data/test/` - dados de teste (herois, inimigos, habilidades, itens, estados, `balance.tres`)
 - `game/tests/` - testes GUT

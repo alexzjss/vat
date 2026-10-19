@@ -1,0 +1,34 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://world/game.gd" id="1_game"]
+[ext_resource type="Resource" path="res://data/test/balance.tres" id="2_bal"]
+[ext_resource type="Script" path="res://core/defs/character_def.gd" id="3_cd"]
+[ext_resource type="Resource" path="res://data/test/heroes/teste_a.tres" id="4_ha"]
+[ext_resource type="Resource" path="res://data/test/heroes/teste_b.tres" id="5_hb"]
+[ext_resource type="Resource" path="res://data/test/heroes/teste_c.tres" id="6_hc"]
+[ext_resource type="Script" path="res://core/defs/item_def.gd" id="7_id"]
+[ext_resource type="Resource" path="res://data/test/items/pocao.tres" id="8_ip"]
+[ext_resource type="Resource" path="res://data/test/items/eter.tres" id="9_ie"]
+[ext_resource type="Resource" path="res://data/test/items/reviver.tres" id="10_ir"]
+[ext_resource type="Script" path="res://world/fade.gd" id="11_fade"]
+
+[node name="Game" type="Node"]
+script = ExtResource("1_game")
+balance = ExtResource("2_bal")
+party = Array[ExtResource("3_cd")]([ExtResource("4_ha"), ExtResource("5_hb"), ExtResource("6_hc")])
+start_items = Array[ExtResource("7_id")]([ExtResource("8_ip"), ExtResource("9_ie"), ExtResource("10_ir")])
+start_item_counts = Array[int]([3, 2, 1])
+
+[node name="Fade" type="CanvasLayer" parent="."]
+layer = 10
+script = ExtResource("11_fade")
+
+[node name="Rect" type="ColorRect" parent="Fade"]
+modulate = Color(1, 1, 1, 0)
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 1)
