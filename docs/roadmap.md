@@ -68,7 +68,7 @@ O usuário pediu para construir com base em CT e FF sem nova rodada de perguntas
 **M3 — Menu de campo e grupo de 4** · design [`m3-menu-grupo-design`](superpowers/specs/2026-10-18-m3-menu-grupo-design.md) · plano [`m3-menu-grupo`](superpowers/plans/2026-10-18-m3-menu-grupo.md)
 Menu estilo FF (Itens, Técnicas, Status, Atributos, Formação) com painel do grupo estilo CT; 4 ativos + reserva; líder anda no mapa.
 
-**M4 — Equipamento**
+**M4 — Equipamento** · design [`m4-equipamento-design`](superpowers/specs/2026-10-19-m4-equipamento-design.md) · plano [`m4-equipamento`](superpowers/plans/2026-10-19-m4-equipamento.md)
 - Slots: **Arma**, **Armadura**, **Capacete**, **Acessório** (como CT); cada personagem tem uma lista de tipos de arma permitidos (restrição por personagem, como FF/CT).
 - Página "Equipar" no menu de campo com prévia antes/depois dos atributos (FF).
 - Modificadores positivos e negativos e passivos simples (ex.: "+10% Aura máxima", "imune a Sono") — passivos ligados aos sistemas que já existem.
