@@ -11,18 +11,24 @@ signal closed
 ## Alguma configuração mudou (página Config): quem hospeda persiste e aplica.
 signal settings_changed
 
-const COMMANDS: Array[String] = ["Itens", "Técnicas", "Equipar", "Status", "Atributos", "Formação", "Config", "Fechar"]
-const COMMAND_PAGES: Array[StringName] = [&"items", &"techniques", &"equip", &"status", &"attributes", &"formation", &"config", &""]
+const COMMANDS: Array[String] = ["Itens", "Técnicas", "Equipar", "Status", "Atributos", "Formação", "Salvar", "Config", "Fechar"]
+const COMMAND_PAGES: Array[StringName] = [&"items", &"techniques", &"equip", &"status", &"attributes", &"formation", &"save", &"config", &""]
 const PAGE_TITLES: Dictionary[StringName, String] = {
 	&"items": "Itens", &"techniques": "Técnicas", &"equip": "Equipar", &"status": "Status",
-	&"attributes": "Atributos", &"formation": "Formação", &"config": "Config",
+	&"attributes": "Atributos", &"formation": "Formação", &"save": "Salvar", &"config": "Config",
 }
 const ATTRIBUTES_INDEX: int = 4
+const SAVE_INDEX: int = 6
 const ENABLED_COLOR: Color = Color(1.0, 1.0, 1.0)
 const DISABLED_COLOR: Color = Color(0.45, 0.45, 0.5)
 const CURSOR_COLOR: Color = Color(1.0, 0.85, 0.3)
 
 var state: GameState
+## Slots de save em disco (quem hospeda define) e quem grava: Callable(slot: int) -> bool.
+var store: SaveStore
+var save_handler: Callable
+## Se o comando Salvar está habilitado agora (o Game decide ao abrir o menu).
+var save_allowed: bool = false
 var is_open: bool = false
 var cursor: int = 0
 var page: StringName = &"root"
@@ -34,6 +40,7 @@ var status_page: StatusPage
 var attributes_page: AttributesPage
 var formation_page: FormationPage
 var config_page: ConfigPage
+var save_page: SavePage
 
 var _root: Control
 var _command_list: VBoxContainer
@@ -76,6 +83,8 @@ func command_labels() -> PackedStringArray:
 func command_enabled(i: int) -> bool:
 	if i == ATTRIBUTES_INDEX:
 		return state != null and AttributesPage.anyone_pending(state)
+	if i == SAVE_INDEX:
+		return save_allowed
 	return true
 
 ## Aviso da raiz (ex.: comando desabilitado).
@@ -136,7 +145,7 @@ func accept() -> void:
 	if target == &"":
 		close()
 	elif not command_enabled(cursor):
-		_message.text = "Ninguém tem pontos para distribuir."
+		_message.text = "Só é possível salvar no mapa-múndi ou num ponto de descanso." if cursor == SAVE_INDEX 				else "Ninguém tem pontos para distribuir."
 	else:
 		_message.text = ""
 		_show_page(target)
@@ -253,11 +262,12 @@ func _build() -> void:
 	status_page = StatusPage.new()
 	attributes_page = AttributesPage.new()
 	formation_page = FormationPage.new()
+	save_page = SavePage.new()
 	config_page = ConfigPage.new()
 	var pages: Dictionary[StringName, FieldPage] = {
 		&"items": item_page, &"techniques": technique_page, &"equip": equip_page, &"status": status_page,
 		&"attributes": attributes_page, &"formation": formation_page,
-		&"config": config_page,
+		&"save": save_page, &"config": config_page,
 	}
 	for p: StringName in PAGE_TITLES:
 		var content: FieldPage = pages[p]

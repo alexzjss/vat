@@ -1,8 +1,8 @@
 class_name Game
 extends Node
 
-## Jogo raiz: guarda o GameState, troca o mapa atual com fade e trata o Game Over
-## (volta ao ponto de salvamento). Reentrar numa área a instancia de novo (inimigos reaparecem).
+## Jogo raiz: abre na tela de título, guarda o GameState, troca o mapa atual com fade e trata o Game Over
+## (tela de Game Over e volta ao título). Salvar em disco: `save_to_slot` (mapa-múndi ou ponto de descanso). Reentrar numa área a instancia de novo (inimigos reaparecem).
 ## Menu de campo (`open_menu`, Tab/Esc): só abre fora de transição, de batalha e de Game Over; enquanto aberto
 ## o mapa atual fica congelado (process_mode DISABLED, o mesmo mecanismo do fade). Ao fechar, o marcador do
 ## jogador passa a mostrar o líder atual.
@@ -26,23 +26,45 @@ const MAPS: Dictionary[StringName, PackedScene] = {
 
 ## Arquivo das configurações do jogador (testes apontam para um caminho temporário).
 var settings_path: String = SettingsStore.DEFAULT_PATH
+## Diretório dos slots de save (testes apontam para um diretório temporário, nunca os slots reais).
+var save_dir: String = "user://"
+## Pula a tela de título e começa em Novo jogo (testes; qualquer flag --demo-* também pula).
+var skip_title: bool = false
 var state: GameState
+var settings: GameSettings
+var registry: DefRegistry
+var store: SaveStore
 var current: Node2D
+var current_map: StringName = &""
 ## Verdadeiro durante uma transição; sinais dos mapas são ignorados.
 var busy: bool = false
+## Verdadeiro na tela de título (sem estado de jogo ativo, o tempo de jogo não corre).
+var in_title: bool = false
+var title: TitleScreen
+var game_over_screen: GameOverScreen
+
+static var _registry_cache: DefRegistry
 
 @onready var fade: Fade = $Fade
 @onready var menu: FieldMenu = $FieldMenu
 
 func _ready() -> void:
-	state = GameState.new_game(balance, party, start_items, start_item_counts, Dice.new(world_seed),
-			&"overworld", &"Start", GameState.MAX_ACTIVE, start_equipment, start_equipment_counts)
-	SettingsStore.load_into(state.settings, settings_path)
+	if _registry_cache == null:
+		_registry_cache = SaveStore.build_registry()
+	registry = _registry_cache
+	store = SaveStore.new(save_dir, registry, balance)
+	settings = GameSettings.new(balance)
+	SettingsStore.load_into(settings, settings_path)
 	apply_settings()
 	menu.closed.connect(_on_menu_closed)
 	menu.settings_changed.connect(_on_settings_changed)
-	go_to(&"overworld", &"Start", false)
+	menu.store = store
+	menu.save_handler = save_to_slot
 	var args: PackedStringArray = OS.get_cmdline_user_args()
+	if skip_title or _has_demo_flag(args):
+		start_new_game()
+	else:
+		_show_title()
 	if args.has("--demo-m2"):
 		_add_demo(DemoM2.new(), "DemoM2")
 	if args.has("--demo-m3"):
@@ -52,14 +74,76 @@ func _ready() -> void:
 	if args.has("--demo-field-menu"):
 		_add_demo(DemoFieldMenu.new(), "DemoFieldMenu")
 
+static func _has_demo_flag(args: PackedStringArray) -> bool:
+	for a: String in args:
+		if a.begins_with("--demo-"):
+			return true
+	return false
+
+func _process(delta: float) -> void:
+	if state != null and not in_title and game_over_screen == null:
+		state.play_time += delta
+
+## Começa um jogo novo no mapa-múndi (sai do título, se estiver nele).
+func start_new_game() -> void:
+	_close_title()
+	state = GameState.new_game(balance, party, start_items, start_item_counts, Dice.new(world_seed),
+			&"overworld", &"Start", GameState.MAX_ACTIVE, start_equipment, start_equipment_counts)
+	state.settings = settings
+	in_title = false
+	go_to(&"overworld", &"Start", false)
+
+## Continua do slot `slot` do disco. False se o slot não carregar.
+func continue_from_slot(slot: int) -> bool:
+	var loaded: GameState = store.read(slot, Dice.new(world_seed))
+	if loaded == null or not MAPS.has(loaded.save_map):
+		return false
+	_close_title()
+	loaded.settings = settings
+	state = loaded
+	in_title = false
+	go_to(loaded.save_map, loaded.save_spawn, false)
+	return true
+
+func _show_title() -> void:
+	in_title = true
+	title = TitleScreen.new()
+	title.setup(store)
+	title.new_game_requested.connect(start_new_game)
+	title.continue_requested.connect(continue_from_slot)
+	title.quit_requested.connect(func() -> void: get_tree().quit())
+	add_child(title)
+
+func _close_title() -> void:
+	if title != null:
+		title.queue_free()
+		title = null
+
+## Spawn gravado no save feito aqui: o mapa-múndi usa `Start`; numa área, o ponto de descanso (vazio fora dele).
+func save_spawn_here() -> StringName:
+	if current is Overworld:
+		return &"Start"
+	return &""
+
+## Salvar em disco só vale no mapa-múndi ou dentro de um ponto de descanso.
+func can_save() -> bool:
+	return state != null and not in_title and not busy and save_spawn_here() != &""
+
+## Grava o ponto de salvamento atual (memória e disco) no slot. False se não puder salvar ou se a escrita falhar.
+func save_to_slot(slot: int) -> bool:
+	if not can_save():
+		return false
+	state.save(current_map, save_spawn_here())
+	return store.write(slot, state)
+
 ## Aplica as configurações que não dependem de uma cena (volume do bus Master).
 func apply_settings() -> void:
-	var v: float = float(state.settings.volume) / float(maxi(1, state.cfg.volume_max))
+	var v: float = float(settings.volume) / float(maxi(1, balance.volume_max))
 	AudioServer.set_bus_volume_db(0, linear_to_db(v) if v > 0.0 else -80.0)
 
 func _on_settings_changed() -> void:
 	apply_settings()
-	SettingsStore.save(state.settings, settings_path)
+	SettingsStore.save(settings, settings_path)
 
 func _add_demo(demo: Node, demo_name: String) -> void:
 	demo.name = demo_name
@@ -85,6 +169,7 @@ func open_menu() -> bool:
 	if not can_open_menu():
 		return false
 	current.process_mode = Node.PROCESS_MODE_DISABLED
+	menu.save_allowed = can_save()
 	menu.open(state)
 	return true
 
@@ -118,6 +203,7 @@ func go_to(map: StringName, spawn: StringName, with_fade: bool = true) -> void:
 		current.queue_free()
 		current = null
 	current = MAPS[map].instantiate() as Node2D
+	current_map = map
 	current.process_mode = Node.PROCESS_MODE_DISABLED
 	add_child(current)
 	move_child(current, 0)
@@ -164,7 +250,19 @@ func _on_exit_requested() -> void:
 	go_to(&"overworld", &"AreaTesteReturn")
 
 func _on_game_over() -> void:
-	if busy:
+	if busy or in_title or game_over_screen != null:
 		return
 	state.restore_save()
-	go_to(state.save_map, state.save_spawn)
+	game_over_screen = GameOverScreen.new()
+	game_over_screen.dismissed.connect(_on_game_over_dismissed)
+	add_child(game_over_screen)
+
+## Do Game Over de volta ao título: o progresso desde o último save em disco se perde.
+func _on_game_over_dismissed() -> void:
+	game_over_screen.queue_free()
+	game_over_screen = null
+	if current != null:
+		remove_child(current)
+		current.queue_free()
+		current = null
+	_show_title()

@@ -1,7 +1,7 @@
 extends GutTest
 
 const SCENE: PackedScene = preload("res://ui/field_menu/field_menu.tscn")
-const LABELS: Array[String] = ["Itens", "Técnicas", "Equipar", "Status", "Atributos", "Formação", "Config", "Fechar"]
+const LABELS: Array[String] = ["Itens", "Técnicas", "Equipar", "Status", "Atributos", "Formação", "Salvar", "Config", "Fechar"]
 
 var g: GameState
 var menu: FieldMenu
@@ -44,20 +44,21 @@ func test_navigation_and_close() -> void:
 	menu.move(1)
 	assert_eq(menu.cursor, 1)
 	menu.move(-2)
-	assert_eq(menu.cursor, 7)
+	assert_eq(menu.cursor, 8)
 	menu.move(1)
 	menu.accept()
 	assert_eq(menu.page, &"items")
 	menu.cancel()
 	assert_eq(menu.page, &"root")
 	assert_eq(menu.cursor, 0)
-	var pages: Array[StringName] = [&"techniques", &"equip", &"status", &"attributes", &"formation", &"config"]
+	menu.save_allowed = true
+	var pages: Array[StringName] = [&"techniques", &"equip", &"status", &"attributes", &"formation", &"save", &"config"]
 	for i: int in pages.size():
 		menu.move(1)
 		menu.accept()
 		assert_eq(menu.page, pages[i])
 		menu.cancel()
-	assert_eq(menu.cursor, 6)
+	assert_eq(menu.cursor, 7)
 	menu.cancel()
 	assert_signal_emitted(menu, "closed")
 	assert_false(menu.is_open)

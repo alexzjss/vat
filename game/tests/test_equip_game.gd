@@ -12,6 +12,7 @@ func before_each() -> void:
 	cfg.fade_time = 0.01
 	game.balance = cfg
 	game.world_seed = 7
+	game.skip_title = true
 	add_child_autofree(game)
 
 func _wait_idle() -> void:
@@ -57,7 +58,7 @@ func test_game_over_restores_equipment_and_bag() -> void:
 	assert_same(hero.equipment[&"armor"], start_armor, "armadura do salvamento")
 	assert_eq(game.state.bag.count(&"armadura_pesada"), 1, "mochila do salvamento")
 	assert_eq(game.state.bag.count(start_armor.id), 0)
-	assert_true(game.current is Overworld)
+	assert_not_null(game.game_over_screen, "tela de Game Over")
 
 func test_equipped_passive_holds_in_map_battle() -> void:
 	var hero: HeroState = game.state.heroes[0]

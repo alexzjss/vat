@@ -12,6 +12,7 @@ func before_each() -> void:
 	cfg.fade_time = 0.01
 	game.balance = cfg
 	game.world_seed = 7
+	game.skip_title = true
 	add_child_autofree(game)
 
 func _wait_idle() -> void:
@@ -144,8 +145,10 @@ func test_game_over_restores_save_and_returns_to_start() -> void:
 	assert_same(game.state.heroes[0], hero, "mesmo HeroState")
 	assert_eq(hero.hp, saved_hp, "HP do salvamento")
 	assert_ne(game.state.inventory, saved_inv, "inventário é cópia nova")
-	assert_true(game.current is Overworld)
-	assert_eq(_player().global_position, _marker("Start").global_position)
+	assert_not_null(game.game_over_screen, "tela de Game Over")
+	game.game_over_screen.accept()
+	assert_true(game.in_title, "Game Over volta ao título")
+	assert_null(game.current)
 
 func test_game_over_restores_changed_hp() -> void:
 	var hero: HeroState = game.state.heroes[1]
@@ -155,8 +158,7 @@ func test_game_over_restores_changed_hp() -> void:
 	map.game_over.emit()
 	await _wait_idle()
 	assert_eq(hero.hp, saved_hp)
-	assert_true(game.current is Overworld)
-	assert_eq(_player().global_position, _marker("Start").global_position)
+	assert_not_null(game.game_over_screen, "tela de Game Over")
 
 var _added_maps: int = 0
 

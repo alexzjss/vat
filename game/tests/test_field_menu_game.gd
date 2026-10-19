@@ -12,6 +12,7 @@ func before_each() -> void:
 	cfg.fade_time = 0.01
 	game.balance = cfg
 	game.world_seed = 7
+	game.skip_title = true
 	add_child_autofree(game)
 
 func _wait_idle() -> void:

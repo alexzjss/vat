@@ -12,7 +12,7 @@ func before_each() -> void:
 	menu = SCENE.instantiate() as FieldMenu
 	add_child_autofree(menu)
 	menu.open(g)
-	menu.move(6)
+	menu.move(FieldMenu.COMMAND_PAGES.find(&"config"))
 	menu.accept()
 	page = menu.config_page
 
@@ -51,4 +51,4 @@ func test_left_right_change_values() -> void:
 func test_cancel_returns_to_root() -> void:
 	menu.cancel()
 	assert_eq(menu.page, &"root")
-	assert_eq(menu.cursor, 6)
+	assert_eq(menu.cursor, 7)
