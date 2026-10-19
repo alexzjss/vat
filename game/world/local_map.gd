@@ -27,6 +27,8 @@ var locked: bool = false
 
 var state: GameState
 var _battle_enemy: MapEnemy
+## Posição do jogador ao tocar o inimigo (para onde ele volta se fugir).
+var _battle_from: Vector2 = Vector2.ZERO
 
 @onready var player: Player = $Player
 @onready var camera: MapCamera = $MapCamera
@@ -100,6 +102,7 @@ func _on_enemy_touched(enemy: MapEnemy) -> void:
 	exit_zone.armed = false
 	camera.slide_to(arena.center(), state.cfg.camera_slide_time)
 	var from_pos: Vector2 = player.global_position
+	_battle_from = from_pos
 	player.visible = false
 	if followers != null:
 		followers.hide_all()
@@ -112,6 +115,7 @@ func _on_enemy_touched(enemy: MapEnemy) -> void:
 	battle.dice_seed = dice_seed if dice_seed >= 0 else state.dice.pick_index(1 << 30)
 	battle.settings = state.settings
 	battle.mode = BattleScene.Mode.MAP
+	battle.can_flee = enemy.encounter.can_flee
 	battle.position = Vector2.ZERO
 	battle.finished.connect(_on_battle_finished)
 	add_child(battle)
@@ -123,6 +127,9 @@ func _on_battle_finished(outcome: BattleController.Outcome) -> void:
 	var arena: BattleArena = _arena_for(_battle_enemy) if is_instance_valid(_battle_enemy) else default_arena
 	battle.queue_free()
 	battle = null
+	if outcome == BattleController.Outcome.FLED:
+		_after_flee()
+		return
 	if outcome != BattleController.Outcome.VICTORY:
 		locked = true
 		game_over.emit()
@@ -141,6 +148,24 @@ func _on_battle_finished(outcome: BattleController.Outcome) -> void:
 	camera.resume_follow(state.cfg.camera_slide_time)
 	# Toques ignorados durante a batalha desarmaram os outros inimigos; rearma por último
 	# (se um deles ainda encosta no líder, o novo encontro começa agora, com o mapa já restaurado).
+	for e: MapEnemy in enemies():
+		e.rearm()
+
+## Fuga: o jogador volta para onde estava; o inimigo fica no mapa, piscando e sem tocar por flee_cooldown.
+func _after_flee() -> void:
+	if is_instance_valid(_battle_enemy):
+		_battle_enemy.visible = true
+		_battle_enemy.begin_cooldown(state.cfg.flee_cooldown)
+	_battle_enemy = null
+	player.global_position = _battle_from
+	player.visible = true
+	if followers != null:
+		followers.restart()
+	player.enabled = true
+	for e: MapEnemy in enemies():
+		e.frozen = false
+	exit_zone.armed = true
+	camera.resume_follow(state.cfg.camera_slide_time)
 	for e: MapEnemy in enemies():
 		e.rearm()
 

@@ -20,6 +20,10 @@ const VIEW_SCENE: PackedScene = preload("res://battle/combatant_view.tscn")
 @export var dice_seed: int = -1
 ## Configurações do jogador (velocidade, memória do cursor, modo ATB). Nulo = padrões (Espera, x1.0, sem memória).
 var settings: GameSettings
+## Só no modo MAP: o encontro permite fugir (EncounterDef.can_flee). Aplicado ao controlador em start_with.
+var can_flee: bool = true
+## Só testes/demo: -1 lê a ação `flee`; 0/1 força solta/segurada.
+var flee_input_override: int = -1
 
 ## STANDALONE: cena do M1 (F5), com "Descansar…/Lutar de novo/Tentar de novo".
 ## MAP: roda dentro do mapa; sem fundo, aceitar o resultado emite `finished` (sem reiniciar).
@@ -51,6 +55,10 @@ var demo_result: bool = false
 var _slide_from: Vector2 = Vector2.INF
 var _slide_left: float = 0.0
 
+var _flee_held: bool = false
+var _flee_bar: ProgressBar
+var _flee_label: Label
+
 var _demo: bool = false
 var _demo_area_done: bool = false
 
@@ -71,6 +79,7 @@ func _ready() -> void:
 	if args.has("--demo-result"):
 		auto_battle = true
 		demo_result = true
+	_build_flee_ui()
 	_menu.submitted.connect(_on_menu_submitted)
 	_result.accepted.connect(_on_result_accepted)
 	_level_up.closed.connect(_on_level_up_closed)
@@ -134,6 +143,7 @@ func start_with(heroes: Array[HeroState], enemies: Array[EnemyDef], hero_pos: Ar
 			e.hp = maxi(1, e.hp / 4)
 	ctrl = BattleController.new(b)
 	ctrl.speed_mult = settings.speed_mult() if settings != null else 1.0
+	ctrl.can_flee = can_flee and mode == Mode.MAP
 	ctrl.active_mode = settings != null and settings.atb_mode == GameSettings.AtbMode.ACTIVE
 	_menu.remember_cursor = settings != null and settings.cursor_memory
 	_menu.reset_memory()
@@ -164,8 +174,55 @@ func _process(delta: float) -> void:
 	if _slide_left > 0.0:
 		_advance_slide(delta)
 	else:
+		update_flee(delta)
 		ctrl.tick(delta)
 	_debug.refresh(ctrl.b, ctrl)
+
+## Fuga em tempo real (delta sem o multiplicador de velocidade da batalha e sem a pausa do modo Espera).
+func update_flee(real_delta: float) -> void:
+	_flee_held = flee_input_override == 1 if flee_input_override >= 0 else Input.is_action_pressed("flee")
+	ctrl.update_flee(real_delta, _flee_held)
+	_refresh_flee_ui()
+
+## Mensagem de fuga: "Não dá para fugir!" se está segurando e o encontro não permite.
+func flee_message() -> String:
+	if mode != Mode.MAP or ctrl == null or ctrl.outcome != BattleController.Outcome.ONGOING:
+		return ""
+	if _flee_held and not ctrl.can_flee:
+		return "Não dá para fugir!"
+	if ctrl.flee_gauge > 0.0:
+		return "Fugindo..."
+	return ""
+
+func _build_flee_ui() -> void:
+	var ui: Node = get_node_or_null(^"UI")
+	if ui == null:
+		return
+	_flee_bar = ProgressBar.new()
+	_flee_bar.min_value = 0.0
+	_flee_bar.max_value = 1.0
+	_flee_bar.show_percentage = false
+	_flee_bar.position = Vector2(490, 668)
+	_flee_bar.size = Vector2(300, 14)
+	_flee_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_flee_bar.visible = false
+	ui.add_child(_flee_bar)
+	_flee_label = Label.new()
+	_flee_label.position = Vector2(490, 636)
+	_flee_label.size = Vector2(300, 28)
+	_flee_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_flee_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_flee_label.visible = false
+	ui.add_child(_flee_label)
+
+func _refresh_flee_ui() -> void:
+	if _flee_bar == null:
+		return
+	var msg: String = flee_message()
+	_flee_label.text = msg
+	_flee_label.visible = msg != ""
+	_flee_bar.value = ctrl.flee_gauge
+	_flee_bar.visible = ctrl.flee_gauge > 0.0
 
 func _advance_slide(delta: float) -> void:
 	_slide_left = maxf(0.0, _slide_left - delta)
@@ -228,7 +285,7 @@ func _on_turn_lost(c: Combatant) -> void:
 func _on_battle_ended(outcome: BattleController.Outcome) -> void:
 	_set_highlight_off()
 	_menu.close()
-	_outcome_label.text = "Vitória!" if outcome == BattleController.Outcome.VICTORY else "Derrota..."
+	_outcome_label.text = _outcome_text(outcome)
 	var b: BattleState = ctrl.b
 	# HP/AP persistem entre batalhas (spec §7); caídos ficam com HP 0, sem recuperação automática
 	# (só as ações "Descansar..." da tela de resultado recuperam).
@@ -237,6 +294,10 @@ func _on_battle_ended(outcome: BattleController.Outcome) -> void:
 		c.hero_state.ap = c.ap
 	if outcome == BattleController.Outcome.VICTORY:
 		_grant_victory(b)
+	elif outcome == BattleController.Outcome.FLED:
+		# Sem XP; HP/AP já foram gravados acima e os itens gastos continuam gastos.
+		_refresh_flee_ui()
+		_finish(BattleController.Outcome.FLED)
 	else:
 		phase = Phase.DEFEAT
 		if mode == Mode.MAP:
@@ -246,6 +307,14 @@ func _on_battle_ended(outcome: BattleController.Outcome) -> void:
 			_result.show_defeat()
 	if demo_result:
 		_run_demo_result()
+
+func _outcome_text(outcome: BattleController.Outcome) -> String:
+	match outcome:
+		BattleController.Outcome.VICTORY:
+			return "Vitória!"
+		BattleController.Outcome.FLED:
+			return "Fugiu!"
+	return "Derrota..."
 
 func _grant_victory(b: BattleState) -> void:
 	last_xp = XpCalculator.combat_xp(b.ledger, b.enemies, b.heroes, false)

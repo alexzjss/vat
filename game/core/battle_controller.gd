@@ -14,7 +14,7 @@ signal battle_ended(outcome: Outcome)
 ## O herói da sessão aberta caiu (modo Ativo): a sessão foi desfeita e o menu deve fechar.
 signal session_cancelled(s: SelectionSession)
 
-enum Outcome { ONGOING, VICTORY, DEFEAT }
+enum Outcome { ONGOING, VICTORY, DEFEAT, FLED }
 
 var b: BattleState
 var outcome: Outcome = Outcome.ONGOING
@@ -24,6 +24,11 @@ var executing: PendingAction
 var speed_mult: float = 1.0
 ## ATB Ativo: o tempo corre com o menu de um herói aberto (sem pausa). Em Espera (padrão) nada muda.
 var active_mode: bool = false
+## Fuga (M7): barra de 0 a 1 que corre em tempo real (ver update_flee). Cheia, a batalha termina
+## como FLED assim que nenhuma ação estiver executando.
+var flee_gauge: float = 0.0
+## false (chefes, standalone): a barra não enche.
+var can_flee: bool = true
 var _clock: AtbClock
 ## Ação confirmada durante a execução de outra (só no modo Ativo); começa assim que ela termina.
 var _queued: PendingAction
@@ -48,12 +53,50 @@ func tick(delta: float) -> void:
 	if executing != null:
 		_advance_execution(delta)
 	if executing == null:
+		_try_flee()
 		_check_end()
 		if outcome == Outcome.ONGOING:
 			if _queued != null:
 				_begin_queued()
 			else:
 				_start_next()
+
+## Fuga: `real_delta` é tempo real (ignora speed_mult e a pausa do modo Espera). Enche a
+## `flee_base_rate * (Vel média dos heróis vivos + 1) / (Vel média dos inimigos vivos + 1)` por segundo
+## enquanto `holding`; senão esvazia a `flee_decay`/s. Sem `can_flee` a barra fica em 0.
+func update_flee(real_delta: float, holding: bool) -> void:
+	if outcome != Outcome.ONGOING:
+		return
+	if not can_flee:
+		flee_gauge = 0.0
+		return
+	if holding:
+		flee_gauge = minf(1.0, flee_gauge + flee_rate() * real_delta)
+	else:
+		flee_gauge = maxf(0.0, flee_gauge - b.cfg.flee_decay * real_delta)
+	_try_flee()
+
+func flee_rate() -> float:
+	return b.cfg.flee_base_rate * (_avg_speed(b.heroes) + 1.0) / (_avg_speed(b.enemies) + 1.0)
+
+func _avg_speed(side: Array[Combatant]) -> float:
+	var alive: Array[Combatant] = b.living(side)
+	if alive.is_empty():
+		return 0.0
+	var sum: float = 0.0
+	for c: Combatant in alive:
+		sum += StatCalculator.effective(c, &"speed", b.cfg)
+	return sum / alive.size()
+
+## Barra cheia e nenhuma ação executando: encerra como FLED. A sessão aberta é desfeita e a ação
+## enfileirada é reembolsada; HP, AP e itens já gastos ficam como estão.
+func _try_flee() -> void:
+	if outcome != Outcome.ONGOING or not can_flee or flee_gauge < 1.0 or executing != null:
+		return
+	outcome = Outcome.FLED
+	_drop_session()
+	_discard_queued()
+	battle_ended.emit(outcome)
 
 func submit(a: PendingAction) -> void:
 	if a == null or session == null or (executing != null and not active_mode):
