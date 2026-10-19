@@ -20,8 +20,8 @@ static func _hit(r: ActionResult, t: Combatant, kind: EffectDef.Kind, amount: in
 
 static func _scaled(e: EffectDef, actor: Combatant, attr: StringName, cfg: BalanceConfig) -> int:
 	if e.scale == EffectDef.Scale.FIXED:
-		return int(floor(e.potency))
-	return int(floor(e.potency * StatCalculator.effective(actor, attr, cfg)))
+		return EffectMath.heal_amount(e, 0)
+	return EffectMath.heal_amount(e, StatCalculator.effective(actor, attr, cfg))
 
 static func _apply_effect(e: EffectDef, actor: Combatant, t: Combatant, b: BattleState, r: ActionResult) -> void:
 	var enemies_alive: Array[Combatant] = b.living(b.enemies)
@@ -62,7 +62,7 @@ static func _apply_effect(e: EffectDef, actor: Combatant, t: Combatant, b: Battl
 			if not t.is_down():
 				return
 			var hpm: int = StatCalculator.hp_max(t, b.cfg)
-			t.hp = maxi(1, int(floor(hpm * e.potency)))
+			t.hp = EffectMath.revive_hp(e, hpm)
 			t.atb = 0.0
 			_credit_heal(actor, t, t.hp, b, enemies_alive)
 			_hit(r, t, e.kind, t.hp, false, -1)
@@ -71,7 +71,7 @@ static func _apply_effect(e: EffectDef, actor: Combatant, t: Combatant, b: Battl
 			if t.is_down():
 				return
 			var before: int = t.ap
-			t.ap = mini(StatCalculator.ap_max(t, b.cfg), t.ap + int(floor(e.potency)))
+			t.ap = mini(StatCalculator.ap_max(t, b.cfg), t.ap + EffectMath.restore_ap_amount(e))
 			_hit(r, t, e.kind, maxi(0, t.ap - before), false, -1)
 		EffectDef.Kind.APPLY_STATUS:
 			if t.is_down() or e.status == null:
