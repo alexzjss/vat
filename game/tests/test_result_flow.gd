@@ -394,8 +394,8 @@ func test_defeat_rest_restores_snapshot_then_full() -> void:
 		assert_eq(h.ap, _full_ap(h, s.balance), "AP cheio (%s)" % h.def.id)
 		assert_eq(s.ctrl.b.heroes[i].hp, h.hp)
 		assert_false(s.ctrl.b.heroes[i].is_down())
-	# Nv 2, Vitalidade base + 1 alocada (não os 9 posteriores).
-	var vit: int = hs[0].def.base.vitality + 1
+	# Nv 2, Vitalidade base + 1 alocada (não os 9 posteriores) + 1 da armadura inicial.
+	var vit: int = hs[0].def.base.vitality + 1 + hs[0].equipment[&"armor"].modifiers.vitality
 	assert_eq(hs[0].hp, vit * s.balance.hp_per_vitality + 2 * s.balance.hp_per_level)
 
 func test_result_actions_wrap_and_reset_on_show() -> void:

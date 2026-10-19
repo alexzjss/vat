@@ -7,6 +7,7 @@ const MAX_ACTIVE: int = 4
 var heroes: Array[HeroState] = []
 var reserve: Array[HeroState] = []
 var inventory: Inventory
+var bag: EquipmentBag
 var dice: Dice
 var save_map: StringName
 var save_spawn: StringName
@@ -14,12 +15,14 @@ var _saved_heroes: Array[Dictionary] = []
 var _saved_active_ids: Array[StringName] = []
 var _saved_reserve_ids: Array[StringName] = []
 var _saved_inventory: Inventory
+var _saved_bag: EquipmentBag
 
-static func new_game(cfg: BalanceConfig, defs: Array[CharacterDef], items: Array[ItemDef], counts: Array[int], dice: Dice, map: StringName, spawn: StringName, max_active: int = MAX_ACTIVE) -> GameState:
+static func new_game(cfg: BalanceConfig, defs: Array[CharacterDef], items: Array[ItemDef], counts: Array[int], dice: Dice, map: StringName, spawn: StringName, max_active: int = MAX_ACTIVE, bag_items: Array[EquipmentDef] = [], bag_counts: Array[int] = []) -> GameState:
 	var g := GameState.new()
 	g.cfg = cfg
 	g.dice = dice
 	g.inventory = Inventory.new()
+	g.bag = EquipmentBag.new()
 	for i: int in defs.size():
 		var h := HeroState.create(defs[i], cfg)
 		if i < max_active:
@@ -28,6 +31,8 @@ static func new_game(cfg: BalanceConfig, defs: Array[CharacterDef], items: Array
 			g.reserve.append(h)
 	for i: int in items.size():
 		g.inventory.add(items[i], counts[i])
+	for i: int in bag_items.size():
+		g.bag.add(bag_items[i], bag_counts[i])
 	g.save(map, spawn)
 	return g
 
@@ -71,6 +76,27 @@ func to_active(h: HeroState) -> bool:
 	heroes.append(h)
 	return true
 
+## Equipa `e` em `slot` vindo da mochila; o item antigo volta para ela. HP/AP atuais são limitados ao novo máximo.
+func equip(h: HeroState, slot: StringName, e: EquipmentDef) -> bool:
+	if e == null or not roster().has(h) or not EquipmentRules.can_equip(h.def, e, slot) or bag.count(e.id) == 0:
+		return false
+	var taken: EquipmentDef = bag.take(e.id)
+	var old: EquipmentDef = h.equipment.get(slot)
+	if old != null:
+		bag.put(old)
+	h.equipment[slot] = taken
+	h.clamp_to_max(cfg)
+	return true
+
+## Devolve o item de `slot` à mochila; false se vazio ou herói fora do roster.
+func unequip(h: HeroState, slot: StringName) -> bool:
+	if not roster().has(h) or not h.equipment.has(slot):
+		return false
+	bag.put(h.equipment[slot])
+	h.equipment.erase(slot)
+	h.clamp_to_max(cfg)
+	return true
+
 func _list_of(h: HeroState) -> Array[HeroState]:
 	if heroes.has(h):
 		return heroes
@@ -92,6 +118,7 @@ func save(map: StringName, spawn: StringName) -> void:
 		_saved_heroes.append(h.snapshot())
 		_saved_reserve_ids.append(h.def.id)
 	_saved_inventory = inventory.copy()
+	_saved_bag = bag.copy()
 
 ## Volta ao salvamento: os mesmos objetos HeroState, só listas e valores mudam; inventário é cópia nova.
 func restore_save() -> void:
@@ -109,3 +136,4 @@ func restore_save() -> void:
 	for i: int in saved.size():
 		saved[i].restore(_saved_heroes[i])
 	inventory = _saved_inventory.copy()
+	bag = _saved_bag.copy()
