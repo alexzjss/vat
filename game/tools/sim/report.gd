@@ -40,11 +40,11 @@ const FORMULAS: Array[Dictionary] = [
 const METAS: String = """- Batalha comum: 30-60 s de duracao com a politica `smart` e vitoria >= 90%.
 - Politica `basic`: vitoria entre 40% e 70% (pressao real sem ser impossivel).
 - Chefe de teste: 2-4 min (ainda sem cenario: nao ha chefe de teste; fica para o M11).
-- Cenario "difícil": nivel 1, X+Y+Z com atributos dos inimigos multiplicados por um fator (ver abaixo), para medir a pressao com `basic` (meta 40-70%) e dar efeito a Reviver, Veneno e duracoes.
+- Cenario "difícil" (opt-in, `-hard F`): nivel 1, X+Y+Z com atributos dos inimigos multiplicados por F; desligado por padrao desde o M5b.
 - Fonte: spec M5 (`docs/superpowers/specs/2026-10-19-m5-formulas-design.md`, §4).
 - Cada formula varia apenas ela mesma sobre o padrao (tudo A); a opcao A das tabelas e o padrao."""
 
-const NOTES: String = """- Cenario "difícil" e uma aresta de faca: a taxa de vitoria com `basic` despenca entre x1,12 e x1,14 (97% -> 10% na busca com 30 execucoes), porque os atributos sao arredondados; por isso o fator e fino (x1,125) e qualquer diferenca de formula desloca muito a vitoria nessa familia.
+const NOTES: String = """- A familia "difícil" (fator unico sobre os inimigos) foi desligada no M5b: o conteudo foi reajustado para as formulas escolhidas e os cenarios-meta ja exercem `basic` entre ~50% e 100% de vitoria; o fator antigo (x1,125) era uma aresta de faca calibrada para os atributos antigos.
 - TTK (acoes) e a media so das execucoes em que o inimigo morreu (derrotas/tempos esgotados nao entram).
 - Diferencas pequenas (alguns pontos de vitoria) em poucas execucoes sao ruido, nao efeito da formula."""
 
@@ -53,7 +53,8 @@ const F12_NOTE: String = "> Nota: a tabela B de duracoes so difere dos dados dos
 const CSV_HEADER: String = "formula,option,level,encounter,policy,runs,wins,losses,timeouts,win_rate,dur_mean,dur_median,actions_per_hero,basic_dmg,ability_dmg,hp_pct,ap_spent,xp_per_win_hero,battles_to_level"
 
 ## Fator de vida/atributos dos inimigos do cenario "dificil" (escolhido por busca; ver README).
-const HARD_SCALE: float = 1.125
+## 0 = familia desligada por padrao (M5b: o conteudo ja pressiona o `basic`; o fator 1,125 era calibrado para o conteudo antigo). Use -hard F para reativar.
+const HARD_SCALE: float = 0.0
 const HARD_RUNS_DEFAULT: int = 20
 
 ## Cenarios padrao + familia "dificil" (nivel 1, X+Y+Z, inimigos com atributos x hard_scale). hard_runs <= 0: usa as mesmas execucoes.
@@ -109,7 +110,8 @@ static func _enemies(enc: String) -> Array[EnemyDef]:
 		out.append(load("res://data/test/enemies/inimigo_%s.tres" % letter.to_lower()) as EnemyDef)
 	return out
 
-static func make_scenario(c: Dictionary, runs: int, prop: String, value: int, label: String) -> SimScenario:
+## chosen=false: baseline tudo A (comparacao M5a); chosen=true: padrao escolhido (balance.tres).
+static func make_scenario(c: Dictionary, runs: int, prop: String, value: int, label: String, chosen: bool = false) -> SimScenario:
 	var s := SimScenario.new()
 	s.label = label
 	for id: String in HERO_IDS:
@@ -124,7 +126,8 @@ static func make_scenario(c: Dictionary, runs: int, prop: String, value: int, la
 	s.policy = c["policy"]
 	s.runs = runs
 	s.base_seed = 1
-	var cfg := BalanceConfig.new()
+	var cfg: BalanceConfig = SimScenario.config_chosen() if chosen else SimScenario.config_all_a()
+	s.baseline = SimScenario.BASELINE_CHOSEN if chosen else SimScenario.BASELINE_ALL_A
 	if prop != "":
 		cfg.set(prop, value)
 	s.cfg = cfg
@@ -135,10 +138,10 @@ static func make_scenario(c: Dictionary, runs: int, prop: String, value: int, la
 		s.item_counts.append(counts[i])
 	return s
 
-static func _run_cases(cases: Array[Dictionary], runs: int, prop: String, value: int, opt_label: String) -> Array[SimMetrics]:
+static func _run_cases(cases: Array[Dictionary], runs: int, prop: String, value: int, opt_label: String, chosen: bool = false) -> Array[SimMetrics]:
 	var out: Array[SimMetrics] = []
 	for c: Dictionary in cases:
-		out.append(SimRunner.run(make_scenario(c, int(c.get("runs", runs)), prop, value, "%s - %s" % [opt_label, _case_label(c)])))
+		out.append(SimRunner.run(make_scenario(c, int(c.get("runs", runs)), prop, value, "%s - %s" % [opt_label, _case_label(c)], chosen)))
 	return out
 
 # ---- agregacao ----
@@ -251,6 +254,7 @@ static func build(formulas: Array[String], cases: Array[Dictionary], runs: int, 
 	var md: Array[String] = []
 	var csv: Array[String] = [CSV_HEADER]
 	md.append("# Relatorio comparativo de formulas (M5a)\n")
+	md.append("Baseline: **%s** (todos os modos na opcao A, reproduz a comparacao do M5a; nao e o padrao atual do jogo).\n" % SimScenario.BASELINE_ALL_A)
 	var hard_runs: int = 0
 	for c: Dictionary in cases:
 		if c.has("hard"):
@@ -304,6 +308,96 @@ static func build(formulas: Array[String], cases: Array[Dictionary], runs: int, 
 		md.append("\n".join(details))
 		md.append("</details>\n")
 	return {"markdown": "\n".join(md), "csv": "\n".join(csv) + "\n"}
+
+# ---- relatorio final (M5b): padrao escolhido nos cenarios-meta ----
+
+## Cenarios-meta: grupo A-D com equipamento; X+Y nos niveis 1 e 5, X+Y+Z nos niveis 5 e 10; smart e basic.
+static func target_cases() -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	var pairs: Array = [[1, "X+Y"], [5, "X+Y"], [5, "X+Y+Z"], [10, "X+Y+Z"]]
+	for pr: Array in pairs:
+		for p: StringName in POLICIES:
+			out.append({"level": int(pr[0]), "enc": str(pr[1]), "policy": p})
+	return out
+
+## Roda o padrao escolhido nos cenarios-meta.
+static func run_targets(runs: int, verbose: bool = false) -> Array[SimMetrics]:
+	var cases: Array[Dictionary] = target_cases()
+	var out: Array[SimMetrics] = []
+	for c: Dictionary in cases:
+		if verbose:
+			print("[sim] meta %s" % _case_label(c))
+		out.append(SimRunner.run(make_scenario(c, runs, "", 0, "escolhido - %s" % _case_label(c), true)))
+	return out
+
+## Meta atendida? smart: vitoria >= 95% e 20-60 s (X+Y puro pode ser mais curto: so piso de 10 s); basic: vitoria >= 75%.
+static func meets_target(policy: StringName, enc: String, m: SimMetrics) -> bool:
+	if policy == &"smart":
+		var lo: float = 20.0 if enc == "X+Y+Z" else 10.0
+		return m.mean_duration() >= lo and m.mean_duration() <= 60.0 and m.win_rate() >= 0.95
+	return m.win_rate() >= 0.75
+
+## Registro das mudancas do M5b (antes x depois). 
+const CHANGES: Array[Dictionary] = [
+	{"what": "Inimigo X: Forca/Vel/Vit", "before": "11 / 9 / 8", "after": "54 / 10 / 2", "why": "Dano e HP pensados para dificuldade classica com HP = base + Vit*5 e dano por razao; ajuste fino (Forca 54, Vel 10) leva o basic de 63% para 83% em N5 X+Y+Z"},
+	{"what": "Inimigo Y: Forca/Vel/Vit", "before": "8 / 7 / 7", "after": "47 / 12 / 1", "why": "Mesmo criterio: ameacas mais rapidas e fragéis (poucos HP), dano alto contra o grupo"},
+	{"what": "Inimigo Z: Forca/Vel/Vit", "before": "13 / 2 / 12", "after": "62 / 7 / 16", "why": "Mesmo criterio: tanque lento com dano alto; N5/N10 X+Y+Z sao as batalhas mais longas"},
+	{"what": "HP: hp_vit_a", "before": "8 (codigo)", "after": "5", "why": "HP = 30 + Vit*5 (modo B): curva mais baixa, dificuldade classica"},
+	{"what": "HP: hp_lvl_b", "before": "4 (codigo)", "after": "0", "why": "HP nao cresce direto com o nivel, so via Vit"},
+	{"what": "HP: hp_vit_lvl_c", "before": "0,4 (codigo)", "after": "0,0", "why": "Sem termo Vit x Nivel (crescimento so pela alocacao)"},
+	{"what": "RD: dr_band2_start", "before": "20 (codigo)", "after": "13", "why": "Faixa 2 mais cedo: retornos decrescentes a partir de 13"},
+	{"what": "RD: dr_band2_factor", "before": "0,5 (codigo)", "after": "0,45", "why": "Faixa 2 um pouco mais dura"},
+	{"what": "Dano: dmg_ratio_k", "before": "20,0 (codigo)", "after": "20,45", "why": "k/(k+defesa): ajuste fino para acertar as metas"},
+	{"what": "Itens (Pocao 3 / Eter 2 / Reviver 1)", "before": "sem mudanca", "after": "sem mudanca", "why": "Nao foi preciso mexer"},
+	{"what": "xp_base dos inimigos (100/100/150)", "before": "sem mudanca", "after": "sem mudanca", "why": "Nao foi preciso mexer"},
+]
+
+static func build_final(runs: int, verbose: bool = false) -> Dictionary:
+	var cases: Array[Dictionary] = target_cases()
+	var ms: Array[SimMetrics] = run_targets(runs, verbose)
+	var md: Array[String] = []
+	md.append("# Relatorio final de balanceamento (M5b)
+")
+	md.append("Baseline: **%s**. Gerado por `run_sim.ps1 -Final` (%d execucoes por cenario; grupo = herois de teste A-D com equipamento, alocacao `main`; itens: Pocao 3, Eter 2, Reviver 1; sementes 1..N). Valores de teste, nao canonicos.
+" % [SimScenario.BASELINE_CHOSEN, runs])
+	md.append("## Metas
+")
+	md.append("- `smart`: 20-60 s de duracao media (X+Y pode ser menor) e vitoria >= 95%.
+- `basic`: vitoria >= 75%.
+")
+	md.append("## Cenarios-meta
+")
+	md.append("| Cenario | Politica | Vitorias | Dur media (s) | Dur mediana (s) | HP final | Meta |
+|---|---|---|---|---|---|---|")
+	var csv: Array[String] = [CSV_HEADER]
+	for i: int in cases.size():
+		var m: SimMetrics = ms[i]
+		var pol: StringName = cases[i]["policy"]
+		md.append("| N%d %s | %s | %.0f%% | %.1f | %.1f | %.0f%% | %s |" % [int(cases[i]["level"]), str(cases[i]["enc"]), str(pol),
+			m.win_rate() * 100.0, m.mean_duration(), m.median_duration(), m.mean_party_hp_pct() * 100.0, "ok" if meets_target(pol, str(cases[i]["enc"]), m) else "FORA"])
+	csv.append_array(_csv_rows("FINAL", "escolhido", cases, ms))
+	md.append("
+## Detalhe
+")
+	md.append(_detail_table("escolhido", cases, ms) + "
+")
+	md.append("## Antes x depois
+")
+	if CHANGES.is_empty():
+		md.append("(sem mudancas registradas)
+")
+	else:
+		md.append("| Valor | Antes | Depois | Motivo |
+|---|---|---|---|")
+		for ch: Dictionary in CHANGES:
+			md.append("| %s | %s | %s | %s |" % [ch["what"], ch["before"], ch["after"], ch["why"]])
+		md.append("")
+	md.append(NOTES + "
+")
+	return {"markdown": "
+".join(md), "csv": "
+".join(csv) + "
+"}
 
 static func write_files(result: Dictionary, md_path: String) -> bool:
 	var dir: String = md_path.get_base_dir()

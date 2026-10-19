@@ -1,0 +1,9 @@
+﻿formula,option,level,encounter,policy,runs,wins,losses,timeouts,win_rate,dur_mean,dur_median,actions_per_hero,basic_dmg,ability_dmg,hp_pct,ap_spent,xp_per_win_hero,battles_to_level
+FINAL,escolhido,1,X+Y,basic,30,30,0,0,1.0000,23.22,22.10,2.81,7.96,0.00,0.5676,0.00,49.66,1.75
+FINAL,escolhido,1,X+Y,smart,30,29,1,0,0.9667,45.88,44.60,4.27,8.16,9.85,0.2506,62.77,49.28,1.33
+FINAL,escolhido,5,X+Y,basic,30,30,0,0,1.0000,22.60,23.00,2.92,8.19,0.00,0.6687,0.00,49.46,4.75
+FINAL,escolhido,5,X+Y,smart,30,30,0,0,1.0000,32.98,29.50,4.09,8.20,6.69,0.8020,57.50,48.94,6.00
+FINAL,escolhido,5,X+Y+Z,basic,30,25,5,0,0.8333,44.43,42.30,5.43,8.97,0.00,0.2314,0.00,86.70,4.75
+FINAL,escolhido,5,X+Y+Z,smart,30,29,1,0,0.9667,53.67,50.90,6.38,10.03,7.67,0.4089,70.17,86.35,4.25
+FINAL,escolhido,10,X+Y+Z,basic,30,30,0,0,1.0000,34.01,33.90,4.78,9.79,0.00,0.4658,0.00,86.64,7.50
+FINAL,escolhido,10,X+Y+Z,smart,30,30,0,0,1.0000,49.36,49.55,6.24,10.54,9.05,0.6572,86.80,86.28,9.75

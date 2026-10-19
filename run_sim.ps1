@@ -1,4 +1,4 @@
-param([int]$Runs = 0, [string]$Out = "", [double]$Hard = 0, [int]$HardRuns = 0, [switch]$Search)
+param([int]$Runs = 0, [string]$Out = "", [double]$Hard = 0, [int]$HardRuns = 0, [switch]$Search, [switch]$Final, [switch]$Meta)
 
 $godot = $env:GODOT
 if (-not $godot -or -not (Test-Path $godot)) {
@@ -36,5 +36,7 @@ if ($Out) {
 if ($Hard -gt 0) { $simArgs += @("-hard", "$Hard") }
 if ($HardRuns -gt 0) { $simArgs += @("-hardruns", "$HardRuns") }
 if ($Search) { $simArgs += "-search" }
+if ($Final) { $simArgs += "-final" }
+if ($Meta) { $simArgs += "-meta" }
 & $godot @simArgs
 exit $LASTEXITCODE

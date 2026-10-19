@@ -37,3 +37,6 @@ Arquivos gerados: `2026-10-19-relatorio-opcoes.md` e `2026-10-19-relatorio-opcoe
 Colunas: *Vitórias* (% de batalhas ganhas), *Tempos esg.* (batalhas que bateram o limite de 600 s de jogo), *Dur média/mediana* (segundos de jogo), *Dano básico/habil.* (dano médio por ação), *HP final* (% do HP do grupo ao fim), *XP/vit/herói* e *Batalhas p/ nível* (estimativa de vitórias até o próximo nível; `?` se não há XP). No detalhe também: ações por herói, TTK por inimigo (ações até cair; média só das execuções em que o inimigo morreu), AP gasto e estados aplicados/resistidos.
 
 O CSV tem uma linha por fórmula × opção × cenário (`BASE` é o padrão), pronto para planilha.
+
+- **M5b**: `./run_sim.ps1 -Final -Runs 30` gera `2026-10-19-relatorio-final.md/.csv` (padrão escolhido, `balance.tres`, nos cenários-meta N1/N5 X+Y e N5/N10 X+Y+Z; metas: smart ≥95% e 20–60 s, basic ≥75%); `-Meta` só imprime as métricas. Baselines: `SimScenario.config_all_a()` (relatório de opções, tudo A) e `config_chosen()` (jogo).
+- O cenário "difícil" (×1,125) fica desligado por padrão desde o M5b (conteúdo reajustado; reative com `-Hard F`); o relatório de opções de 2026-10-19 foi gerado com o conteúdo antigo.

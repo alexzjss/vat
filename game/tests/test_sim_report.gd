@@ -34,5 +34,46 @@ func test_hard_family_present_and_scaled() -> void:
 	var d := load("res://data/test/enemies/inimigo_x.tres") as EnemyDef
 	var e: EnemyDef = SimReport.scaled_enemy(d, 2.0)
 	assert_eq(e.base.strength, d.base.strength * 2)
-	assert_eq(d.base.strength, 11)
-	assert_eq(SimReport.default_cases().size(), 14)
+	assert_eq(d.base.strength, 54)
+	assert_eq(e.base.strength, 108, "2 x 54")
+	assert_eq(SimReport.default_cases().size(), 12, "familia dificil desligada por padrao")
+	assert_eq(SimReport.default_cases(1.125, 5).size(), 14)
+
+func test_config_all_a_is_m5a_baseline() -> void:
+	var c: BalanceConfig = SimScenario.config_all_a()
+	assert_eq(c.dr_mode, BalanceConfig.DrMode.A)
+	assert_eq(c.hp_mode, BalanceConfig.HpMode.A)
+	assert_eq(c.ap_mode, BalanceConfig.ApMode.A)
+	assert_eq(c.damage_mode, BalanceConfig.DamageMode.A)
+	assert_eq(c.variance_mode, BalanceConfig.VarianceMode.A)
+	assert_eq(c.dodge_mode, BalanceConfig.DodgeMode.A)
+	assert_eq(c.xp_mode, BalanceConfig.XpMode.A)
+	assert_eq(c.max_level, 0)
+	assert_eq(c.poison_mode, BalanceConfig.PoisonMode.A)
+	assert_eq(c.revive_mode, BalanceConfig.ReviveMode.A)
+	assert_eq(c.duration_mode, BalanceConfig.DurationMode.A)
+
+func test_config_chosen_comes_from_balance_tres() -> void:
+	var c: BalanceConfig = SimScenario.config_chosen()
+	var tres := load("res://data/test/balance.tres") as BalanceConfig
+	assert_eq(c.hp_mode, tres.hp_mode)
+	assert_eq(c.damage_mode, BalanceConfig.DamageMode.B)
+	assert_eq(c.xp_mode, BalanceConfig.XpMode.C)
+	assert_ne(c, tres, "copia: tuning do simulador nao altera o recurso carregado")
+
+func test_scenarios_declare_their_baseline() -> void:
+	var c: Dictionary = {"level": 1, "enc": "X+Y", "policy": &"basic"}
+	var a: SimScenario = SimReport.make_scenario(c, 1, "", 0, "a")
+	var ch: SimScenario = SimReport.make_scenario(c, 1, "", 0, "c", true)
+	assert_eq(a.baseline, SimScenario.BASELINE_ALL_A)
+	assert_eq(a.cfg.hp_mode, BalanceConfig.HpMode.A)
+	assert_eq(ch.baseline, SimScenario.BASELINE_CHOSEN)
+	assert_eq(ch.cfg.hp_mode, BalanceConfig.HpMode.B)
+	var md: String = SimReport.build(["F12"] as Array[String], [c] as Array[Dictionary], 1)["markdown"]
+	assert_true(md.contains(SimScenario.BASELINE_ALL_A))
+
+func test_target_cases_and_final_report() -> void:
+	assert_eq(SimReport.target_cases().size(), 8)
+	var r: Dictionary = SimReport.build_final(1)
+	assert_true((r["markdown"] as String).contains(SimScenario.BASELINE_CHOSEN))
+	assert_true((r["markdown"] as String).contains("## Antes x depois"))
