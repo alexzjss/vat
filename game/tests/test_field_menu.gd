@@ -1,7 +1,7 @@
 extends GutTest
 
 const SCENE: PackedScene = preload("res://ui/field_menu/field_menu.tscn")
-const LABELS: Array[String] = ["Itens", "Técnicas", "Status", "Atributos", "Formação", "Fechar"]
+const LABELS: Array[String] = ["Itens", "Técnicas", "Equipar", "Status", "Atributos", "Formação", "Fechar"]
 
 var g: GameState
 var menu: FieldMenu
@@ -44,20 +44,20 @@ func test_navigation_and_close() -> void:
 	menu.move(1)
 	assert_eq(menu.cursor, 1)
 	menu.move(-2)
-	assert_eq(menu.cursor, 5)
+	assert_eq(menu.cursor, 6)
 	menu.move(1)
 	menu.accept()
 	assert_eq(menu.page, &"items")
 	menu.cancel()
 	assert_eq(menu.page, &"root")
 	assert_eq(menu.cursor, 0)
-	var pages: Array[StringName] = [&"techniques", &"status", &"attributes", &"formation"]
+	var pages: Array[StringName] = [&"techniques", &"equip", &"status", &"attributes", &"formation"]
 	for i: int in pages.size():
 		menu.move(1)
 		menu.accept()
 		assert_eq(menu.page, pages[i])
 		menu.cancel()
-	assert_eq(menu.cursor, 4)
+	assert_eq(menu.cursor, 5)
 	menu.cancel()
 	assert_signal_emitted(menu, "closed")
 	assert_false(menu.is_open)
@@ -90,7 +90,7 @@ func test_reopen_resets_to_root() -> void:
 
 func test_page_controls_toggle() -> void:
 	assert_true(menu.page_control(&"root").visible)
-	menu.move(2)
+	menu.move(3)
 	menu.accept()
 	assert_true(menu.page_control(&"status").visible)
 	assert_true(menu.page_control(&"root").visible)

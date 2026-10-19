@@ -53,14 +53,14 @@ func _run() -> void:
 	menu.cancel()
 	menu.cancel()
 	# Status do líder.
-	menu.cursor = 2
+	menu.cursor = FieldMenu.COMMAND_PAGES.find(&"status")
 	menu.accept()
 	menu.status_page.accept()
 	await _wait()
 	menu.cancel()
 	menu.cancel()
 	# Formação: D (Ativo 4) ↔ E (Reserva).
-	menu.cursor = 4
+	menu.cursor = FieldMenu.COMMAND_PAGES.find(&"formation")
 	menu.accept()
 	menu.formation_page.cursor = 3
 	menu.formation_page.accept()

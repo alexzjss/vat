@@ -267,7 +267,7 @@ func test_attributes_opens_level_up_and_applies() -> void:
 	assert_eq(g.reserve[0].pending_points, 0)
 	assert_false(menu.party_panel.card_text(4).contains("pts"))
 	assert_eq(menu.page, &"root", "ninguém mais com pontos: volta à raiz")
-	assert_false(menu.command_enabled(3))
+	assert_false(menu.command_enabled(FieldMenu.ATTRIBUTES_INDEX))
 
 func test_attributes_cancel_in_screen_keeps_points() -> void:
 	g.heroes[1].pending_points = 1
@@ -282,7 +282,7 @@ func test_attributes_cancel_in_screen_keeps_points() -> void:
 	assert_eq(g.heroes[1].pending_points, 1)
 
 func test_attributes_disabled_without_pending_points() -> void:
-	assert_false(menu.command_enabled(3))
+	assert_false(menu.command_enabled(FieldMenu.ATTRIBUTES_INDEX))
 	_go(&"attributes")
 	assert_eq(menu.page, &"root")
 	assert_eq(menu.message(), "Ninguém tem pontos para distribuir.")
@@ -290,7 +290,7 @@ func test_attributes_disabled_without_pending_points() -> void:
 	menu.party_panel.refresh(g)
 	menu.close()
 	menu.open(g)
-	assert_true(menu.command_enabled(3))
+	assert_true(menu.command_enabled(FieldMenu.ATTRIBUTES_INDEX))
 
 # --- Formação ---
 

@@ -2,7 +2,7 @@ class_name StatusPage
 extends FieldPage
 
 ## Status: escolher um herói do roster no painel → ficha com nível, XP até o próximo nível,
-## HP/AP, atributos "base + alocado = efetivo" e habilidades com custo.
+## HP/AP, atributos "base + alocado = efetivo", equipamento (4 espaços + passivos) e habilidades com custo.
 
 const ATTR_NAMES: Dictionary[StringName, String] = LevelUpScreen.ATTR_NAMES
 
@@ -70,6 +70,11 @@ func _build_text(h: HeroState) -> String:
 	for attr: StringName in Stats.ATTRS:
 		lines.append("%s: %d + %d = %d" % [ATTR_NAMES[attr], h.def.base.get_attr(attr),
 				h.allocated.get_attr(attr), StatCalculator.effective(c, attr, cfg)])
+	lines.append("")
+	lines.append("Equipamento:")
+	for s: StringName in EquipmentRules.SLOTS:
+		lines.append("  " + EquipPage.slot_line(h, s))
+	lines.append("  " + EquipPage.passives_line(h.equipment))
 	lines.append("")
 	lines.append("Habilidades:")
 	if h.def.abilities.is_empty():

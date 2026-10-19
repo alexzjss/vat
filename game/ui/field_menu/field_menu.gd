@@ -9,13 +9,13 @@ extends CanvasLayer
 
 signal closed
 
-const COMMANDS: Array[String] = ["Itens", "Técnicas", "Status", "Atributos", "Formação", "Fechar"]
-const COMMAND_PAGES: Array[StringName] = [&"items", &"techniques", &"status", &"attributes", &"formation", &""]
+const COMMANDS: Array[String] = ["Itens", "Técnicas", "Equipar", "Status", "Atributos", "Formação", "Fechar"]
+const COMMAND_PAGES: Array[StringName] = [&"items", &"techniques", &"equip", &"status", &"attributes", &"formation", &""]
 const PAGE_TITLES: Dictionary[StringName, String] = {
-	&"items": "Itens", &"techniques": "Técnicas", &"status": "Status",
+	&"items": "Itens", &"techniques": "Técnicas", &"equip": "Equipar", &"status": "Status",
 	&"attributes": "Atributos", &"formation": "Formação",
 }
-const ATTRIBUTES_INDEX: int = 3
+const ATTRIBUTES_INDEX: int = 4
 const ENABLED_COLOR: Color = Color(1.0, 1.0, 1.0)
 const DISABLED_COLOR: Color = Color(0.45, 0.45, 0.5)
 const CURSOR_COLOR: Color = Color(1.0, 0.85, 0.3)
@@ -27,6 +27,7 @@ var page: StringName = &"root"
 var party_panel: PartyPanel
 var item_page: ItemPage
 var technique_page: TechniquePage
+var equip_page: EquipPage
 var status_page: StatusPage
 var attributes_page: AttributesPage
 var formation_page: FormationPage
@@ -245,11 +246,12 @@ func _build() -> void:
 	pbox.add_child(_page_title)
 	item_page = ItemPage.new()
 	technique_page = TechniquePage.new()
+	equip_page = EquipPage.new()
 	status_page = StatusPage.new()
 	attributes_page = AttributesPage.new()
 	formation_page = FormationPage.new()
 	var pages: Dictionary[StringName, FieldPage] = {
-		&"items": item_page, &"techniques": technique_page, &"status": status_page,
+		&"items": item_page, &"techniques": technique_page, &"equip": equip_page, &"status": status_page,
 		&"attributes": attributes_page, &"formation": formation_page,
 	}
 	for p: StringName in PAGE_TITLES:
