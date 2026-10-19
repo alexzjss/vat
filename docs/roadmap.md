@@ -74,7 +74,7 @@ Menu estilo FF (Itens, Técnicas, Status, Atributos, Formação) com painel do g
 - Modificadores positivos e negativos e passivos simples (ex.: "+10% Aura máxima", "imune a Sono") — passivos ligados aos sistemas que já existem.
 - Equipamento inicial e alguns itens de teste no inventário.
 
-**M5 — Fórmulas e balanceamento**
+**M5 — Fórmulas e balanceamento** · design [`m5-formulas-design`](superpowers/specs/2026-10-19-m5-formulas-design.md) · plano M5a [`m5a-simulador`](superpowers/plans/2026-10-19-m5a-simulador.md)
 - Trocar valores de teste por fórmulas propostas (HP/Aura máximos, ATB, esquiva, dano e defesa, curva de XP) para o usuário aprovar, uma de cada vez.
 - **Simulador de batalhas em lote** (headless) que mede taxa de vitória, duração e dano por turno de cada encontro de teste; relatório para decidir números.
 
