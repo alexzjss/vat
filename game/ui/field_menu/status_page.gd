@@ -68,8 +68,17 @@ func _build_text(h: HeroState) -> String:
 		lines.append("Pontos a distribuir: %d" % h.pending_points)
 	lines.append("")
 	for attr: StringName in Stats.ATTRS:
-		lines.append("%s: %d + %d = %d" % [ATTR_NAMES[attr], h.def.base.get_attr(attr),
-				h.allocated.get_attr(attr), StatCalculator.effective(c, attr, cfg)])
+		var base: int = h.def.base.get_attr(attr)
+		var alloc: int = h.allocated.get_attr(attr)
+		var equip: int = c.equipment_mods.get_attr(attr)
+		var eff: int = StatCalculator.effective(c, attr, cfg)
+		var line: String = "%s: %d + %d" % [ATTR_NAMES[attr], base, alloc]
+		if equip != 0:
+			line += " %s %d" % ["+" if equip > 0 else "-", absi(equip)]
+		line += " = %d" % eff
+		if base + alloc + equip != eff:
+			line += " (retornos decrescentes)"
+		lines.append(line)
 	lines.append("")
 	lines.append("Equipamento:")
 	for s: StringName in EquipmentRules.SLOTS:

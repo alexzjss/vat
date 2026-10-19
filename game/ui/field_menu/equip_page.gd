@@ -107,9 +107,9 @@ static func status_name(id: StringName) -> String:
 ## "Passivos: Imune a Sono, Resiste a Veneno 50%, Começa com Pressa" (ou "Passivos: —").
 static func passives_line(equipment: Dictionary[StringName, EquipmentDef]) -> String:
 	var parts: PackedStringArray = PackedStringArray()
-	for id: StringName in EquipmentRules.immunities(equipment):
-		parts.append("Imune a %s" % status_name(id))
 	var immune: Array[StringName] = EquipmentRules.immunities(equipment)
+	for id: StringName in immune:
+		parts.append("Imune a %s" % status_name(id))
 	var res: Dictionary[StringName, float] = EquipmentRules.resistances(equipment)
 	for id: StringName in res:
 		if not immune.has(id):

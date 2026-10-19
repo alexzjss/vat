@@ -153,7 +153,7 @@ func test_remove_option_only_when_occupied() -> void:
 	assert_eq(_entries()[_entries().size() - 1], EquipPage.REMOVE_TEXT)
 	page.cursor = _entries().size() - 1
 	page.move(0)
-	assert_eq(page.preview_lines()[0].begins_with("Força"), true)
+	assert_true(page.preview_lines()[0].begins_with("Força"))
 	page.accept()
 	assert_false(g.heroes[0].equipment.has(&"weapon"))
 	assert_eq(g.bag.count(&"espada"), 2)
@@ -198,6 +198,21 @@ func test_status_shows_equipment_and_passives() -> void:
 	assert_string_contains(t, "Capacete: —")
 	assert_string_contains(t, "Acessório: Amuleto")
 	assert_string_contains(t, "Passivos: Imune a Sono")
+
+func test_status_attribute_line_includes_equipment() -> void:
+	g.heroes[0].equipment[&"weapon"] = sword
+	menu.cursor = FieldMenu.COMMAND_PAGES.find(&"status")
+	menu.accept()
+	menu.status_page.accept()
+	var c: Combatant = Combatant.from_hero(g.heroes[0], Vector2.ZERO)
+	var eff: int = StatCalculator.effective(c, &"strength", g.cfg)
+	var lines: PackedStringArray = menu.status_page.detail_text().split("
+")
+	var expected: String = "Força: 3 + 0 + 2 = %d" % eff
+	if eff != 5:
+		expected += " (retornos decrescentes)"
+	assert_true(lines.has(expected), "%s em %s" % [expected, lines])
+	assert_true(lines.has("Velocidade: 3 + 0 = %d" % StatCalculator.effective(c, &"speed", g.cfg)))
 
 func test_passives_line_resist_and_start() -> void:
 	var poison: StatusDef = Fixtures.status_def(StatusDef.Kind.POISON, 2)
