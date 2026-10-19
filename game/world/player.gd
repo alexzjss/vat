@@ -7,11 +7,23 @@ var enabled: bool = true
 var override_dir: Vector2 = Vector2.INF
 ## Letra do líder desenhada no quadrado (vazia = sem rótulo).
 var leader_letter: String = ""
+## 0/1 substitui o input de correr (testes e demo); -1 usa o input real.
+var override_run: int = -1
 
 static func velocity_for(dir: Vector2, speed: float) -> Vector2:
 	if dir == Vector2.ZERO:
 		return Vector2.ZERO
 	return dir.normalized() * speed
+
+## Segurando correr (ação `run`) ou forçado por override_run.
+func is_running() -> bool:
+	if override_run >= 0:
+		return override_run == 1
+	return Input.is_action_pressed("run")
+
+## Velocidade de caminhada ou de corrida (cfg.run_mult).
+static func speed_for(cfg: BalanceConfig, running: bool) -> float:
+	return cfg.player_speed * (cfg.run_mult if running else 1.0)
 
 func input_dir() -> Vector2:
 	if override_dir.is_finite():
@@ -20,7 +32,7 @@ func input_dir() -> Vector2:
 
 func _physics_process(_delta: float) -> void:
 	if enabled and cfg != null:
-		velocity = velocity_for(input_dir(), cfg.player_speed)
+		velocity = velocity_for(input_dir(), Player.speed_for(cfg, is_running()))
 		move_and_slide()
 	else:
 		velocity = Vector2.ZERO

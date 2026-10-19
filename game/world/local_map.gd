@@ -32,6 +32,7 @@ var _battle_enemy: MapEnemy
 @onready var camera: MapCamera = $MapCamera
 @onready var exit_zone: Zone = $Exit
 @onready var default_arena: BattleArena = $Arena
+@onready var followers: PartyFollowers = get_node_or_null(^"Followers") as PartyFollowers
 @onready var rest_point: RestPoint = get_node_or_null(^"RestPoint") as RestPoint
 
 func _ready() -> void:
@@ -53,6 +54,8 @@ func setup(game_state: GameState, spawn: StringName) -> void:
 		push_error("LocalMap: marcador '%s' não existe" % spawn)
 	else:
 		player.global_position = marker.global_position
+	if followers != null:
+		followers.setup(state, player)
 	camera.follow = player
 	camera.set_bounds(MAP_RECT)
 	camera.global_position = player.global_position
@@ -98,6 +101,8 @@ func _on_enemy_touched(enemy: MapEnemy) -> void:
 	camera.slide_to(arena.center(), state.cfg.camera_slide_time)
 	var from_pos: Vector2 = player.global_position
 	player.visible = false
+	if followers != null:
+		followers.hide_all()
 	enemy.visible = false
 	var defs: Array[EnemyDef] = enemy.encounter.enemies
 	battle = BATTLE_SCENE.instantiate() as BattleScene
@@ -127,6 +132,8 @@ func _on_battle_finished(outcome: BattleController.Outcome) -> void:
 	_battle_enemy = null
 	player.global_position = arena.hero_positions()[0]
 	player.visible = true
+	if followers != null:
+		followers.restart()
 	player.enabled = true
 	for e: MapEnemy in enemies():
 		e.frozen = false

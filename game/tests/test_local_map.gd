@@ -238,3 +238,16 @@ func test_touch_ignored_during_battle_is_rearmed_after_victory() -> void:
 	second.global_position = player.global_position
 	await wait_physics_frames(3)
 	assert_not_null(local.battle, "segundo inimigo inicia batalha após a vitória")
+
+func test_followers_hidden_in_battle_and_reset_after() -> void:
+	var f: PartyFollowers = map.get_node("Followers") as PartyFollowers
+	assert_not_null(f)
+	assert_true(f.visible)
+	assert_eq(f.count(), state.heroes.size() - 1)
+	var s: BattleScene = _touch(_weak())
+	assert_false(f.visible)
+	_run_to_end(s)
+	_accept_all(s)
+	assert_null(map.battle)
+	assert_true(f.visible)
+	assert_eq(f.follower_position(1), _player().global_position)

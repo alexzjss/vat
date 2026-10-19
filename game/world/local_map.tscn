@@ -8,6 +8,7 @@
 [ext_resource type="Script" path="res://world/battle_arena.gd" id="6"]
 [ext_resource type="Resource" path="res://data/test/encounters/encontro_xy.tres" id="7"]
 [ext_resource type="Script" path="res://world/rest_point.gd" id="8"]
+[ext_resource type="Script" path="res://world/party_followers.gd" id="9"]
 
 [sub_resource type="RectangleShape2D" id="shape_WallTop"]
 size = Vector2(2400, 20)
@@ -217,6 +218,9 @@ position = Vector2(1850, 360)
 encounter = ExtResource("7")
 region = Rect2(1780, 260, 220, 200)
 arena_path = NodePath("../Arena")
+
+[node name="Followers" type="Node2D" parent="."]
+script = ExtResource("9")
 
 [node name="Player" parent="." instance=ExtResource("2")]
 position = Vector2(180, 360)

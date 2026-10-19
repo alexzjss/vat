@@ -30,6 +30,12 @@ enum DurationMode { A, B }
 @export var item_cast_time: float = 0.6
 @export var item_impact_time: float = 0.3
 @export var player_speed: float = 220.0
+@export var run_mult: float = 1.8 # valor de teste (M7: multiplicador da velocidade ao segurar correr)
+@export var follow_spacing: float = 28.0 # valor de teste (M7: px andados entre amostras do rastro)
+@export var follow_gap: int = 1 # valor de teste (M7: amostras entre seguidores)
+@export var flee_base_rate: float = 0.25 # valor de teste (M7: barra de fuga por segundo)
+@export var flee_decay: float = 0.5 # valor de teste (M7: esvaziamento da barra por segundo)
+@export var flee_cooldown: float = 3.0 # valor de teste (M7: segundos sem toque do inimigo apos a fuga)
 @export var wander_speed: float = 80.0
 @export var wander_wait_min: float = 0.5
 @export var wander_wait_max: float = 1.5
