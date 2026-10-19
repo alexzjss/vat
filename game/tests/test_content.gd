@@ -3,7 +3,7 @@ extends GutTest
 ## Conteúdo genérico de teste em res://data/test/ (VALORES DE TESTE — NÃO CANÔNICOS).
 
 const ROOT: String = "res://data/test"
-const HEROES: Array[String] = ["teste_a", "teste_b", "teste_c"]
+const HEROES: Array[String] = ["teste_a", "teste_b", "teste_c", "teste_d", "teste_e"]
 const ENEMIES: Array[String] = ["inimigo_x", "inimigo_y", "inimigo_z"]
 const STATUSES: Array[String] = ["poison", "sleep", "paralysis", "haste", "slow", "barrier", "str_up"]
 const ITEMS: Array[String] = ["pocao", "eter", "reviver"]
@@ -63,6 +63,8 @@ func test_heroes() -> void:
 	assert_eq(_hero("teste_a").abilities.size(), 2)
 	assert_eq(_hero("teste_b").abilities.size(), 4)
 	assert_eq(_hero("teste_c").abilities.size(), 3)
+	assert_eq(_hero("teste_d").abilities.size(), 2)
+	assert_eq(_hero("teste_e").abilities.size(), 1)
 
 func test_abilities_have_timings_and_effects() -> void:
 	for f: String in _list_tres(ROOT + "/abilities"):
@@ -115,7 +117,7 @@ func test_builds_battle_state() -> void:
 		var d: EnemyDef = _enemy(id)
 		enemies.append(Combatant.from_enemy(d, d.id, Vector2.ZERO, cfg))
 	var b: BattleState = BattleState.create(cfg, Dice.new(1), heroes, enemies)
-	assert_eq(b.living(b.heroes).size(), 3)
+	assert_eq(b.living(b.heroes).size(), HEROES.size())
 	assert_eq(b.living(b.enemies).size(), 3)
 	for c: Combatant in b.all():
 		assert_gt(c.hp, 0, String(c.id))

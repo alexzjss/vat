@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="CharacterDef" format=3]
+
+[ext_resource type="Script" path="res://core/defs/stats.gd" id="1_r"]
+[ext_resource type="Resource" path="res://data/test/abilities/golpe.tres" id="2_r"]
+[ext_resource type="Resource" path="res://data/test/abilities/golpe_area.tres" id="3_r"]
+[ext_resource type="Resource" path="res://data/test/abilities/cura.tres" id="4_r"]
+[ext_resource type="Script" path="res://core/defs/ability_def.gd" id="5_r"]
+[ext_resource type="Script" path="res://core/defs/character_def.gd" id="6_r"]
+
+[sub_resource type="Resource" id="stats_1"]
+script = ExtResource("1_r")
+strength = 8
+speed = 8
+vitality = 8
+aura = 6
+
+[resource]
+script = ExtResource("6_r")
+id = &"teste_d"
+display_name = "Teste D"
+base = SubResource("stats_1")
+basic_attack = ExtResource("2_r")
+abilities = Array[ExtResource("5_r")]([ExtResource("3_r"), ExtResource("4_r")])
