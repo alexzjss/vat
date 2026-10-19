@@ -2,6 +2,10 @@
 class_name BalanceConfig
 extends Resource
 
+enum DrMode { A, B, C }
+enum HpMode { A, B, C }
+enum ApMode { A, B, C }
+
 @export var hp_per_vitality: int = 10
 @export var hp_per_level: int = 5
 @export var ap_per_aura: int = 5
@@ -26,3 +30,22 @@ extends Resource
 @export var fade_time: float = 0.3
 @export var camera_slide_time: float = 0.4
 @export var battle_slide_time: float = 0.4
+
+# Modos de formula (M5a) - todos os coeficientes abaixo sao "valor de teste".
+@export var dr_mode: DrMode = DrMode.A
+@export var dr_band2_start: int = 20 # valor de teste (B)
+@export var dr_band3_start: int = 40 # valor de teste (B)
+@export var dr_band2_factor: float = 0.5 # valor de teste (B)
+@export var dr_band3_factor: float = 0.25 # valor de teste (B)
+@export var dr_smooth_limit: float = 60.0 # valor de teste (C)
+@export var dr_smooth_k: float = 30.0 # valor de teste (C)
+@export var hp_mode: HpMode = HpMode.A
+@export var hp_base: int = 30 # valor de teste (B, C)
+@export var hp_vit_a: int = 8 # valor de teste (B, C)
+@export var hp_lvl_b: int = 4 # valor de teste (B)
+@export var hp_vit_lvl_c: float = 0.4 # valor de teste (B)
+@export var hp_c_level_mult: float = 0.08 # valor de teste (C)
+@export var ap_mode: ApMode = ApMode.A
+@export var ap_aura_a: int = 4 # valor de teste (B, C)
+@export var ap_lvl_b: int = 1 # valor de teste (B)
+@export var ap_c_level_mult: float = 0.05 # valor de teste (C)
