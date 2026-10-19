@@ -29,7 +29,7 @@ static func _apply_effect(e: EffectDef, actor: Combatant, t: Combatant, b: Battl
 		EffectDef.Kind.DAMAGE:
 			if t.is_down():
 				return
-			if e.dodgeable and b.dice.roll() < StatCalculator.dodge_chance(t, b.cfg):
+			if e.dodgeable and b.dice.roll() < StatCalculator.dodge_chance(t, b.cfg, actor):
 				_hit(r, t, e.kind, 0, true, -1)
 				return
 			var attr: StringName = &"aura" if e.scale == EffectDef.Scale.AURA else &"strength"

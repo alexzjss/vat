@@ -43,8 +43,14 @@ static func ap_max(c: Combatant, cfg: BalanceConfig) -> int:
 		return floori(aura * cfg.ap_aura_a * (1.0 + c.level * cfg.ap_c_level_mult))
 	return aura * cfg.ap_per_aura
 
-static func atb_rate(c: Combatant, cfg: BalanceConfig) -> float:
-	var rate: float = cfg.atb_base_rate + effective(c, &"speed", cfg) * cfg.atb_rate_per_speed
+## field_avg_speed: media da Vel efetiva dos vivos (so o modo B usa); < 0 = nao informada.
+static func atb_rate(c: Combatant, cfg: BalanceConfig, field_avg_speed: float = -1.0) -> float:
+	var spd: int = effective(c, &"speed", cfg)
+	var rate: float = cfg.atb_base_rate + spd * cfg.atb_rate_per_speed
+	if cfg.atb_mode == BalanceConfig.AtbMode.B and field_avg_speed >= 0.0:
+		rate = cfg.atb_base_rate * (spd + 1.0) / (field_avg_speed + 1.0)
+	elif cfg.atb_mode == BalanceConfig.AtbMode.C:
+		rate = 1.0 / (cfg.atb_turn_time * cfg.atb_c_r / (cfg.atb_c_r + spd))
 	for s: ActiveStatus in c.statuses:
 		if s.def.kind == StatusDef.Kind.HASTE:
 			rate *= 1.0 + s.def.potency / 100.0
@@ -52,5 +58,10 @@ static func atb_rate(c: Combatant, cfg: BalanceConfig) -> float:
 			rate *= 1.0 - s.def.potency / 100.0
 	return maxf(cfg.atb_min_rate, rate)
 
-static func dodge_chance(c: Combatant, cfg: BalanceConfig) -> float:
+static func dodge_chance(c: Combatant, cfg: BalanceConfig, attacker: Combatant = null) -> float:
+	if cfg.dodge_mode == BalanceConfig.DodgeMode.C:
+		return 0.0
+	if cfg.dodge_mode == BalanceConfig.DodgeMode.B and attacker != null:
+		var diff: int = effective(c, &"speed", cfg) - effective(attacker, &"speed", cfg)
+		return clampf(diff * cfg.dodge_per_speed, 0.0, cfg.dodge_cap)
 	return minf(cfg.dodge_cap, effective(c, &"speed", cfg) * cfg.dodge_per_speed)

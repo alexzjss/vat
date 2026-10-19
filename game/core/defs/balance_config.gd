@@ -5,6 +5,8 @@ extends Resource
 enum DrMode { A, B, C }
 enum HpMode { A, B, C }
 enum ApMode { A, B, C }
+enum AtbMode { A, B, C }
+enum DodgeMode { A, B, C }
 
 @export var hp_per_vitality: int = 10
 @export var hp_per_level: int = 5
@@ -49,3 +51,7 @@ enum ApMode { A, B, C }
 @export var ap_aura_a: int = 4 # valor de teste (B, C)
 @export var ap_lvl_b: int = 1 # valor de teste (B)
 @export var ap_c_level_mult: float = 0.05 # valor de teste (C)
+@export var atb_mode: AtbMode = AtbMode.A
+@export var atb_turn_time: float = 4.0 # valor de teste (C)
+@export var atb_c_r: float = 20.0 # valor de teste (C)
+@export var dodge_mode: DodgeMode = DodgeMode.A
