@@ -3,6 +3,7 @@ extends Node
 
 ## Jogo raiz: guarda o GameState, troca o mapa atual com fade e trata o Game Over
 ## (volta ao ponto de salvamento). Reentrar numa área a instancia de novo (inimigos reaparecem).
+## Debug: `-- --demo-m2` adiciona o DemoM2, que percorre o ciclo do M2 sozinho (verificação com --write-movie).
 
 const MAPS: Dictionary[StringName, PackedScene] = {
 	&"overworld": preload("res://world/overworld.tscn"),
@@ -27,6 +28,10 @@ func _ready() -> void:
 	state = GameState.new_game(balance, party, start_items, start_item_counts, Dice.new(world_seed),
 			&"overworld", &"Start")
 	go_to(&"overworld", &"Start", false)
+	if OS.get_cmdline_user_args().has("--demo-m2"):
+		var demo := DemoM2.new()
+		demo.name = "DemoM2"
+		add_child(demo)
 
 ## Troca o mapa atual por `map`, com o jogador no marcador `spawn`.
 ## Os dois mapas ficam congelados durante a transição (sem física, sem sinais de Area2D):

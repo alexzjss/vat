@@ -43,7 +43,8 @@ const ACTION_REST_RETRY: int = 1
 var phase: Phase = Phase.BATTLE
 var _snapshots: Array[Dictionary] = []
 var _level_queue: Array[HeroState] = []
-var _demo_result: bool = false
+## Só debug (`--demo-result`, `--demo-m2`): inimigos com 1/4 do HP e roteiro das telas de resultado/nível.
+var demo_result: bool = false
 ## Deslize de entrada (modo mapa): views vão de _slide_from até a posição; sem tick enquanto dura.
 var _slide_from: Vector2 = Vector2.INF
 var _slide_left: float = 0.0
@@ -67,7 +68,7 @@ func _ready() -> void:
 		_debug.visible = true
 	if args.has("--demo-result"):
 		auto_battle = true
-		_demo_result = true
+		demo_result = true
 	_menu.submitted.connect(_on_menu_submitted)
 	_result.accepted.connect(_on_result_accepted)
 	_level_up.closed.connect(_on_level_up_closed)
@@ -123,7 +124,7 @@ func start_with(heroes: Array[HeroState], enemies: Array[EnemyDef], hero_pos: Ar
 		enemy_cs.append(Combatant.from_enemy(d, id, enemy_pos[i], balance))
 	var b: BattleState = BattleState.create(balance, Dice.new(dice_seed), hero_cs, enemy_cs)
 	b.inventory = inventory
-	if _demo_result:
+	if demo_result:
 		# Só debug: o auto_battle (ataque básico no primeiro alvo) perde com o conteúdo de teste;
 		# enfraquece os inimigos para o roteiro chegar à vitória e às telas de nível.
 		for e: Combatant in enemy_cs:
@@ -229,7 +230,7 @@ func _on_battle_ended(outcome: BattleController.Outcome) -> void:
 			_result.show_defeat("Game Over", PackedStringArray(["Continuar"]))
 		else:
 			_result.show_defeat()
-	if _demo_result:
+	if demo_result:
 		_run_demo_result()
 
 func _grant_victory(b: BattleState) -> void:
@@ -321,6 +322,9 @@ func _run_demo_result() -> void:
 		_level_up.move(LevelUpScreen.ROW_CONFIRM - _level_up.cursor)
 		await _demo_wait(0.5)
 		_level_up.accept()
+	if mode == Mode.MAP and phase == Phase.CONTINUE:
+		await _demo_wait(1.0)
+		_result.accept()
 
 # --- Roteiro de debug (--demo-menu) -------------------------------------------------
 

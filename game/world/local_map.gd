@@ -16,6 +16,8 @@ const MAP_RECT: Rect2 = Rect2(0, 0, 2400, 720)
 var battle: BattleScene
 ## Repassado à batalha (testes/demo).
 var auto_battle: bool = false
+## Repassado à batalha: inimigos enfraquecidos e telas roteirizadas (só debug, `--demo-m2`).
+var demo_result: bool = false
 ## Semente do Dice da batalha; -1 = derivada de state.dice.
 var dice_seed: int = -1
 ## Bloqueia encontros e saída (ex.: depois do Game Over, até o Game trocar de cena).
@@ -84,6 +86,7 @@ func _on_enemy_touched(enemy: MapEnemy) -> void:
 	battle = BATTLE_SCENE.instantiate() as BattleScene
 	battle.balance = state.cfg
 	battle.auto_battle = auto_battle
+	battle.demo_result = demo_result
 	battle.dice_seed = dice_seed if dice_seed >= 0 else state.dice.pick_index(1 << 30)
 	battle.mode = BattleScene.Mode.MAP
 	battle.position = Vector2.ZERO
