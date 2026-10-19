@@ -61,6 +61,49 @@
 | M11 | A5 IA e chefes + A6 Estados | Chefes para a fatia vertical |
 | depois | Fatia vertical (cidade, dungeon, chefe) | Junta tudo |
 
+## As partes, em detalhe (inspiração Chrono Trigger / Final Fantasy)
+
+O usuário pediu para construir com base em CT e FF sem nova rodada de perguntas. Cada parte abaixo é o escopo proposto; o **plano detalhado de cada uma é escrito no começo dela**, em cima do código real que as anteriores deixaram (planos escritos cedo demais apontam para arquivos e interfaces que ainda vão mudar). Tudo aqui é escolha do designer (Claude), a revisar.
+
+**M3 — Menu de campo e grupo de 4** · design [`m3-menu-grupo-design`](superpowers/specs/2026-10-18-m3-menu-grupo-design.md) · plano [`m3-menu-grupo`](superpowers/plans/2026-10-18-m3-menu-grupo.md)
+Menu estilo FF (Itens, Técnicas, Status, Atributos, Formação) com painel do grupo estilo CT; 4 ativos + reserva; líder anda no mapa.
+
+**M4 — Equipamento**
+- Slots: **Arma**, **Armadura**, **Capacete**, **Acessório** (como CT); cada personagem tem uma lista de tipos de arma permitidos (restrição por personagem, como FF/CT).
+- Página "Equipar" no menu de campo com prévia antes/depois dos atributos (FF).
+- Modificadores positivos e negativos e passivos simples (ex.: "+10% Aura máxima", "imune a Sono") — passivos ligados aos sistemas que já existem.
+- Equipamento inicial e alguns itens de teste no inventário.
+
+**M5 — Fórmulas e balanceamento**
+- Trocar valores de teste por fórmulas propostas (HP/Aura máximos, ATB, esquiva, dano e defesa, curva de XP) para o usuário aprovar, uma de cada vez.
+- **Simulador de batalhas em lote** (headless) que mede taxa de vitória, duração e dano por turno de cada encontro de teste; relatório para decidir números.
+
+**M6 — Descanso e save/load**
+- **Pontos de descanso** no mapa (como os "save points" de CT/FF): recuperam HP/Aura, salvam e permitem o **reinício de atributos** com o item raro (spec).
+- Save em disco com **3 slots**, tela de título "Novo jogo / Continuar", carregar volta ao ponto de descanso.
+- Remove o "descanso provisório" do M1 e o save só na memória do M2.
+
+**M7 — Fuga, iniciativa e inimigos no mapa**
+- Comando **Fugir** (chance por Velocidade do grupo vs inimigos; tentativa consome o turno; sem XP, regra já confirmada).
+- **Iniciativa por contato** (CT): encostar pelas costas = ATB do grupo começa cheio; inimigo que encosta primeiro = emboscada (ATB dos inimigos começa cheio).
+- Comportamentos novos: **rota fixa**, **perseguir ao ver** (cone de visão), **grupo que se junta** (encostar em um puxa os vizinhos); chefes que não reaparecem.
+
+**M8 — Suporte**
+- A reserva vira **suporte** (spec): comando "Suporte" na batalha chama um herói da reserva para uma ação (ataque ou habilidade dele), sem entrar no grupo; **usos por batalha** limitados; não recebe XP (confirmado).
+
+**M9 — Habilidades por progressão**
+- Cada personagem tem uma **lista de habilidades por nível** (FF) e algumas liberadas por eventos (CT); aviso "Aprendeu X!" na tela de resultado.
+
+**M10 — Eventos, diálogo e dungeon**
+- Caixas de diálogo com nome, escolhas simples, **flags** de história e **XP narrativa** (regra já confirmada) — só o sistema e textos de teste.
+- Objetos de dungeon: **baús**, **portas e chaves**, **interruptores**, **armadilhas** simples; eventos roteirizados que movem personagens.
+
+**M11 — IA, chefes e estados**
+- Chefe de teste com **fases por HP**, **ataques anunciados** (telegraph) e **contra-ataque**, alvo por posição.
+- Catálogo de estados ampliado (Paralisia em uso, buffs/debuffs de Velocidade e Vitalidade, Pare) e resistências por inimigo.
+
+**Depois — Fatia vertical**: cidade, dungeon e chefe usando tudo acima.
+
 ## Ordem recomendada (original)
 
 1. **C1 Descanso + save/load** — destrava sessões de jogo reais e remove os provisórios do M1/M2.
