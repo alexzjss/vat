@@ -8,6 +8,8 @@ extends Node2D
 
 signal exit_requested
 signal game_over
+## O jogador pediu o menu do ponto de descanso (tecla interact dentro da área).
+signal rest_requested
 
 const BATTLE_SCENE: PackedScene = preload("res://battle/battle_scene.tscn")
 const MAP_RECT: Rect2 = Rect2(0, 0, 2400, 720)
@@ -30,9 +32,13 @@ var _battle_enemy: MapEnemy
 @onready var camera: MapCamera = $MapCamera
 @onready var exit_zone: Zone = $Exit
 @onready var default_arena: BattleArena = $Arena
+@onready var rest_point: RestPoint = get_node_or_null(^"RestPoint") as RestPoint
 
 func _ready() -> void:
 	exit_zone.entered.connect(_on_exit_entered)
+	if rest_point != null:
+		rest_point.player = player
+		rest_point.interacted.connect(_on_rest_interacted)
 	for e: MapEnemy in enemies():
 		e.touched.connect(_on_enemy_touched)
 	if OS.get_cmdline_user_args().has("--demo-local") and get_parent() == get_tree().root:
@@ -53,6 +59,17 @@ func setup(game_state: GameState, spawn: StringName) -> void:
 	camera.reset_smoothing()
 	for e: MapEnemy in enemies():
 		e.setup(state.cfg, state.dice)
+
+## Marcador de spawn do ponto de descanso se o jogador está dentro dele; vazio fora.
+func rest_spawn() -> StringName:
+	if rest_point != null and rest_point.player_inside:
+		return rest_point.spawn_name
+	return &""
+
+func _on_rest_interacted() -> void:
+	if battle != null or locked or state == null:
+		return
+	rest_requested.emit()
 
 func enemies() -> Array[MapEnemy]:
 	var out: Array[MapEnemy] = []

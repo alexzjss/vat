@@ -7,7 +7,10 @@ extends Node
 ## o mapa atual fica congelado (process_mode DISABLED, o mesmo mecanismo do fade). Ao fechar, o marcador do
 ## jogador passa a mostrar o líder atual.
 ## Debug: `-- --demo-field-menu` (DemoFieldMenu) percorre as páginas do menu; `-- --demo-m2` (DemoM2) e
-## `-- --demo-m3` (DemoM3) / `-- --demo-m4` (DemoM4) percorrem os ciclos dos marcos sozinhos (verificação com --write-movie).
+## `-- --demo-m3` (DemoM3) / `-- --demo-m4` (DemoM4) / `-- --demo-m6` (DemoM6, descanso e save) percorrem os ciclos dos marcos sozinhos (verificação com --write-movie).
+
+## Saves das demos (`--demo-*`) vão para cá, nunca para os slots reais.
+const DEMO_SAVE_DIR: String = "user://demo_saves/"
 
 const MAPS: Dictionary[StringName, PackedScene] = {
 	&"overworld": preload("res://world/overworld.tscn"),
@@ -41,6 +44,7 @@ var busy: bool = false
 ## Verdadeiro na tela de título (sem estado de jogo ativo, o tempo de jogo não corre).
 var in_title: bool = false
 var title: TitleScreen
+var rest_menu: RestMenu
 var game_over_screen: GameOverScreen
 
 static var _registry_cache: DefRegistry
@@ -52,6 +56,9 @@ func _ready() -> void:
 	if _registry_cache == null:
 		_registry_cache = SaveStore.build_registry()
 	registry = _registry_cache
+	var args: PackedStringArray = OS.get_cmdline_user_args()
+	if _has_demo_flag(args):
+		save_dir = DEMO_SAVE_DIR
 	store = SaveStore.new(save_dir, registry, balance)
 	settings = GameSettings.new(balance)
 	SettingsStore.load_into(settings, settings_path)
@@ -59,8 +66,10 @@ func _ready() -> void:
 	menu.closed.connect(_on_menu_closed)
 	menu.settings_changed.connect(_on_settings_changed)
 	menu.store = store
+	rest_menu = RestMenu.new()
+	rest_menu.closed.connect(_on_rest_closed)
+	add_child(rest_menu)
 	menu.save_handler = save_to_slot
-	var args: PackedStringArray = OS.get_cmdline_user_args()
 	if skip_title or _has_demo_flag(args):
 		start_new_game()
 	else:
@@ -71,6 +80,8 @@ func _ready() -> void:
 		_add_demo(DemoM3.new(), "DemoM3")
 	if args.has("--demo-m4"):
 		_add_demo(DemoM4.new(), "DemoM4")
+	if args.has("--demo-m6"):
+		_add_demo(DemoM6.new(), "DemoM6")
 	if args.has("--demo-field-menu"):
 		_add_demo(DemoFieldMenu.new(), "DemoFieldMenu")
 
@@ -123,11 +134,19 @@ func _close_title() -> void:
 func save_spawn_here() -> StringName:
 	if current is Overworld:
 		return &"Start"
-	return &""
+	var local: LocalMap = current as LocalMap
+	return local.rest_spawn() if local != null else &""
 
 ## Salvar em disco só vale no mapa-múndi ou dentro de um ponto de descanso.
 func can_save() -> bool:
 	return state != null and not in_title and not busy and save_spawn_here() != &""
+
+## Descanso: cura todo o roster (reserva inclusa) e grava o ponto de descanso em memória.
+func rest_here() -> void:
+	state.rest_all()
+	var spawn: StringName = save_spawn_here()
+	if spawn != &"":
+		state.save(current_map, spawn)
 
 ## Grava o ponto de salvamento atual (memória e disco) no slot. False se não puder salvar ou se a escrita falhar.
 func save_to_slot(slot: int) -> bool:
@@ -157,7 +176,7 @@ func _unhandled_input(event: InputEvent) -> void:
 ## Verdadeiro se o menu de campo pode abrir agora: sem transição, menu fechado, sem batalha
 ## (o que inclui as telas de resultado) e mapa não travado (Game Over).
 func can_open_menu() -> bool:
-	if busy or menu.is_open or current == null:
+	if busy or menu.is_open or rest_menu.is_open or current == null:
 		return false
 	var local: LocalMap = current as LocalMap
 	if local != null and (local.battle != null or local.locked):
@@ -232,6 +251,7 @@ func _connect_and_setup(node: Node2D, spawn: StringName) -> void:
 	if local != null:
 		local.exit_requested.connect(_on_exit_requested)
 		local.game_over.connect(_on_game_over)
+		local.rest_requested.connect(_on_rest_requested)
 		local.setup(state, spawn)
 		return
 	push_error("Game: cena de mapa sem tipo conhecido '%s'" % node.name)
@@ -243,6 +263,17 @@ func _on_location_entered(zone_id: StringName) -> void:
 		push_error("Game: local desconhecido '%s'" % zone_id)
 		return
 	go_to(zone_id, &"Entry")
+
+func _on_rest_requested() -> void:
+	if busy or in_title or menu.is_open or rest_menu.is_open or game_over_screen != null:
+		return
+	current.process_mode = Node.PROCESS_MODE_DISABLED
+	rest_menu.open(self)
+
+func _on_rest_closed() -> void:
+	if current != null and not busy:
+		current.process_mode = Node.PROCESS_MODE_INHERIT
+	_refresh_leader()
 
 func _on_exit_requested() -> void:
 	if busy:

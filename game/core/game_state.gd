@@ -3,6 +3,8 @@ extends RefCounted
 
 var cfg: BalanceConfig
 const MAX_ACTIVE: int = 4
+## Item-chave que reinicia os atributos de um herói (usado no ponto de descanso).
+const RESET_ITEM_ID: StringName = &"cristal_reinicio"
 
 var heroes: Array[HeroState] = []
 var reserve: Array[HeroState] = []
@@ -108,6 +110,19 @@ func _list_of(h: HeroState) -> Array[HeroState]:
 	if reserve.has(h):
 		return reserve
 	return []
+
+## Descanso: HP e AP cheios (e reanima) em todo o roster, inclusive a reserva.
+func rest_all() -> void:
+	for h: HeroState in roster():
+		h.rest(cfg)
+
+## Gasta 1 Cristal de Reinício e devolve a alocação de `h` aos pontos pendentes. False sem cristal ou sem nada a reiniciar.
+func reset_attributes(h: HeroState) -> bool:
+	if h.allocated_total() <= 0 or not inventory.reserve(RESET_ITEM_ID):
+		return false
+	inventory.commit(RESET_ITEM_ID)
+	h.reset_allocation(cfg)
+	return true
 
 ## Estado completo para o save em disco. `settings` fica de fora (valem para todos os slots).
 func to_dict() -> Dictionary:

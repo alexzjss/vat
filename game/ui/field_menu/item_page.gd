@@ -74,5 +74,5 @@ func _rebuild() -> void:
 	var enabled: Array[bool] = []
 	for it: ItemDef in _items:
 		texts.append("%s x%d" % [it.display_name, state.inventory.available(it.id)])
-		enabled.append(FieldActions.is_field_usable(it.effects))
+		enabled.append(not it.key_item and FieldActions.is_field_usable(it.effects))
 	_set_entries(texts, enabled)

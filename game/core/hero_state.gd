@@ -28,6 +28,16 @@ func rest(cfg: BalanceConfig) -> void:
 	hp = StatCalculator.hp_max(c, cfg)
 	ap = StatCalculator.ap_max(c, cfg)
 
+## Total de pontos distribuídos nos atributos.
+func allocated_total() -> int:
+	return allocated.strength + allocated.speed + allocated.vitality + allocated.aura
+
+## Reinício de atributos: devolve toda a alocação para `pending_points` e limita HP/AP aos novos máximos.
+func reset_allocation(cfg: BalanceConfig) -> void:
+	pending_points += allocated_total()
+	allocated = Stats.make(0, 0, 0, 0)
+	clamp_to_max(cfg)
+
 ## Limita HP/AP atuais aos máximos atuais (nunca aumenta; caído continua 0).
 func clamp_to_max(cfg: BalanceConfig) -> void:
 	var c := Combatant.from_hero(self, Vector2.ZERO)

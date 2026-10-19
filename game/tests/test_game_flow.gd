@@ -91,8 +91,8 @@ func test_starts_on_overworld_at_start() -> void:
 
 func test_starting_content_matches_m1() -> void:
 	assert_eq(game.party.size(), 5)
-	assert_eq(game.start_items.size(), 3)
-	assert_eq(game.start_item_counts, [3, 2, 1] as Array[int])
+	assert_eq(game.start_items.size(), 4)
+	assert_eq(game.start_item_counts, [3, 2, 1, 1] as Array[int])
 	for i: int in game.start_items.size():
 		assert_eq(game.state.inventory.available(game.start_items[i].id), game.start_item_counts[i])
 

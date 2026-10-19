@@ -212,7 +212,7 @@ func _show_root(at: int) -> void:
 
 func _has_items() -> bool:
 	for it: ItemDef in session.b.inventory.listing():
-		if session.b.inventory.available(it.id) > 0:
+		if not it.key_item and session.b.inventory.available(it.id) > 0:
 			return true
 	return false
 
@@ -230,6 +230,8 @@ func _show_items(at: int = 0) -> void:
 	mode = Mode.ITEMS
 	_entries = []
 	for it: ItemDef in session.b.inventory.listing():
+		if it.key_item:
+			continue
 		var n: int = session.b.inventory.available(it.id)
 		var e := Entry.new("%s x%d" % [it.display_name, n], n > 0, Kind.ITEM)
 		e.item = it
