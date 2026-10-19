@@ -18,7 +18,14 @@ static func combat_xp(ledger: ContributionLedger, defeated: Array[Combatant], he
 	return result
 
 static func xp_for_level(level: int, cfg: BalanceConfig) -> int:
-	return cfg.xp_coef * (level - 1) * (level - 1)
+	var n: int = level - 1
+	match cfg.xp_mode:
+		BalanceConfig.XpMode.B:
+			return cfg.xp_coef_b * n * n
+		BalanceConfig.XpMode.C:
+			return cfg.xp_coef_c * n * n + cfg.xp_linear_c * n
+		_:
+			return cfg.xp_coef * n * n
 
 static func points_for_level(level: int) -> int:
 	return 1 + (2 if level % 5 == 0 else 0)
@@ -26,10 +33,12 @@ static func points_for_level(level: int) -> int:
 static func grant(h: HeroState, xp: int, cfg: BalanceConfig) -> int:
 	h.xp += xp
 	var gained: int = 0
-	while h.xp >= xp_for_level(h.level + 1, cfg):
+	while (cfg.max_level <= 0 or h.level < cfg.max_level) and h.xp >= xp_for_level(h.level + 1, cfg):
 		h.level += 1
 		h.pending_points += points_for_level(h.level)
 		gained += 1
+	if cfg.max_level > 0 and h.level >= cfg.max_level:
+		h.xp = mini(h.xp, xp_for_level(cfg.max_level, cfg))
 	return gained
 
 static func allocate(h: HeroState, attr: StringName, n: int) -> bool:

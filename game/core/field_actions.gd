@@ -90,7 +90,7 @@ static func _apply(effects: Array[EffectDef], t: HeroState, aura: int, cfg: Bala
 					t.hp += maxi(0, mini(EffectMath.heal_amount(e, aura), StatCalculator.hp_max(c, cfg) - t.hp))
 			EffectDef.Kind.REVIVE:
 				if t.hp <= 0:
-					t.hp = EffectMath.revive_hp(e, StatCalculator.hp_max(c, cfg))
+					t.hp = EffectMath.revive_hp(e, StatCalculator.hp_max(c, cfg), cfg)
 			EffectDef.Kind.RESTORE_AP:
 				if t.hp > 0:
 					t.ap = mini(StatCalculator.ap_max(c, cfg), t.ap + EffectMath.restore_ap_amount(e))

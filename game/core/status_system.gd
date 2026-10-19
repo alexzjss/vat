@@ -36,23 +36,41 @@ func apply_forced(target: Combatant, def: StatusDef) -> ApplyResult:
 	return _install(target, def, target, none, false)
 
 func _install(target: Combatant, def: StatusDef, source: Combatant, living_enemies: Array[Combatant], credit: bool) -> ApplyResult:
+	var dur: int = _duration_for(def)
 	for s: ActiveStatus in target.statuses:
 		if s.def.id == def.id:
 			var r: int = s.remaining
-			s.remaining = def.duration
+			s.remaining = dur
 			s.source_id = source.id
 			if def.kind == StatusDef.Kind.BARRIER:
 				s.barrier_left = def.potency
-			if credit and def.duration > 0:
-				_credit_apply(target, source, float(def.apply_contribution) * float(def.duration - r) / float(def.duration), living_enemies)
+			if credit and dur > 0:
+				_credit_apply(target, source, float(def.apply_contribution) * float(dur - r) / float(dur), living_enemies)
 			return ApplyResult.RENEWED
 	for cid: StringName in def.cancels:
 		remove(target, cid)
 	_order_counter += 1
-	target.statuses.append(ActiveStatus.create(def, source.id, _order_counter))
+	var fresh: ActiveStatus = ActiveStatus.create(def, source.id, _order_counter)
+	fresh.remaining = dur
+	target.statuses.append(fresh)
 	if credit:
 		_credit_apply(target, source, float(def.apply_contribution), living_enemies)
 	return ApplyResult.APPLIED
+
+func _duration_for(def: StatusDef) -> int:
+	if _cfg.duration_mode == BalanceConfig.DurationMode.B and _cfg.duration_table.has(def.id):
+		return _cfg.duration_table[def.id]
+	return def.duration
+
+func _poison_damage(s: ActiveStatus, c: Combatant) -> int:
+	var hp_max: int = StatCalculator.hp_max(c, _cfg)
+	match _cfg.poison_mode:
+		BalanceConfig.PoisonMode.B:
+			return maxi(1, floori(hp_max * _cfg.poison_pct))
+		BalanceConfig.PoisonMode.C:
+			return s.def.potency + floori(hp_max * _cfg.poison_pct)
+		_:
+			return s.def.potency
 
 func _credit_apply(target: Combatant, source: Combatant, points: float, living_enemies: Array[Combatant]) -> void:
 	if points <= 0.0 or source.team != Combatant.Team.HERO:
@@ -85,7 +103,7 @@ func on_atb_full(c: Combatant, _living_enemies: Array[Combatant]) -> AtbFullOutc
 	# (a) dano de veneno
 	for s: ActiveStatus in c.statuses:
 		if s.def.kind == StatusDef.Kind.POISON:
-			var dmg: int = mini(s.def.potency, c.hp)
+			var dmg: int = mini(_poison_damage(s, c), c.hp)
 			c.hp -= dmg
 			out.poison_damage += dmg
 			if c.team == Combatant.Team.ENEMY and dmg > 0:

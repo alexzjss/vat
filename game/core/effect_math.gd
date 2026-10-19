@@ -8,7 +8,13 @@ static func heal_amount(e: EffectDef, user_aura_effective: int) -> int:
 		return int(floor(e.potency))
 	return int(floor(e.potency * user_aura_effective))
 
-static func revive_hp(e: EffectDef, hp_max: int) -> int:
+static func revive_hp(e: EffectDef, hp_max: int, cfg: BalanceConfig = null) -> int:
+	if cfg != null:
+		match cfg.revive_mode:
+			BalanceConfig.ReviveMode.B:
+				return maxi(1, floori(hp_max * cfg.revive_b))
+			BalanceConfig.ReviveMode.C:
+				return maxi(1, cfg.revive_c_flat + floori(hp_max * cfg.revive_c_pct))
 	return maxi(1, int(floor(hp_max * e.potency)))
 
 static func restore_ap_amount(e: EffectDef) -> int:

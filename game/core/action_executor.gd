@@ -60,7 +60,7 @@ static func _apply_effect(e: EffectDef, actor: Combatant, t: Combatant, b: Battl
 			if not t.is_down():
 				return
 			var hpm: int = StatCalculator.hp_max(t, b.cfg)
-			t.hp = EffectMath.revive_hp(e, hpm)
+			t.hp = EffectMath.revive_hp(e, hpm, b.cfg)
 			t.atb = 0.0
 			_credit_heal(actor, t, t.hp, b, enemies_alive)
 			_hit(r, t, e.kind, t.hp, false, -1)

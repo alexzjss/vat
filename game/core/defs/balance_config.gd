@@ -9,6 +9,10 @@ enum AtbMode { A, B, C }
 enum DodgeMode { A, B, C }
 enum DamageMode { A, B, C }
 enum VarianceMode { A, B, C }
+enum XpMode { A, B, C }
+enum ReviveMode { A, B, C }
+enum PoisonMode { A, B, C }
+enum DurationMode { A, B }
 
 @export var hp_per_vitality: int = 10
 @export var hp_per_level: int = 5
@@ -63,3 +67,16 @@ enum VarianceMode { A, B, C }
 @export var variance_mode: VarianceMode = VarianceMode.A
 @export var variance_b: float = 0.06 # valor de teste (B)
 @export var variance_c: float = 0.12 # valor de teste (C)
+@export var xp_mode: XpMode = XpMode.A
+@export var xp_coef_b: int = 25 # valor de teste (B)
+@export var xp_coef_c: int = 15 # valor de teste (C)
+@export var xp_linear_c: int = 30 # valor de teste (C)
+@export var max_level: int = 0 # valor de teste (0 = sem limite; opcoes 50, 99)
+@export var revive_mode: ReviveMode = ReviveMode.A
+@export var revive_b: float = 0.5 # valor de teste (B)
+@export var revive_c_flat: int = 10 # valor de teste (C)
+@export var revive_c_pct: float = 0.10 # valor de teste (C)
+@export var poison_mode: PoisonMode = PoisonMode.A
+@export var poison_pct: float = 0.06 # valor de teste (B, C)
+@export var duration_mode: DurationMode = DurationMode.A
+@export var duration_table: Dictionary[StringName, int] = {&"poison": 4, &"sleep": 2, &"paralysis": 2, &"haste": 4, &"slow": 3, &"barrier": 4, &"str_up": 3} # valor de teste (B)
