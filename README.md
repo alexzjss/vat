@@ -1,8 +1,10 @@
-# Prototipo de batalha ATB (Godot 4)
+# Prototipo de RPG com batalha ATB (Godot 4)
 
-Prototipo de um RPG com combate em tempo real por barra de ATB, feito em Godot 4 com GDScript tipado. O marco atual (M1) contem apenas uma batalha isolada, com placeholders geometricos: ATB com modo Wait, fila de prontos, pontos de Aura, itens, estados, areas de efeito, contribuicao e XP. Nao ha conteudo narrativo; personagens e inimigos sao genericos.
+Prototipo de um RPG com combate em tempo real por barra de ATB, feito em Godot 4 com GDScript tipado e placeholders geometricos. Nao ha conteudo narrativo; personagens, inimigos e lugares sao genericos.
 
-O M2 adiciona o mapa: o jogo abre num mapa-mundi de teste, de onde se entra numa area local com um inimigo de mapa; tocar o inimigo inicia a batalha no proprio mapa. Na derrota (Game Over), o grupo volta ao ultimo ponto de salvamento (inicio do mapa-mundi).
+O marco atual e o M2: o jogo abre num mapa-mundi de teste, de onde se entra numa area local com um inimigo de mapa; tocar o inimigo inicia a batalha no proprio mapa. Na derrota (Game Over), o grupo volta ao ultimo ponto de salvamento (inicio do mapa-mundi).
+
+A batalha do M1 continua disponivel como cena isolada: ATB com modo Wait, fila de prontos, pontos de Aura, itens, estados, areas de efeito, contribuicao e XP.
 
 **Os numeros em `game/data/test` sao valores de teste, nao canonicos** (spec v4.0, secao 8).
 
@@ -50,7 +52,7 @@ Na batalha:
 
 ## Fluxo da batalha
 
-No mapa (M2): ao tocar um inimigo, a batalha roda sobre o mapa. Na vitoria, depois das telas de resultado/nivel, **Continuar** devolve o controle no mapa (o inimigo some ate a area ser reaberta). Na derrota, **Continuar** leva ao Game Over: HP/AP e inventario voltam ao ponto de salvamento e o jogo volta ao inicio do mapa-mundi.
+No mapa (M2): ao tocar um inimigo, a batalha roda sobre o mapa. Na vitoria, depois das telas de resultado/nivel, **Continuar** devolve o controle no mapa (o inimigo some ate a area ser reaberta). Na derrota, a tela de resultado ja e o **Game Over**; **Continuar** restaura o ponto de salvamento (todo o estado dos herois: HP, AP, XP, nivel, pontos alocados e pendentes; e o inventario) e o jogo volta ao inicio do mapa-mundi.
 
 Na batalha isolada (M1, `--scene res://battle/battle_scene.tscn`):
 

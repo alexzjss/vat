@@ -43,7 +43,7 @@ func test_enemy_stays_in_region_with_walls() -> void:
 	var enemy: MapEnemy = _make_enemy(Vector2(100, 60), region)
 	var limit: Rect2 = region.grow(BalanceConfig.new().wander_arrive_dist + 14.0)
 	var moved: bool = false
-	for i in 600:
+	for i: int in 600:
 		await wait_physics_frames(1)
 		assert_true(limit.has_point(enemy.position), "fora da regiao no frame %d: %s" % [i, enemy.position])
 		if enemy.position.distance_to(Vector2(100, 60)) > 5.0:

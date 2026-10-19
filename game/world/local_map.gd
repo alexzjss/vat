@@ -114,6 +114,10 @@ func _on_battle_finished(outcome: BattleController.Outcome) -> void:
 		e.frozen = false
 	exit_zone.armed = true
 	camera.resume_follow(state.cfg.camera_slide_time)
+	# Toques ignorados durante a batalha desarmaram os outros inimigos; rearma por último
+	# (se um deles ainda encosta no líder, o novo encontro começa agora, com o mapa já restaurado).
+	for e: MapEnemy in enemies():
+		e.rearm()
 
 func _on_exit_entered(_zone_id: StringName) -> void:
 	if battle != null or locked:

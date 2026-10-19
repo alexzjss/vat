@@ -206,3 +206,37 @@ func test_walking_into_exit_requests_exit() -> void:
 	_player().override_dir = Vector2.LEFT
 	await wait_physics_frames(60)
 	assert_signal_emit_count(map, "exit_requested", 1)
+
+func test_touch_ignored_during_battle_is_rearmed_after_victory() -> void:
+	# Mapa próprio com um segundo inimigo, parado (MapMovement base não se move).
+	var local: LocalMap = (load(SCENE) as PackedScene).instantiate() as LocalMap
+	var second: MapEnemy = (load("res://world/map_enemy.tscn") as PackedScene).instantiate() as MapEnemy
+	second.name = "Enemy2"
+	second.position = Vector2(2300, 650)
+	second.encounter = _weak()
+	local.add_child(second)
+	local.auto_battle = true
+	local.dice_seed = 7
+	add_child_autofree(local)
+	second.movement = MapMovement.new()
+	local.setup(state, &"Entry")
+	var first: MapEnemy = local.get_node("Enemy") as MapEnemy
+	var player: Player = local.get_node("Player") as Player
+	first.encounter = _weak()
+	first.touched.emit(first)
+	var s: BattleScene = local.battle
+	assert_not_null(s)
+	s.set_process(false)
+	# Toque do segundo inimigo durante a batalha: ignorado (e desarma o inimigo).
+	second.global_position = player.global_position
+	await wait_physics_frames(3)
+	assert_same(local.battle, s, "toque ignorado durante a batalha")
+	second.global_position = Vector2(2300, 650)
+	await wait_physics_frames(3)
+	_run_to_end(s)
+	_accept_all(s)
+	assert_null(local.battle)
+	# Depois da vitória o segundo inimigo voltou a responder ao toque.
+	second.global_position = player.global_position
+	await wait_physics_frames(3)
+	assert_not_null(local.battle, "segundo inimigo inicia batalha após a vitória")

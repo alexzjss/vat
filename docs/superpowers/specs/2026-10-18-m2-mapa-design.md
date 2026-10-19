@@ -146,7 +146,7 @@ O que a implementação decidiu além deste design. Tudo aqui é **[I]**: funcio
 3. **[I]** O `Game` usa `world_seed = -1` por padrão: o `Dice` do jogo é aleatório em partida normal; os testes usam semente fixa.
 
 **Inimigo de mapa e "vagar"**
-4. **[I]** "Vagar": a primeira espera já consome um número aleatório; um alvo fora da área é trazido para dentro (sem sorteio); se o inimigo fica preso (não sai do lugar por um tempo), volta a esperar.
+4. **[I]** "Vagar": a primeira espera já consome um número aleatório; se o próprio inimigo está fora da sua área, o alvo é o ponto mais próximo dentro dela (sem sorteio); se o inimigo fica preso (não sai do lugar por um tempo), volta a esperar.
 5. **[I]** `MapEnemy.touched` dispara uma vez até `rearm()`; `rearm()` dispara de novo na hora se o jogador ainda estiver encostado. A área de toque (raio 22) é maior que o corpo (raio 14).
 6. **[I]** Camadas de colisão: mundo = camada 1, jogador = camada 2 (colide com 1 e 3), inimigos de mapa = camada 3.
 
@@ -162,7 +162,7 @@ O que a implementação decidiu além deste design. Tudo aqui é **[I]**: funcio
 13. **[I]** Depois de `finished`, a `BattleScene` não se remove sozinha; quem hospeda (a `LocalMap`) a libera.
 14. **[I]** Pontos da arena dos heróis com 150 px de distância vertical (como os do M1): com 110 px as barras de um herói cobriam o nome do seguinte.
 15. **[I]** O líder volta exatamente ao ponto do líder na arena; o designer do mapa garante que esse ponto está livre (a alternativa "onde estava, se o ponto estiver bloqueado" do §4.8 não foi implementada).
-16. **[I]** `LocalMap.dice_seed` (semente do `Dice` da batalha; -1 = sorteada do `Dice` do jogo) e `LocalMap.locked` (bloqueia encontro e saída depois da derrota e durante a transição de saída). Inimigo sem encontro gera erro e é ignorado.
+16. **[I]** `LocalMap.dice_seed` (semente do `Dice` da batalha; -1 = sorteada do `Dice` do jogo) e `LocalMap.locked` (bloqueia encontro e saída depois da derrota e durante a transição de saída). Inimigo sem encontro gera erro e é ignorado. Um toque ignorado (durante a batalha) desarma o inimigo; na vitória todos os inimigos restantes são rearmados por último, e um que ainda encoste no líder inicia o próximo encontro.
 
 **Jogo raiz, transições e Game Over**
 17. **[I]** Durante o fade os dois mapas ficam congelados (`process_mode = DISABLED`): o que sai é congelado de forma adiada (a troca costuma vir de um callback de física) e, enquanto isso, `locked` barra encontros e saída; o que entra fica congelado até o fim do clarear. Uma zona ou um inimigo que já esteja encostado quando o mapa descongela dispara nesse momento (não se perde).

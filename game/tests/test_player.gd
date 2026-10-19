@@ -36,7 +36,7 @@ func test_blocked_by_wall() -> void:
 	wall.position = Vector2(100, 0)
 	root.add_child(wall)
 	player.override_dir = Vector2.RIGHT
-	for i in 60:
+	for i: int in 60:
 		await wait_physics_frames(1)
 		assert_lte(player.global_position.x, 100.0 - 10.0 - 14.0 + 0.5)
 	assert_gt(player.global_position.x, 50.0)

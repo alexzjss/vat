@@ -11,7 +11,7 @@ func enemy_positions(n: int) -> Array[Vector2]:
 	var result: Array[Vector2] = []
 	if n > all.size():
 		push_error("BattleArena: EnemySpot insuficientes (%d marcadores para %d inimigos)" % [all.size(), n])
-	for i in n:
+	for i: int in n:
 		if all.is_empty():
 			result.append(global_position)
 		else:
