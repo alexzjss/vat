@@ -40,18 +40,45 @@ const FORMULAS: Array[Dictionary] = [
 const METAS: String = """- Batalha comum: 30-60 s de duracao com a politica `smart` e vitoria >= 90%.
 - Politica `basic`: vitoria entre 40% e 70% (pressao real sem ser impossivel).
 - Chefe de teste: 2-4 min.
+- Chefe: a meta de 2-4 min ainda nao tem cenario (nao ha chefe de teste; fica para o M11).
+- Cenario "difícil": nivel 1, X+Y+Z com atributos dos inimigos multiplicados por um fator (ver abaixo), para medir a pressao com `basic` (meta 40-70%) e dar efeito a Reviver, Veneno e duracoes.
 - Fonte: spec M5 (`docs/superpowers/specs/2026-10-19-m5-formulas-design.md`, §4).
 - Cada formula varia apenas ela mesma sobre o padrao (tudo A); a opcao A das tabelas e o padrao."""
 
 const CSV_HEADER: String = "formula,option,level,encounter,policy,runs,wins,losses,timeouts,win_rate,dur_mean,dur_median,actions_per_hero,basic_dmg,ability_dmg,hp_pct,ap_spent,xp_per_win_hero,battles_to_level"
 
-static func default_cases() -> Array[Dictionary]:
+## Fator de vida/atributos dos inimigos do cenario "dificil" (escolhido por busca; ver README).
+const HARD_SCALE: float = 1.125
+const HARD_RUNS_DEFAULT: int = 20
+
+## Cenarios padrao + familia "dificil" (nivel 1, X+Y+Z, inimigos com atributos x hard_scale). hard_runs <= 0: usa as mesmas execucoes.
+static func default_cases(hard_scale: float = HARD_SCALE, hard_runs: int = 0) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	for lv: int in LEVELS:
 		for enc: String in ENCOUNTERS:
 			for p: StringName in POLICIES:
 				out.append({"level": lv, "enc": enc, "policy": p})
+	if hard_scale > 0.0:
+		for p: StringName in POLICIES:
+			var c: Dictionary = hard_case(hard_scale, p)
+			if hard_runs > 0:
+				c["runs"] = hard_runs
+			out.append(c)
 	return out
+
+static func hard_case(hard_scale: float, policy: StringName) -> Dictionary:
+	return {"level": 1, "enc": "X+Y+Z difícil ×%s" % String.num(hard_scale), "policy": policy, "hard": hard_scale}
+
+## Copia o EnemyDef (e seus Stats) com os atributos multiplicados; nunca altera o .tres.
+static func scaled_enemy(d: EnemyDef, factor: float) -> EnemyDef:
+	var e: EnemyDef = d.duplicate() as EnemyDef
+	var b: Stats = d.base.duplicate() as Stats
+	b.strength = roundi(float(b.strength) * factor)
+	b.speed = roundi(float(b.speed) * factor)
+	b.vitality = roundi(float(b.vitality) * factor)
+	b.aura = roundi(float(b.aura) * factor)
+	e.base = b
+	return e
 
 static func formula_ids() -> Array[String]:
 	var out: Array[String] = []
@@ -65,12 +92,15 @@ static func _formula(id: String) -> Dictionary:
 			return f
 	return {}
 
+static func _level_label(c: Dictionary) -> String:
+	return "%d difícil" % int(c["level"]) if c.has("hard") else str(int(c["level"]))
+
 static func _case_label(c: Dictionary) -> String:
 	return "N%d %s %s" % [int(c["level"]), str(c["enc"]), str(c["policy"])]
 
 static func _enemies(enc: String) -> Array[EnemyDef]:
 	var out: Array[EnemyDef] = []
-	for letter: String in enc.split("+"):
+	for letter: String in enc.split(" ")[0].split("+"):
 		out.append(load("res://data/test/enemies/inimigo_%s.tres" % letter.to_lower()) as EnemyDef)
 	return out
 
@@ -83,6 +113,9 @@ static func make_scenario(c: Dictionary, runs: int, prop: String, value: int, la
 	s.alloc_rule = &"main"
 	s.equipment = true
 	s.enemies = _enemies(str(c["enc"]))
+	if c.has("hard"):
+		for i: int in s.enemies.size():
+			s.enemies[i] = scaled_enemy(s.enemies[i], float(c["hard"]))
 	s.policy = c["policy"]
 	s.runs = runs
 	s.base_seed = 1
@@ -100,7 +133,7 @@ static func make_scenario(c: Dictionary, runs: int, prop: String, value: int, la
 static func _run_cases(cases: Array[Dictionary], runs: int, prop: String, value: int, opt_label: String) -> Array[SimMetrics]:
 	var out: Array[SimMetrics] = []
 	for c: Dictionary in cases:
-		out.append(SimRunner.run(make_scenario(c, runs, prop, value, "%s - %s" % [opt_label, _case_label(c)])))
+		out.append(SimRunner.run(make_scenario(c, int(c.get("runs", runs)), prop, value, "%s - %s" % [opt_label, _case_label(c)])))
 	return out
 
 # ---- agregacao ----
@@ -173,7 +206,7 @@ static func _summary_rows(label: String, cases: Array[Dictionary], ms: Array[Sim
 	var level_of: Dictionary[String, String] = {}
 	for i: int in cases.size():
 		var p: String = str(cases[i]["policy"])
-		var lv: String = str(cases[i]["level"])
+		var lv: String = _level_label(cases[i])
 		var key: String = "%s|%s" % [p, lv]
 		if not groups.has(key):
 			groups[key] = []
