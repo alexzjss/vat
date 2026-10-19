@@ -78,7 +78,8 @@ func _auto_start() -> void:
 	if ctrl != null:
 		return
 	var heroes: Array[HeroState] = []
-	for d: CharacterDef in test_heroes:
+	# Só os 4 primeiros (máximo de ativos); HeroSpot1..4.
+	for d: CharacterDef in test_heroes.slice(0, GameState.MAX_ACTIVE):
 		heroes.append(HeroState.create(d, balance))
 	start(heroes)
 

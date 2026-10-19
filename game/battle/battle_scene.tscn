@@ -19,11 +19,12 @@
 [ext_resource type="Script" path="res://battle/debug_panel.gd" id="17_dp"]
 [ext_resource type="Script" path="res://battle/result_screen.gd" id="18_rs"]
 [ext_resource type="Script" path="res://battle/level_up_screen.gd" id="19_lu"]
+[ext_resource type="Resource" path="res://data/test/heroes/teste_d.tres" id="20_hd"]
 
 [node name="BattleScene" type="Node2D"]
 script = ExtResource("1_bs")
 balance = ExtResource("2_bal")
-test_heroes = Array[ExtResource("3_cd")]([ExtResource("4_ha"), ExtResource("5_hb"), ExtResource("6_hc")])
+test_heroes = Array[ExtResource("3_cd")]([ExtResource("4_ha"), ExtResource("5_hb"), ExtResource("6_hc"), ExtResource("20_hd")])
 enemy_defs = Array[ExtResource("7_ed")]([ExtResource("8_ex"), ExtResource("9_ey"), ExtResource("10_ez")])
 start_items = Array[ExtResource("11_id")]([ExtResource("12_ip"), ExtResource("13_ie"), ExtResource("14_ir")])
 start_item_counts = Array[int]([3, 2, 1])
@@ -35,13 +36,16 @@ mouse_filter = 2
 color = Color(0.08, 0.09, 0.12, 1)
 
 [node name="HeroSpot1" type="Marker2D" parent="."]
-position = Vector2(420, 200)
+position = Vector2(420, 135)
 
 [node name="HeroSpot2" type="Marker2D" parent="."]
-position = Vector2(360, 360)
+position = Vector2(360, 285)
 
 [node name="HeroSpot3" type="Marker2D" parent="."]
-position = Vector2(420, 520)
+position = Vector2(420, 435)
+
+[node name="HeroSpot4" type="Marker2D" parent="."]
+position = Vector2(360, 585)
 
 [node name="EnemySpot1" type="Marker2D" parent="."]
 position = Vector2(860, 200)

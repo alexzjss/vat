@@ -11,11 +11,13 @@
 [ext_resource type="Resource" path="res://data/test/items/eter.tres" id="9_ie"]
 [ext_resource type="Resource" path="res://data/test/items/reviver.tres" id="10_ir"]
 [ext_resource type="Script" path="res://world/fade.gd" id="11_fade"]
+[ext_resource type="Resource" path="res://data/test/heroes/teste_d.tres" id="12_hd"]
+[ext_resource type="Resource" path="res://data/test/heroes/teste_e.tres" id="13_he"]
 
 [node name="Game" type="Node"]
 script = ExtResource("1_game")
 balance = ExtResource("2_bal")
-party = Array[ExtResource("3_cd")]([ExtResource("4_ha"), ExtResource("5_hb"), ExtResource("6_hc")])
+party = Array[ExtResource("3_cd")]([ExtResource("4_ha"), ExtResource("5_hb"), ExtResource("6_hc"), ExtResource("12_hd"), ExtResource("13_he")])
 start_items = Array[ExtResource("7_id")]([ExtResource("8_ip"), ExtResource("9_ie"), ExtResource("10_ir")])
 start_item_counts = Array[int]([3, 2, 1])
 

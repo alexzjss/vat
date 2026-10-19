@@ -97,7 +97,7 @@ func test_auto_start_on_ready() -> void:
 	s.set_process(false)
 	await wait_process_frames(2)
 	assert_not_null(s.ctrl, "cena inicia sozinha (F5)")
-	assert_eq(s.ctrl.b.heroes.size(), 3)
+	assert_eq(s.ctrl.b.heroes.size(), 4)
 
 func _view_hit(amount: int, dodged: bool) -> String:
 	var v: CombatantView = (load("res://battle/combatant_view.tscn") as PackedScene).instantiate() as CombatantView

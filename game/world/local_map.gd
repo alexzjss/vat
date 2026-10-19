@@ -93,7 +93,7 @@ func _on_enemy_touched(enemy: MapEnemy) -> void:
 	battle.finished.connect(_on_battle_finished)
 	add_child(battle)
 	# Síncrono logo após add_child: o _auto_start adiado da cena só é pulado se ctrl já existir.
-	battle.start_with(state.heroes, defs, arena.hero_positions(), arena.enemy_positions(defs.size()),
+	battle.start_with(state.heroes, defs, arena.hero_positions().slice(0, state.heroes.size()), arena.enemy_positions(defs.size()),
 			state.inventory, from_pos)
 
 func _on_battle_finished(outcome: BattleController.Outcome) -> void:

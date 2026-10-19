@@ -84,11 +84,12 @@ func test_starts_on_overworld_at_start() -> void:
 	assert_eq(_player().global_position, _marker("Start").global_position)
 	assert_eq(game.state.save_map, &"overworld")
 	assert_eq(game.state.save_spawn, &"Start")
-	assert_eq(game.state.heroes.size(), 3, "três heróis de teste")
+	assert_eq(game.state.heroes.size(), 4, "quatro heróis ativos")
+	assert_eq(game.state.reserve.size(), 1, "teste_e na reserva")
 	assert_false(game.busy)
 
 func test_starting_content_matches_m1() -> void:
-	assert_eq(game.party.size(), 3)
+	assert_eq(game.party.size(), 5)
 	assert_eq(game.start_items.size(), 3)
 	assert_eq(game.start_item_counts, [3, 2, 1] as Array[int])
 	for i: int in game.start_items.size():

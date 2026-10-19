@@ -181,13 +181,16 @@ position = Vector2(1720, 360)
 script = ExtResource("6")
 
 [node name="HeroSpot1" type="Marker2D" parent="Arena"]
-position = Vector2(-280, -150)
+position = Vector2(-280, -225)
 
 [node name="HeroSpot2" type="Marker2D" parent="Arena"]
-position = Vector2(-340, 0)
+position = Vector2(-340, -75)
 
 [node name="HeroSpot3" type="Marker2D" parent="Arena"]
-position = Vector2(-280, 150)
+position = Vector2(-280, 75)
+
+[node name="HeroSpot4" type="Marker2D" parent="Arena"]
+position = Vector2(-340, 225)
 
 [node name="EnemySpot1" type="Marker2D" parent="Arena"]
 position = Vector2(180, -90)
