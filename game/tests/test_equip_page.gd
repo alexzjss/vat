@@ -206,8 +206,7 @@ func test_status_attribute_line_includes_equipment() -> void:
 	menu.status_page.accept()
 	var c: Combatant = Combatant.from_hero(g.heroes[0], Vector2.ZERO)
 	var eff: int = StatCalculator.effective(c, &"strength", g.cfg)
-	var lines: PackedStringArray = menu.status_page.detail_text().split("
-")
+	var lines: PackedStringArray = menu.status_page.detail_text().split("\n")
 	var expected: String = "Força: 3 + 0 + 2 = %d" % eff
 	if eff != 5:
 		expected += " (retornos decrescentes)"
