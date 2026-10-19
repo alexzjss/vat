@@ -79,7 +79,8 @@ Menu estilo FF (Itens, Técnicas, Status, Atributos, Formação) com painel do g
 - Trocar valores de teste por fórmulas propostas (HP/Aura máximos, ATB, esquiva, dano e defesa, curva de XP) para o usuário aprovar, uma de cada vez.
 - **Simulador de batalhas em lote** (headless) que mede taxa de vitória, duração e dano por turno de cada encontro de teste; relatório para decidir números.
 
-**M6 — Descanso e save/load**
+**M6 — Descanso e save/load** · **Concluído** (2026-10-19) · plano [`m6-descanso-save-config`](superpowers/plans/2026-10-19-m6-descanso-save-config.md)
+Entregue: tela de título (Novo jogo / Continuar), save em disco com 3 slots, pontos de descanso com reinício de atributos (Cristal de Reinício), Game Over para o título, página Config e modo ATB Ativo. O descanso provisório do M1 segue só na batalha isolada.
 - **Pontos de descanso** no mapa (como os "save points" de CT/FF): recuperam HP/Aura, salvam e permitem o **reinício de atributos** com o item raro (spec).
 - Save em disco com **3 slots**, tela de título "Novo jogo / Continuar", carregar volta ao ponto de descanso.
 - Remove o "descanso provisório" do M1 e o save só na memória do M2.
