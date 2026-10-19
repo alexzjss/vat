@@ -134,6 +134,7 @@ func start_with(heroes: Array[HeroState], enemies: Array[EnemyDef], hero_pos: Ar
 			e.hp = maxi(1, e.hp / 4)
 	ctrl = BattleController.new(b)
 	ctrl.speed_mult = settings.speed_mult() if settings != null else 1.0
+	ctrl.active_mode = settings != null and settings.atb_mode == GameSettings.AtbMode.ACTIVE
 	_menu.remember_cursor = settings != null and settings.cursor_memory
 	_menu.reset_memory()
 	_menu.close()
@@ -151,6 +152,7 @@ func start_with(heroes: Array[HeroState], enemies: Array[EnemyDef], hero_pos: Ar
 		for v: CombatantView in views.values():
 			v.position = from_pos
 	ctrl.hero_turn.connect(_on_hero_turn)
+	ctrl.session_cancelled.connect(_on_session_cancelled)
 	ctrl.action_impact.connect(_on_action_impact)
 	ctrl.status_tick.connect(_on_status_tick)
 	ctrl.turn_lost.connect(_on_turn_lost)
@@ -190,6 +192,11 @@ func _on_hero_turn(session: SelectionSession) -> void:
 	_menu.open(session)
 	if _demo:
 		_run_demo(session)
+
+## ATB Ativo: o herói do menu aberto caiu; fecha o menu (a sessão já foi desfeita pelo controlador).
+func _on_session_cancelled(_s: SelectionSession) -> void:
+	_menu.close()
+	_set_highlight_off()
 
 func _on_menu_submitted(_a: PendingAction) -> void:
 	_set_highlight_off()

@@ -33,6 +33,11 @@ func commit(id: StringName) -> void:
 		_reserved[id] -= 1
 		_counts[id] -= 1
 
+## Devolve uma unidade já consumida (ação perdida por falta de alvo).
+func refund(id: StringName) -> void:
+	if _defs.has(id):
+		_counts[id] += 1
+
 func listing() -> Array[ItemDef]:
 	var out: Array[ItemDef] = []
 	for id: StringName in _defs:

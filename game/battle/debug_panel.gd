@@ -81,6 +81,7 @@ func build_text(b: BattleState, ctrl: BattleController) -> String:
 			lines.append("    %s: %.1f" % [hid, float(per[hid])])
 		lines.append("    total: %.1f" % b.ledger.total_against(eid))
 	lines.append("Wait: %s" % ("sim" if ctrl.is_paused() else "não"))
+	lines.append("ATB: %s" % ("Ativo" if ctrl.active_mode else "Espera"))
 	return "\n".join(lines)
 
 func _executing_line(ctrl: BattleController) -> String:
