@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="EquipmentDef" format=3]
+
+[ext_resource type="Script" path="res://core/defs/stats.gd" id="stats"]
+[ext_resource type="Script" path="res://core/defs/equipment_def.gd" id="def"]
+[ext_resource type="Script" path="res://core/defs/equipment_passive.gd" id="pscript"]
+[ext_resource type="Resource" path="res://data/test/statuses/haste.tres" id="st_haste"]
+
+[sub_resource type="Resource" id="stats_1"]
+script = ExtResource("stats")
+strength = 0
+speed = 0
+vitality = 0
+aura = 0
+
+[sub_resource type="Resource" id="passive_1"]
+script = ExtResource("pscript")
+kind = 2
+status = ExtResource("st_haste")
+
+[resource]
+script = ExtResource("def")
+id = &"amuleto_pressa"
+display_name = "Amuleto da Pressa"
+slot = &"accessory"
+modifiers = SubResource("stats_1")
+passives = Array[ExtResource("pscript")]([SubResource("passive_1")])

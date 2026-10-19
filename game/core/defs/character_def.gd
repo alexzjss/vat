@@ -6,3 +6,6 @@ extends Resource
 @export var base: Stats
 @export var basic_attack: AbilityDef
 @export var abilities: Array[AbilityDef] = []
+## Tipos de arma que o herói usa; vazio = não usa armas com tipo.
+@export var weapon_types: Array[StringName] = []
+@export var starting_equipment: Array[EquipmentDef] = []

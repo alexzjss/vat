@@ -8,6 +8,10 @@
 [ext_resource type="Script" path="res://core/defs/ability_def.gd" id="6_r"]
 [ext_resource type="Script" path="res://core/defs/character_def.gd" id="7_r"]
 
+[ext_resource type="Resource" path="res://data/test/equipment/arco_simples.tres" id="w_r"]
+[ext_resource type="Resource" path="res://data/test/equipment/armadura_simples.tres" id="ar_r"]
+[ext_resource type="Script" path="res://core/defs/equipment_def.gd" id="eq_script"]
+
 [sub_resource type="Resource" id="stats_1"]
 script = ExtResource("1_r")
 strength = 7
@@ -22,3 +26,5 @@ display_name = "Teste C"
 base = SubResource("stats_1")
 basic_attack = ExtResource("2_r")
 abilities = Array[ExtResource("6_r")]([ExtResource("3_r"), ExtResource("4_r"), ExtResource("5_r")])
+weapon_types = Array[StringName]([&"bow"])
+starting_equipment = Array[ExtResource("eq_script")]([ExtResource("w_r"), ExtResource("ar_r")])

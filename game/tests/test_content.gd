@@ -131,3 +131,44 @@ func test_encounter() -> void:
 	assert_eq(e.enemies.size(), 2)
 	assert_eq(e.enemies[0].id, &"inimigo_x")
 	assert_eq(e.enemies[1].id, &"inimigo_y")
+
+func test_equipment_content() -> void:
+	var files: Array[String] = _list_tres(ROOT + "/equipment")
+	assert_gt(files.size(), 10, "equipamentos de teste presentes")
+	var weapon_types: Array[StringName] = [&"blade", &"staff", &"bow"]
+	var ids: Array[StringName] = []
+	for f: String in files:
+		var e: EquipmentDef = load(f) as EquipmentDef
+		assert_not_null(e, f)
+		assert_true(EquipmentRules.SLOTS.has(e.slot), "%s slot" % f)
+		assert_ne(String(e.id), "", f)
+		assert_eq(String(e.id), String(e.id).to_lower(), "%s id minusculo" % f)
+		assert_eq(f.get_file().get_basename(), String(e.id), "id = nome do arquivo")
+		assert_false(ids.has(e.id), "id repetido %s" % e.id)
+		ids.append(e.id)
+		assert_ne(e.display_name, "", f)
+		assert_not_null(e.modifiers, f)
+		if e.slot == &"weapon":
+			assert_true(weapon_types.has(e.weapon_type), "%s tipo conhecido" % f)
+		for p: EquipmentPassive in e.passives:
+			assert_not_null(p.status, f)
+	var c: EquipmentDef = load(ROOT + "/equipment/capacete_teste_b.tres") as EquipmentDef
+	assert_eq(c.allowed_ids, [&"teste_b"] as Array[StringName])
+	var veneno: EquipmentDef = load(ROOT + "/equipment/amuleto_veneno.tres") as EquipmentDef
+	assert_eq(veneno.passives[0].kind, EquipmentPassive.Kind.RESIST)
+	assert_eq(veneno.passives[0].amount, 0.5)
+
+func test_heroes_can_use_starting_equipment() -> void:
+	var types: Dictionary[String, Array] = {
+		"teste_a": [&"blade"], "teste_b": [&"staff"], "teste_c": [&"bow"],
+		"teste_d": [&"blade", &"staff"], "teste_e": [&"bow"],
+	}
+	for id: String in HEROES:
+		var d: CharacterDef = _hero(id)
+		assert_eq(d.weapon_types.size(), types[id].size(), id)
+		for t: StringName in types[id]:
+			assert_true(d.weapon_types.has(t), "%s %s" % [id, t])
+		assert_eq(d.starting_equipment.size(), 2, id)
+		for e: EquipmentDef in d.starting_equipment:
+			assert_true(EquipmentRules.can_equip(d, e, e.slot), "%s equipa %s" % [id, e.id])
+

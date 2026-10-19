@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="EquipmentDef" format=3]
+
+[ext_resource type="Script" path="res://core/defs/stats.gd" id="stats"]
+[ext_resource type="Script" path="res://core/defs/equipment_def.gd" id="def"]
+
+[sub_resource type="Resource" id="stats_1"]
+script = ExtResource("stats")
+strength = 0
+speed = 0
+vitality = 1
+aura = 0
+
+[resource]
+script = ExtResource("def")
+id = &"armadura_simples"
+display_name = "Armadura Simples"
+slot = &"armor"
+modifiers = SubResource("stats_1")
