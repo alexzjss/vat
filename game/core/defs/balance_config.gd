@@ -80,3 +80,5 @@ enum DurationMode { A, B }
 @export var poison_pct: float = 0.06 # valor de teste (B, C)
 @export var duration_mode: DurationMode = DurationMode.A
 @export var duration_table: Dictionary[StringName, int] = {&"poison": 4, &"sleep": 2, &"paralysis": 2, &"haste": 4, &"slow": 3, &"barrier": 4, &"str_up": 3} # valor de teste (B)
+@export var sim_tick: float = 0.1 # valor de teste (simulador: passo de tempo por tick)
+@export var sim_max_seconds: float = 600.0 # valor de teste (simulador: limite de uma batalha, em segundos de jogo)
