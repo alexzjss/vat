@@ -339,15 +339,16 @@ static func meets_target(policy: StringName, enc: String, m: SimMetrics) -> bool
 
 ## Registro das mudancas do M5b (antes x depois). 
 const CHANGES: Array[Dictionary] = [
-	{"what": "Inimigo X: Forca/Vel/Vit", "before": "11 / 9 / 8", "after": "54 / 10 / 2", "why": "Dano e HP pensados para dificuldade classica com HP = base + Vit*5 e dano por razao; ajuste fino (Forca 54, Vel 10) leva o basic de 63% para 83% em N5 X+Y+Z"},
-	{"what": "Inimigo Y: Forca/Vel/Vit", "before": "8 / 7 / 7", "after": "47 / 12 / 1", "why": "Mesmo criterio: ameacas mais rapidas e fragéis (poucos HP), dano alto contra o grupo"},
-	{"what": "Inimigo Z: Forca/Vel/Vit", "before": "13 / 2 / 12", "after": "62 / 7 / 16", "why": "Mesmo criterio: tanque lento com dano alto; N5/N10 X+Y+Z sao as batalhas mais longas"},
-	{"what": "HP: hp_vit_a", "before": "8 (codigo)", "after": "5", "why": "HP = 30 + Vit*5 (modo B): curva mais baixa, dificuldade classica"},
-	{"what": "HP: hp_lvl_b", "before": "4 (codigo)", "after": "0", "why": "HP nao cresce direto com o nivel, so via Vit"},
-	{"what": "HP: hp_vit_lvl_c", "before": "0,4 (codigo)", "after": "0,0", "why": "Sem termo Vit x Nivel (crescimento so pela alocacao)"},
+	{"what": "Inimigo X: Forca/Vel/Vit", "before": "11 / 9 / 8", "after": "27 / 10 / 5", "why": "Forca 2,5x o original (teto), Vit >= 5; Vel 10 mantem a pressao do basic em N5 X+Y+Z"},
+	{"what": "Inimigo Y: Forca/Vel/Vit", "before": "8 / 7 / 7", "after": "20 / 12 / 5", "why": "Forca 2,5x, Vit 5; Vel 12 (ameaca rapida e fragil)"},
+	{"what": "Inimigo Z: Forca/Vel/Vit", "before": "13 / 2 / 12", "after": "32 / 7 / 12", "why": "Forca 2,5x, Vit mantida; Vel 7 (a Vel de Z e a alavanca fina: 8 derruba smart para 87%)"},
+	{"what": "HP: hp_base", "before": "30 (codigo)", "after": "0", "why": "Com Vit >= 5 nos inimigos, a base 30 deixava as batalhas longas demais (smart 60-80 s)"},
+	{"what": "HP: hp_vit_a", "before": "8 (codigo)", "after": "5", "why": "HP = Vit*5 + Nv*3 + Vit*Nv*0,2 (estilo FF: cresce com o nivel); dificuldade classica"},
+	{"what": "HP: hp_lvl_b", "before": "4 (codigo)", "after": "3", "why": "Crescimento por nivel mantido (heroi HP 10 tem mais HP que HP 1 com a mesma Vit)"},
+	{"what": "HP: hp_vit_lvl_c", "before": "0,4 (codigo)", "after": "0,2", "why": "Termo Vit x Nivel mais suave"},
 	{"what": "RD: dr_band2_start", "before": "20 (codigo)", "after": "13", "why": "Faixa 2 mais cedo: retornos decrescentes a partir de 13"},
 	{"what": "RD: dr_band2_factor", "before": "0,5 (codigo)", "after": "0,45", "why": "Faixa 2 um pouco mais dura"},
-	{"what": "Dano: dmg_ratio_k", "before": "20,0 (codigo)", "after": "20,45", "why": "k/(k+defesa): ajuste fino para acertar as metas"},
+	{"what": "Dano: dmg_ratio_k", "before": "20,0 (codigo)", "after": "20,0", "why": "Sem mudanca (variar k 20-80 quase nao alterou os resultados)"},
 	{"what": "Itens (Pocao 3 / Eter 2 / Reviver 1)", "before": "sem mudanca", "after": "sem mudanca", "why": "Nao foi preciso mexer"},
 	{"what": "xp_base dos inimigos (100/100/150)", "before": "sem mudanca", "after": "sem mudanca", "why": "Nao foi preciso mexer"},
 ]

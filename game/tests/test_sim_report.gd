@@ -34,8 +34,8 @@ func test_hard_family_present_and_scaled() -> void:
 	var d := load("res://data/test/enemies/inimigo_x.tres") as EnemyDef
 	var e: EnemyDef = SimReport.scaled_enemy(d, 2.0)
 	assert_eq(e.base.strength, d.base.strength * 2)
-	assert_eq(d.base.strength, 54)
-	assert_eq(e.base.strength, 108, "2 x 54")
+	assert_eq(d.base.strength, 27)
+	assert_eq(e.base.strength, 54, "2 x 27")
 	assert_eq(SimReport.default_cases().size(), 12, "familia dificil desligada por padrao")
 	assert_eq(SimReport.default_cases(1.125, 5).size(), 14)
 

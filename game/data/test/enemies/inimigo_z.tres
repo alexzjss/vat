@@ -23,9 +23,9 @@ pick = 0
 
 [sub_resource type="Resource" id="stats_3"]
 script = ExtResource("4_r")
-strength = 62
+strength = 32
 speed = 7
-vitality = 16
+vitality = 12
 aura = 2
 
 [resource]
