@@ -2,6 +2,7 @@ class_name SimPolicy
 extends RefCounted
 
 ## Politicas dos herois. Sempre monta a acao via SelectionSession e nunca devolve null
+## Dano de itens nao entra na divisao basico/habilidade das metricas.
 ## (se algum passo falhar, volta ao ataque basico).
 
 static func decide(session: SelectionSession, b: BattleState, policy: StringName) -> PendingAction:
@@ -15,7 +16,7 @@ static func _reset(session: SelectionSession) -> void:
 	if session.step == SelectionSession.Step.TARGET or session.step == SelectionSession.Step.CONFIRM:
 		session.back()
 
-static func _basic(session: SelectionSession, b: BattleState) -> PendingAction:
+static func _basic(session: SelectionSession, _b: BattleState) -> PendingAction:
 	_reset(session)
 	if not session.choose_ability(session.actor.basic_attack):
 		return null
@@ -123,7 +124,7 @@ static func _ether(session: SelectionSession, b: BattleState) -> PendingAction:
 	session.set_center(target)
 	return session.confirm()
 
-static func _area(session: SelectionSession, b: BattleState) -> PendingAction:
+static func _area(session: SelectionSession, _b: BattleState) -> PendingAction:
 	for ab: AbilityDef in session.actor.abilities:
 		if ab.shape != AbilityDef.Shape.CIRCLE_TARGET and ab.shape != AbilityDef.Shape.LINE and ab.shape != AbilityDef.Shape.CIRCLE_SELF:
 			continue
@@ -145,7 +146,7 @@ static func _area(session: SelectionSession, b: BattleState) -> PendingAction:
 		session.back()
 	return null
 
-static func _status(session: SelectionSession, b: BattleState) -> PendingAction:
+static func _status(session: SelectionSession, _b: BattleState) -> PendingAction:
 	for ab: AbilityDef in session.actor.abilities:
 		if ab.side != AbilityDef.Side.ENEMIES or ab.ap_cost <= 0 or not session.can_use(ab):
 			continue

@@ -18,6 +18,7 @@ class RunState:
 	var ctrl: BattleController
 	var elapsed: float = 0.0
 	var actions: int = 0
+	var hero_damage: int = 0
 	var defeated: Dictionary[StringName, bool] = {}
 
 	func on_hero_turn(session: SelectionSession) -> void:
@@ -46,6 +47,7 @@ class RunState:
 					m.statuses_applied += 1
 				else:
 					m.statuses_resisted += 1
+		hero_damage += dmg
 		if a.item != null:
 			return
 		if a.ability == a.actor.basic_attack:
@@ -125,6 +127,7 @@ static func _run_one(s: SimScenario, m: SimMetrics, index: int) -> void:
 		st.scan_defeats()
 	m.runs += 1
 	m.durations.append(st.elapsed)
+	m.run_hero_damage.append(st.hero_damage)
 	match ctrl.outcome:
 		BattleController.Outcome.VICTORY:
 			m.wins += 1

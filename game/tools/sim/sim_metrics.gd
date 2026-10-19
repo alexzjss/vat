@@ -27,6 +27,8 @@ var xp_total: Dictionary[StringName, int] = {}
 var battles_to_level: Dictionary[StringName, int] = {}
 var statuses_applied: int = 0
 var statuses_resisted: int = 0
+## Dano total causado pelos herois em cada execucao (indice = execucao; permite checar a semente base_seed + i).
+var run_hero_damage: Array[int] = []
 
 static func _mean(arr: Array) -> float:
 	if arr.is_empty():
@@ -42,6 +44,7 @@ func win_rate() -> float:
 func mean_duration() -> float:
 	return _mean(durations)
 
+@warning_ignore("integer_division")
 func median_duration() -> float:
 	if durations.is_empty():
 		return 0.0
@@ -63,6 +66,7 @@ func mean_actions_per_hero() -> float:
 func avg_basic_damage() -> float:
 	return float(basic_damage) / float(maxi(1, basic_actions))
 
+## Dano por acao de habilidade (inclui acoes sem dano, ex. estados). Dano de itens fica fora da divisao basico/habilidade.
 func avg_ability_damage() -> float:
 	return float(ability_damage) / float(maxi(1, ability_actions))
 
