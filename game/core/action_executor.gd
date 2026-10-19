@@ -33,9 +33,7 @@ static func _apply_effect(e: EffectDef, actor: Combatant, t: Combatant, b: Battl
 				_hit(r, t, e.kind, 0, true, -1)
 				return
 			var attr: StringName = &"aura" if e.scale == EffectDef.Scale.AURA else &"strength"
-			var gross: int = _scaled(e, actor, attr, b.cfg)
-			var defense: int = int(floor(StatCalculator.effective(t, &"vitality", b.cfg) * b.cfg.defense_per_vitality))
-			var dmg: int = maxi(1, gross - defense)
+			var dmg: int = EffectMath.damage(e, StatCalculator.effective(actor, attr, b.cfg), StatCalculator.effective(t, &"vitality", b.cfg), t.equipment_mods.vitality, b.cfg, b.dice)
 			dmg = b.statuses.absorb_with_barrier(t, dmg, actor)
 			var eff: int = mini(dmg, t.hp)
 			t.hp -= eff

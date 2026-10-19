@@ -7,6 +7,8 @@ enum HpMode { A, B, C }
 enum ApMode { A, B, C }
 enum AtbMode { A, B, C }
 enum DodgeMode { A, B, C }
+enum DamageMode { A, B, C }
+enum VarianceMode { A, B, C }
 
 @export var hp_per_vitality: int = 10
 @export var hp_per_level: int = 5
@@ -55,3 +57,9 @@ enum DodgeMode { A, B, C }
 @export var atb_turn_time: float = 4.0 # valor de teste (C)
 @export var atb_c_r: float = 20.0 # valor de teste (C)
 @export var dodge_mode: DodgeMode = DodgeMode.A
+@export var damage_mode: DamageMode = DamageMode.A
+@export var dmg_ratio_k: float = 20.0 # valor de teste (B)
+@export var dmg_c_equip_factor: float = 1.0 # valor de teste (C)
+@export var variance_mode: VarianceMode = VarianceMode.A
+@export var variance_b: float = 0.06 # valor de teste (B)
+@export var variance_c: float = 0.12 # valor de teste (C)
