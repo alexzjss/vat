@@ -19,6 +19,21 @@ var abilities: Array[AbilityDef] = []
 var basic_attack: AbilityDef
 var hero_state: HeroState
 var enemy_def: EnemyDef
+## Heróis: guardados aqui (do equipamento). Inimigos: leem o EnemyDef ao vivo, para que
+## ajustes no def depois de criar o combatente continuem valendo.
+var _immunities: Array[StringName] = []
+var _resistances: Dictionary[StringName, float] = {}
+var immunities: Array[StringName]:
+	get:
+		return enemy_def.immunities if enemy_def != null else _immunities
+	set(v):
+		_immunities = v
+var resistances: Dictionary[StringName, float]:
+	get:
+		return enemy_def.resistances if enemy_def != null else _resistances
+	set(v):
+		_resistances = v
+var start_statuses: Array[StatusDef] = []
 var damage_taken_from: Dictionary[StringName, int] = {}
 
 func is_down() -> bool:
@@ -43,6 +58,9 @@ static func from_hero(h: HeroState, pos: Vector2) -> Combatant:
 	c.abilities = h.def.abilities.duplicate()
 	c.basic_attack = h.def.basic_attack
 	c.hero_state = h
+	c.immunities = EquipmentRules.immunities(h.equipment)
+	c.resistances = EquipmentRules.resistances(h.equipment)
+	c.start_statuses = EquipmentRules.start_statuses(h.equipment)
 	return c
 
 static func from_enemy(d: EnemyDef, enemy_id: StringName, pos: Vector2, cfg: BalanceConfig) -> Combatant:

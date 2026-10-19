@@ -23,6 +23,11 @@ var _clock: AtbClock
 func _init(p_b: BattleState) -> void:
 	b = p_b
 	_clock = AtbClock.new(b.cfg)
+	for h: Combatant in b.heroes:
+		if h.is_down():
+			continue
+		for st: StatusDef in h.start_statuses:
+			b.statuses.apply_forced(h, st)
 
 func is_paused() -> bool:
 	return session != null

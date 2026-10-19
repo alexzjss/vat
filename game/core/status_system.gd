@@ -21,13 +21,21 @@ func _init(cfg: BalanceConfig, ledger: ContributionLedger, dice: Dice) -> void:
 	_dice = dice
 
 func apply(target: Combatant, def: StatusDef, source: Combatant, chance: float, living_enemies: Array[Combatant]) -> ApplyResult:
-	var resistance: float = 0.0
-	if target.enemy_def != null:
-		if target.enemy_def.immunities.has(def.id):
-			return ApplyResult.IMMUNE
-		resistance = float(target.enemy_def.resistances.get(def.id, 0.0))
+	if target.immunities.has(def.id):
+		return ApplyResult.IMMUNE
+	var resistance: float = float(target.resistances.get(def.id, 0.0))
 	if _dice.roll() >= chance * (1.0 - resistance):
 		return ApplyResult.RESISTED
+	return _install(target, def, source, living_enemies, true)
+
+## Aplica sem sortear e sem crédito de contribuição; a fonte é o próprio alvo (passivos de equipamento).
+func apply_forced(target: Combatant, def: StatusDef) -> ApplyResult:
+	if target.immunities.has(def.id):
+		return ApplyResult.IMMUNE
+	var none: Array[Combatant] = []
+	return _install(target, def, target, none, false)
+
+func _install(target: Combatant, def: StatusDef, source: Combatant, living_enemies: Array[Combatant], credit: bool) -> ApplyResult:
 	for s: ActiveStatus in target.statuses:
 		if s.def.id == def.id:
 			var r: int = s.remaining
@@ -35,14 +43,15 @@ func apply(target: Combatant, def: StatusDef, source: Combatant, chance: float, 
 			s.source_id = source.id
 			if def.kind == StatusDef.Kind.BARRIER:
 				s.barrier_left = def.potency
-			if def.duration > 0:
+			if credit and def.duration > 0:
 				_credit_apply(target, source, float(def.apply_contribution) * float(def.duration - r) / float(def.duration), living_enemies)
 			return ApplyResult.RENEWED
 	for cid: StringName in def.cancels:
 		remove(target, cid)
 	_order_counter += 1
 	target.statuses.append(ActiveStatus.create(def, source.id, _order_counter))
-	_credit_apply(target, source, float(def.apply_contribution), living_enemies)
+	if credit:
+		_credit_apply(target, source, float(def.apply_contribution), living_enemies)
 	return ApplyResult.APPLIED
 
 func _credit_apply(target: Combatant, source: Combatant, points: float, living_enemies: Array[Combatant]) -> void:
