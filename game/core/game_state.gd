@@ -9,6 +9,8 @@ var reserve: Array[HeroState] = []
 var inventory: Inventory
 var bag: EquipmentBag
 var dice: Dice
+## Configurações do jogador (menu Config); fora do save. Quem hospeda carrega/persiste.
+var settings: GameSettings
 var save_map: StringName
 var save_spawn: StringName
 var _saved_heroes: Array[Dictionary] = []
@@ -21,6 +23,7 @@ static func new_game(cfg: BalanceConfig, defs: Array[CharacterDef], items: Array
 	var g := GameState.new()
 	g.cfg = cfg
 	g.dice = dice
+	g.settings = GameSettings.new(cfg)
 	g.inventory = Inventory.new()
 	g.bag = EquipmentBag.new()
 	for i: int in defs.size():

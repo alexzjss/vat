@@ -24,6 +24,8 @@ const MAPS: Dictionary[StringName, PackedScene] = {
 ## Semente do Dice do jogo (-1 = aleatório).
 @export var world_seed: int = -1
 
+## Arquivo das configurações do jogador (testes apontam para um caminho temporário).
+var settings_path: String = SettingsStore.DEFAULT_PATH
 var state: GameState
 var current: Node2D
 ## Verdadeiro durante uma transição; sinais dos mapas são ignorados.
@@ -35,7 +37,10 @@ var busy: bool = false
 func _ready() -> void:
 	state = GameState.new_game(balance, party, start_items, start_item_counts, Dice.new(world_seed),
 			&"overworld", &"Start", GameState.MAX_ACTIVE, start_equipment, start_equipment_counts)
+	SettingsStore.load_into(state.settings, settings_path)
+	apply_settings()
 	menu.closed.connect(_on_menu_closed)
+	menu.settings_changed.connect(_on_settings_changed)
 	go_to(&"overworld", &"Start", false)
 	var args: PackedStringArray = OS.get_cmdline_user_args()
 	if args.has("--demo-m2"):
@@ -46,6 +51,15 @@ func _ready() -> void:
 		_add_demo(DemoM4.new(), "DemoM4")
 	if args.has("--demo-field-menu"):
 		_add_demo(DemoFieldMenu.new(), "DemoFieldMenu")
+
+## Aplica as configurações que não dependem de uma cena (volume do bus Master).
+func apply_settings() -> void:
+	var v: float = float(state.settings.volume) / float(maxi(1, state.cfg.volume_max))
+	AudioServer.set_bus_volume_db(0, linear_to_db(v) if v > 0.0 else -80.0)
+
+func _on_settings_changed() -> void:
+	apply_settings()
+	SettingsStore.save(state.settings, settings_path)
 
 func _add_demo(demo: Node, demo_name: String) -> void:
 	demo.name = demo_name

@@ -88,6 +88,7 @@ func _on_enemy_touched(enemy: MapEnemy) -> void:
 	battle.auto_battle = auto_battle
 	battle.demo_result = demo_result
 	battle.dice_seed = dice_seed if dice_seed >= 0 else state.dice.pick_index(1 << 30)
+	battle.settings = state.settings
 	battle.mode = BattleScene.Mode.MAP
 	battle.position = Vector2.ZERO
 	battle.finished.connect(_on_battle_finished)

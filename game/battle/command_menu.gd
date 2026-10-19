@@ -33,6 +33,8 @@ var session: SelectionSession
 var mode: Mode = Mode.CLOSED
 var cursor: int = 0
 var target_index: int = 0
+## Memória do cursor (Config): lembra o último comando da raiz de cada herói (por def.id) durante a batalha.
+var remember_cursor: bool = false
 
 ## Nível do menu (ROOT/ABILITIES/ITEMS) e cursor de onde o comando atual foi escolhido;
 ## Cancelar na etapa de alvo (ou "Sem alvos válidos") volta para lá (spec §4.4: um nível).
@@ -40,6 +42,7 @@ var _origin_mode: Mode = Mode.ROOT
 var _origin_cursor: int = 0
 var _entries: Array[Entry] = []
 var _candidates: Array[Combatant] = []
+var _last_root: Dictionary[StringName, int] = {}
 var _title: Label
 var _header: Label
 var _list: VBoxContainer
@@ -76,7 +79,7 @@ func _init() -> void:
 func open(s: SelectionSession) -> void:
 	session = s
 	visible = true
-	_show_root(0)
+	_show_root(_remembered_root())
 
 func close() -> void:
 	mode = Mode.CLOSED
@@ -157,6 +160,8 @@ func cancel() -> void:
 func _pick(e: Entry) -> void:
 	_origin_mode = mode
 	_origin_cursor = cursor
+	if mode == Mode.ROOT:
+		_last_root[session.actor.id] = cursor
 	match e.kind:
 		Kind.ATTACK:
 			if session.choose_ability(session.actor.basic_attack):
@@ -171,6 +176,27 @@ func _pick(e: Entry) -> void:
 		Kind.ITEM:
 			if session.choose_item(e.item):
 				_enter_target()
+
+## Cursor inicial da raiz: o último comando do herói, se a memória estiver ligada e a entrada ainda valer.
+func _remembered_root() -> int:
+	if not remember_cursor or not _last_root.has(session.actor.id):
+		return 0
+	var at: int = _last_root[session.actor.id]
+	return at if _root_enabled(at) else 0
+
+## Esquece o que foi lembrado (nova batalha).
+func reset_memory() -> void:
+	_last_root = {}
+
+func _root_enabled(at: int) -> bool:
+	match at:
+		0:
+			return session.actor.basic_attack != null
+		1:
+			return not session.actor.abilities.is_empty()
+		2:
+			return _has_items()
+	return false
 
 func _show_root(at: int) -> void:
 	mode = Mode.ROOT

@@ -251,3 +251,42 @@ func test_no_valid_targets_attack_returns_to_root() -> void:
 	assert_eq(menu.cursor, 0)
 	assert_eq(menu.header_text(), "Sem alvos válidos")
 	assert_eq(ctrl.session.step, SelectionSession.Step.COMMAND)
+
+func test_cursor_memory_reopens_on_last_root_command() -> void:
+	_setup(2, 4)
+	menu.remember_cursor = true
+	_select("Item")
+	_select("Poção")
+	assert_eq(menu.mode, CommandMenu.Mode.TARGET)
+	menu.cancel()
+	menu.cancel()
+	var s: SelectionSession = ctrl.session
+	menu.open(s)
+	assert_eq(menu.cursor, 2, "volta a abrir em Item")
+
+func test_cursor_memory_off_always_starts_at_first() -> void:
+	_setup(2, 4)
+	menu.remember_cursor = false
+	_select("Item")
+	_select("Poção")
+	menu.cancel()
+	menu.cancel()
+	menu.open(ctrl.session)
+	assert_eq(menu.cursor, 0)
+
+func test_cursor_memory_ignores_disabled_entry_and_reset() -> void:
+	_setup(1, 4)
+	menu.remember_cursor = true
+	_select("Item")
+	_select("Poção")
+	menu.cancel()
+	menu.cancel()
+	ctrl.b.inventory.reserve(&"pocao")
+	menu.open(ctrl.session)
+	assert_eq(menu.cursor, 0, "Item sem estoque nao e lembrado")
+	ctrl.b.inventory.release(&"pocao")
+	menu.open(ctrl.session)
+	assert_eq(menu.cursor, 2)
+	menu.reset_memory()
+	menu.open(ctrl.session)
+	assert_eq(menu.cursor, 0, "nova batalha esquece")

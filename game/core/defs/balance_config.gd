@@ -82,3 +82,11 @@ enum DurationMode { A, B }
 @export var duration_table: Dictionary[StringName, int] = {&"poison": 4, &"sleep": 2, &"paralysis": 2, &"haste": 4, &"slow": 3, &"barrier": 4, &"str_up": 3} # valor de teste (B)
 @export var sim_tick: float = 0.1 # valor de teste (simulador: passo de tempo por tick)
 @export var sim_max_seconds: float = 600.0 # valor de teste (simulador: limite de uma batalha, em segundos de jogo)
+
+# Configuracoes (M6). Indice 1-based em GameSettings.battle_speed; padrao 3 = x1.0.
+@export var battle_speed_mults: Array[float] = [0.6, 0.8, 1.0, 1.25, 1.5] # valor de teste
+@export var default_battle_speed: int = 3 # valor de teste
+@export var text_speed_max: int = 3 # valor de teste
+@export var default_text_speed: int = 2 # valor de teste
+@export var volume_max: int = 10 # valor de teste
+@export var default_volume: int = 10 # valor de teste

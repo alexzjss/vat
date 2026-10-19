@@ -8,12 +8,14 @@ extends CanvasLayer
 ## Esc é "voltar" aqui dentro e sempre é consumido, então nunca reabre o menu.
 
 signal closed
+## Alguma configuração mudou (página Config): quem hospeda persiste e aplica.
+signal settings_changed
 
-const COMMANDS: Array[String] = ["Itens", "Técnicas", "Equipar", "Status", "Atributos", "Formação", "Fechar"]
-const COMMAND_PAGES: Array[StringName] = [&"items", &"techniques", &"equip", &"status", &"attributes", &"formation", &""]
+const COMMANDS: Array[String] = ["Itens", "Técnicas", "Equipar", "Status", "Atributos", "Formação", "Config", "Fechar"]
+const COMMAND_PAGES: Array[StringName] = [&"items", &"techniques", &"equip", &"status", &"attributes", &"formation", &"config", &""]
 const PAGE_TITLES: Dictionary[StringName, String] = {
 	&"items": "Itens", &"techniques": "Técnicas", &"equip": "Equipar", &"status": "Status",
-	&"attributes": "Atributos", &"formation": "Formação",
+	&"attributes": "Atributos", &"formation": "Formação", &"config": "Config",
 }
 const ATTRIBUTES_INDEX: int = 4
 const ENABLED_COLOR: Color = Color(1.0, 1.0, 1.0)
@@ -31,6 +33,7 @@ var equip_page: EquipPage
 var status_page: StatusPage
 var attributes_page: AttributesPage
 var formation_page: FormationPage
+var config_page: ConfigPage
 
 var _root: Control
 var _command_list: VBoxContainer
@@ -250,9 +253,11 @@ func _build() -> void:
 	status_page = StatusPage.new()
 	attributes_page = AttributesPage.new()
 	formation_page = FormationPage.new()
+	config_page = ConfigPage.new()
 	var pages: Dictionary[StringName, FieldPage] = {
 		&"items": item_page, &"techniques": technique_page, &"equip": equip_page, &"status": status_page,
 		&"attributes": attributes_page, &"formation": formation_page,
+		&"config": config_page,
 	}
 	for p: StringName in PAGE_TITLES:
 		var content: FieldPage = pages[p]

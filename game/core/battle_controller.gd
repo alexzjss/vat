@@ -18,6 +18,8 @@ var b: BattleState
 var outcome: Outcome = Outcome.ONGOING
 var session: SelectionSession
 var executing: PendingAction
+## Multiplicador só do delta do ATB (velocidade da batalha); animações e ações não mudam.
+var speed_mult: float = 1.0
 var _clock: AtbClock
 
 func _init(p_b: BattleState) -> void:
@@ -52,7 +54,7 @@ func submit(a: PendingAction) -> void:
 
 func _advance_atb(delta: float) -> void:
 	b.tick += 1
-	for c: Combatant in _clock.advance(delta, b.all(), b.queue):
+	for c: Combatant in _clock.advance(delta * speed_mult, b.all(), b.queue):
 		var out: StatusSystem.AtbFullOutcome = b.statuses.on_atb_full(c, b.living(b.enemies))
 		status_tick.emit(c, out)
 		if c.is_down():

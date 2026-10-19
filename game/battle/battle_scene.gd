@@ -18,6 +18,8 @@ const VIEW_SCENE: PackedScene = preload("res://battle/combatant_view.tscn")
 @export var auto_battle: bool = false
 ## Semente do Dice da batalha (-1 = aleatório). Testes usam valor fixo para desfecho determinístico.
 @export var dice_seed: int = -1
+## Configurações do jogador (velocidade, memória do cursor, modo ATB). Nulo = padrões (Espera, x1.0, sem memória).
+var settings: GameSettings
 
 ## STANDALONE: cena do M1 (F5), com "Descansar…/Lutar de novo/Tentar de novo".
 ## MAP: roda dentro do mapa; sem fundo, aceitar o resultado emite `finished` (sem reiniciar).
@@ -131,6 +133,9 @@ func start_with(heroes: Array[HeroState], enemies: Array[EnemyDef], hero_pos: Ar
 		for e: Combatant in enemy_cs:
 			e.hp = maxi(1, e.hp / 4)
 	ctrl = BattleController.new(b)
+	ctrl.speed_mult = settings.speed_mult() if settings != null else 1.0
+	_menu.remember_cursor = settings != null and settings.cursor_memory
+	_menu.reset_memory()
 	_menu.close()
 	_menu.ctrl = ctrl
 	_menu.preview = _preview
