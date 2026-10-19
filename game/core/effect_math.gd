@@ -45,5 +45,5 @@ static func damage(e: EffectDef, attr_effective: int, target_vit_effective: int,
 		BalanceConfig.VarianceMode.C:
 			amplitude = cfg.variance_c
 	if amplitude > 0.0:
-		dmg = floori(dmg * (1.0 + (dice.roll() * 2.0 - 1.0) * amplitude))
+		dmg = roundi(dmg * (1.0 + (dice.roll() * 2.0 - 1.0) * amplitude)) # roundi: sem vies (media do dano preservada)
 	return maxi(1, dmg)

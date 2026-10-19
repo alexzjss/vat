@@ -323,3 +323,27 @@ func test_exact_numbers_small_scenario() -> void:
 	assert_eq(m.battles_to_level[&"a"], 1)
 	assert_eq(m.statuses_applied, 0)
 	assert_eq(m.run_hero_damage, [25] as Array[int])
+
+func test_statuses_applied_and_resisted_counts() -> void:
+	var sleep: StatusDef = Fixtures.status_def(StatusDef.Kind.SLEEP, 1)
+	var eff: EffectDef = _effect(EffectDef.Kind.APPLY_STATUS, sleep)
+	eff.chance = 1.0
+	var ab: AbilityDef = _ability(&"sono", 1, AbilityDef.Shape.SINGLE, AbilityDef.Side.ENEMIES, _effects(eff))
+	var s := SimScenario.new()
+	s.cfg = Fixtures.cfg()
+	s.cfg.sim_max_seconds = 40.0
+	var hd: CharacterDef = Fixtures.hero_def(&"a", Stats.make(10, 5, 5, 1))
+	hd.abilities = [ab] as Array[AbilityDef]
+	s.heroes = [hd]
+	var foe: EnemyDef = Fixtures.enemy_def(&"tank", Stats.make(1, 1, 500, 1))
+	foe.resistances = {&"sleep": 0.5} as Dictionary[StringName, float]
+	s.enemies = [foe]
+	s.policy = &"smart"
+	s.runs = 3
+	s.base_seed = 5
+	var m: SimMetrics = SimRunner.run(s)
+	assert_gt(m.statuses_applied, 0)
+	assert_gt(m.statuses_resisted, 0)
+	var m2: SimMetrics = SimRunner.run(s)
+	assert_eq(m2.statuses_applied, m.statuses_applied)
+	assert_eq(m2.statuses_resisted, m.statuses_resisted)

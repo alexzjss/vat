@@ -95,7 +95,7 @@ func _xp_text() -> String:
 	return ", ".join(parts)
 
 static func header() -> String:
-	return "| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |\n" \
+	return "| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes; so execucoes em que o inimigo morreu) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |\n" \
 		+ "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|"
 
 func to_markdown_row() -> String:

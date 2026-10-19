@@ -48,6 +48,7 @@ class RunState:
 				else:
 					m.statuses_resisted += 1
 		hero_damage += dmg
+		# Dano de itens nao entra na divisao basico/habilidade das metricas.
 		if a.item != null:
 			return
 		if a.ability == a.actor.basic_attack:

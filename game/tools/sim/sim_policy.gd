@@ -3,7 +3,6 @@ extends RefCounted
 
 ## Politicas dos herois. Sempre monta a acao via SelectionSession e nunca devolve null
 ## (se algum passo falhar, volta ao ataque basico).
-## Dano de itens nao entra na divisao basico/habilidade das metricas.
 
 static func decide(session: SelectionSession, b: BattleState, policy: StringName) -> PendingAction:
 	if policy == &"smart":

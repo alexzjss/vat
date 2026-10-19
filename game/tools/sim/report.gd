@@ -39,11 +39,16 @@ const FORMULAS: Array[Dictionary] = [
 
 const METAS: String = """- Batalha comum: 30-60 s de duracao com a politica `smart` e vitoria >= 90%.
 - Politica `basic`: vitoria entre 40% e 70% (pressao real sem ser impossivel).
-- Chefe de teste: 2-4 min.
-- Chefe: a meta de 2-4 min ainda nao tem cenario (nao ha chefe de teste; fica para o M11).
+- Chefe de teste: 2-4 min (ainda sem cenario: nao ha chefe de teste; fica para o M11).
 - Cenario "difícil": nivel 1, X+Y+Z com atributos dos inimigos multiplicados por um fator (ver abaixo), para medir a pressao com `basic` (meta 40-70%) e dar efeito a Reviver, Veneno e duracoes.
 - Fonte: spec M5 (`docs/superpowers/specs/2026-10-19-m5-formulas-design.md`, §4).
 - Cada formula varia apenas ela mesma sobre o padrao (tudo A); a opcao A das tabelas e o padrao."""
+
+const NOTES: String = """- Cenario "difícil" e uma aresta de faca: a taxa de vitoria com `basic` despenca entre x1,12 e x1,14 (97% -> 10% na busca com 30 execucoes), porque os atributos sao arredondados; por isso o fator e fino (x1,125) e qualquer diferenca de formula desloca muito a vitoria nessa familia.
+- TTK (acoes) e a media so das execucoes em que o inimigo morreu (derrotas/tempos esgotados nao entram).
+- Diferencas pequenas (alguns pontos de vitoria) em poucas execucoes sao ruido, nao efeito da formula."""
+
+const F12_NOTE: String = "> Nota: a tabela B de duracoes so difere dos dados dos estados para barreira, aceleracao e paralisia, que as politicas `basic`/`smart` quase nao usam; na pratica F12 nao e exercitada por este simulador (resultados A e B praticamente iguais)."
 
 const CSV_HEADER: String = "formula,option,level,encounter,policy,runs,wins,losses,timeouts,win_rate,dur_mean,dur_median,actions_per_hero,basic_dmg,ability_dmg,hp_pct,ap_spent,xp_per_win_hero,battles_to_level"
 
@@ -246,9 +251,18 @@ static func build(formulas: Array[String], cases: Array[Dictionary], runs: int, 
 	var md: Array[String] = []
 	var csv: Array[String] = [CSV_HEADER]
 	md.append("# Relatorio comparativo de formulas (M5a)\n")
-	md.append("Gerado por `run_sim.ps1` (%d execucoes por cenario; grupo = herois de teste A-D com equipamento, alocacao `main`; itens: Pocao 3, Eter 2, Reviver 1; sementes 1..N, deterministico). Valores de teste, nao canonicos.\n" % runs)
+	var hard_runs: int = 0
+	for c: Dictionary in cases:
+		if c.has("hard"):
+			hard_runs = int(c.get("runs", runs))
+	var runs_text: String = "%d execucoes por cenario normal" % runs
+	if hard_runs > 0:
+		runs_text += " e %d por cenario difícil" % hard_runs
+	md.append("Gerado por `run_sim.ps1` (%s; grupo = herois de teste A-D com equipamento, alocacao `main`; itens: Pocao 3, Eter 2, Reviver 1; sementes 1..N, deterministico). Valores de teste, nao canonicos.\n" % runs_text)
 	md.append("## Metas\n")
 	md.append(METAS + "\n")
+	md.append("## Observacoes\n")
+	md.append(NOTES + "\n")
 	# Padrao (tudo A): calculado uma vez e reaproveitado como opcao A de cada formula.
 	if verbose:
 		print("[sim] padrao (tudo A)")
@@ -268,6 +282,8 @@ static func build(formulas: Array[String], cases: Array[Dictionary], runs: int, 
 		for d: String in descs:
 			md.append("- %s" % d)
 		md.append("")
+		if fid == "F12":
+			md.append(F12_NOTE + "\n")
 		var summary: Array[String] = [_summary_header()]
 		var details: Array[String] = []
 		for i: int in opts.size():
@@ -301,5 +317,6 @@ static func write_files(result: Dictionary, md_path: String) -> bool:
 		push_error("nao foi possivel escrever o relatorio")
 		return false
 	fm.store_string(str(result["markdown"]))
+	fc.store_buffer(PackedByteArray([0xEF, 0xBB, 0xBF])) # BOM UTF-8: o Excel mostra os acentos
 	fc.store_string(str(result["csv"]))
 	return true

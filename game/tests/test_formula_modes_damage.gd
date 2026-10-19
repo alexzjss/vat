@@ -34,13 +34,24 @@ func test_fixed_scale_ignores_attribute() -> void:
 	assert_eq(_dmg(0.5, 99, 0), 12)
 func test_variance_b_bounds() -> void:
 	cfg.variance_mode = BalanceConfig.VarianceMode.B
-	assert_eq(_dmg(1.0), 29) # floor(28*1.06)
-	assert_eq(_dmg(0.0), 26) # floor(28*0.94)
+	assert_eq(_dmg(1.0), 30) # round(28*1.06)=round(29.68)
+	assert_eq(_dmg(0.0), 26) # round(28*0.94)=round(26.32)
 	assert_eq(_dmg(0.5), 28)
 func test_variance_c_bounds() -> void:
 	cfg.variance_mode = BalanceConfig.VarianceMode.C
-	assert_eq(_dmg(1.0), 31) # floor(28*1.12)
-	assert_eq(_dmg(0.0), 24) # floor(28*0.88)
+	assert_eq(_dmg(1.0), 31) # round(28*1.12)=round(31.36)
+	assert_eq(_dmg(0.0), 25) # round(28*0.88)=round(24.64)
+func test_variance_is_unbiased_mean_within_half() -> void:
+	var base: int = _dmg(0.5) # sem variacao efetiva (rolagem central)
+	for m: int in [BalanceConfig.VarianceMode.B, BalanceConfig.VarianceMode.C]:
+		cfg.variance_mode = m as BalanceConfig.VarianceMode
+		var d := Dice.new(42)
+		var total: int = 0
+		var n: int = 4000
+		for i in n:
+			total += EffectMath.damage(e, 10, 4, 0, cfg, d)
+		assert_almost_eq(float(total) / float(n), float(base), 0.5)
+
 func test_variance_applies_before_minimum() -> void:
 	cfg.variance_mode = BalanceConfig.VarianceMode.C
 	assert_eq(_dmg(0.0, 0, 50), 1)
@@ -73,5 +84,5 @@ func test_executor_uses_target_equipment_and_variance() -> void:
 	var a := PendingAction.new(); a.actor = h; a.ability = Fixtures.hit(3.0); a.center = x; a.center_pos = x.position
 	var hp0 := x.hp
 	ActionExecutor.apply(a, b)
-	# vit efetiva 4+6=10 -> defesa 5 + equip 6 = 11; 30-11=19; floor(19*1.06)=20
+	# vit efetiva 4+6=10 -> defesa 5 + equip 6 = 11; 30-11=19; round(19*1.06)=round(20.14)=20
 	assert_eq(x.hp, hp0 - 20)
