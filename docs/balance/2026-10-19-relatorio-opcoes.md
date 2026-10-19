@@ -1,20 +1,25 @@
 # Relatorio comparativo de formulas (M5a)
 
-Gerado por `run_sim.ps1` (30 execucoes por cenario; grupo = herois de teste A-D com equipamento, alocacao `main`; itens: Pocao 3, Eter 2, Reviver 1; sementes 1..N, deterministico). Valores de teste, nao canonicos.
+Gerado por `run_sim.ps1` (30 execucoes por cenario normal e 20 por cenario difícil; grupo = herois de teste A-D com equipamento, alocacao `main`; itens: Pocao 3, Eter 2, Reviver 1; sementes 1..N, deterministico). Valores de teste, nao canonicos.
 
 ## Metas
 
 - Batalha comum: 30-60 s de duracao com a politica `smart` e vitoria >= 90%.
 - Politica `basic`: vitoria entre 40% e 70% (pressao real sem ser impossivel).
-- Chefe de teste: 2-4 min.
-- Chefe: a meta de 2-4 min ainda nao tem cenario (nao ha chefe de teste; fica para o M11).
+- Chefe de teste: 2-4 min (ainda sem cenario: nao ha chefe de teste; fica para o M11).
 - Cenario "difícil": nivel 1, X+Y+Z com atributos dos inimigos multiplicados por um fator (ver abaixo), para medir a pressao com `basic` (meta 40-70%) e dar efeito a Reviver, Veneno e duracoes.
 - Fonte: spec M5 (`docs/superpowers/specs/2026-10-19-m5-formulas-design.md`, §4).
 - Cada formula varia apenas ela mesma sobre o padrao (tudo A); a opcao A das tabelas e o padrao.
 
+## Observacoes
+
+- Cenario "difícil" e uma aresta de faca: a taxa de vitoria com `basic` despenca entre x1,12 e x1,14 (97% -> 10% na busca com 30 execucoes), porque os atributos sao arredondados; por isso o fator e fino (x1,125) e qualquer diferenca de formula desloca muito a vitoria nessa familia.
+- TTK (acoes) e a media so das execucoes em que o inimigo morreu (derrotas/tempos esgotados nao entram).
+- Diferencas pequenas (alguns pontos de vitoria) em poucas execucoes sao ruido, nao efeito da formula.
+
 ## Padrao (tudo A)
 
-| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
+| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes; so execucoes em que o inimigo morreu) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | padrao - N1 X+Y basic | 30 | 30 | 0 | 0 | 46.9 | 46.5 | 7.5 | 5.3 | 0.0 | inimigo_y 12.7, inimigo_x 30.1 | 82% | 0.0 | teste_a 106 (1), teste_b 30 (1), teste_c 0 (?), teste_d 62 (1) | 0/0 |
 | padrao - N1 X+Y smart | 30 | 30 | 0 | 0 | 60.8 | 61.1 | 9.9 | 5.6 | 3.7 | inimigo_y 29.4, inimigo_x 39.4 | 85% | 124.8 | teste_a 70 (1), teste_b 55 (1), teste_c 26 (1), teste_d 44 (1) | 378/133 |
@@ -68,7 +73,7 @@ Gerado por `run_sim.ps1` (30 execucoes por cenario; grupo = herois de teste A-D 
 
 **F1-A**
 
-| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
+| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes; so execucoes em que o inimigo morreu) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | F1-A - N1 X+Y basic | 30 | 30 | 0 | 0 | 46.9 | 46.5 | 7.5 | 5.3 | 0.0 | inimigo_y 12.7, inimigo_x 30.1 | 82% | 0.0 | teste_a 106 (1), teste_b 30 (1), teste_c 0 (?), teste_d 62 (1) | 0/0 |
 | F1-A - N1 X+Y smart | 30 | 30 | 0 | 0 | 60.8 | 61.1 | 9.9 | 5.6 | 3.7 | inimigo_y 29.4, inimigo_x 39.4 | 85% | 124.8 | teste_a 70 (1), teste_b 55 (1), teste_c 26 (1), teste_d 44 (1) | 378/133 |
@@ -87,7 +92,7 @@ Gerado por `run_sim.ps1` (30 execucoes por cenario; grupo = herois de teste A-D 
 
 **F1-B**
 
-| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
+| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes; so execucoes em que o inimigo morreu) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | F1-B - N1 X+Y basic | 30 | 30 | 0 | 0 | 46.9 | 46.5 | 7.5 | 5.3 | 0.0 | inimigo_y 12.7, inimigo_x 30.1 | 82% | 0.0 | teste_a 106 (1), teste_b 30 (1), teste_c 0 (?), teste_d 62 (1) | 0/0 |
 | F1-B - N1 X+Y smart | 30 | 30 | 0 | 0 | 60.8 | 61.1 | 9.9 | 5.6 | 3.7 | inimigo_y 29.4, inimigo_x 39.4 | 85% | 124.8 | teste_a 70 (1), teste_b 55 (1), teste_c 26 (1), teste_d 44 (1) | 378/133 |
@@ -106,7 +111,7 @@ Gerado por `run_sim.ps1` (30 execucoes por cenario; grupo = herois de teste A-D 
 
 **F1-C**
 
-| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
+| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes; so execucoes em que o inimigo morreu) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | F1-C - N1 X+Y basic | 30 | 30 | 0 | 0 | 59.8 | 59.2 | 8.8 | 6.8 | 0.0 | inimigo_y 16.5, inimigo_x 35.3 | 71% | 0.0 | teste_a 87 (1), teste_b 49 (1), teste_c 8 (2), teste_d 53 (1) | 0/0 |
 | F1-C - N1 X+Y smart | 30 | 30 | 0 | 0 | 62.1 | 62.7 | 9.9 | 7.1 | 6.1 | inimigo_y 30.5, inimigo_x 39.4 | 86% | 154.3 | teste_a 85 (1), teste_b 55 (1), teste_c 4 (3), teste_d 53 (1) | 284/129 |
@@ -162,7 +167,7 @@ Gerado por `run_sim.ps1` (30 execucoes por cenario; grupo = herois de teste A-D 
 
 **F2-A**
 
-| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
+| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes; so execucoes em que o inimigo morreu) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | F2-A - N1 X+Y basic | 30 | 30 | 0 | 0 | 46.9 | 46.5 | 7.5 | 5.3 | 0.0 | inimigo_y 12.7, inimigo_x 30.1 | 82% | 0.0 | teste_a 106 (1), teste_b 30 (1), teste_c 0 (?), teste_d 62 (1) | 0/0 |
 | F2-A - N1 X+Y smart | 30 | 30 | 0 | 0 | 60.8 | 61.1 | 9.9 | 5.6 | 3.7 | inimigo_y 29.4, inimigo_x 39.4 | 85% | 124.8 | teste_a 70 (1), teste_b 55 (1), teste_c 26 (1), teste_d 44 (1) | 378/133 |
@@ -181,7 +186,7 @@ Gerado por `run_sim.ps1` (30 execucoes por cenario; grupo = herois de teste A-D 
 
 **F2-B**
 
-| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
+| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes; so execucoes em que o inimigo morreu) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | F2-B - N1 X+Y basic | 30 | 30 | 0 | 0 | 56.0 | 55.3 | 9.1 | 5.3 | 0.0 | inimigo_y 15.9, inimigo_x 36.4 | 81% | 0.0 | teste_a 105 (1), teste_b 29 (1), teste_c 0 (?), teste_d 62 (1) | 0/0 |
 | F2-B - N1 X+Y smart | 30 | 30 | 0 | 0 | 69.6 | 69.8 | 11.5 | 5.6 | 3.6 | inimigo_y 34.2, inimigo_x 46.0 | 85% | 128.4 | teste_a 71 (1), teste_b 54 (1), teste_c 27 (1), teste_d 44 (1) | 425/129 |
@@ -200,7 +205,7 @@ Gerado por `run_sim.ps1` (30 execucoes por cenario; grupo = herois de teste A-D 
 
 **F2-C**
 
-| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
+| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes; so execucoes em que o inimigo morreu) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | F2-C - N1 X+Y basic | 30 | 30 | 0 | 0 | 56.0 | 55.3 | 9.1 | 5.3 | 0.0 | inimigo_y 15.9, inimigo_x 36.4 | 81% | 0.0 | teste_a 105 (1), teste_b 29 (1), teste_c 0 (?), teste_d 62 (1) | 0/0 |
 | F2-C - N1 X+Y smart | 30 | 30 | 0 | 0 | 69.6 | 69.8 | 11.5 | 5.6 | 3.6 | inimigo_y 34.2, inimigo_x 46.0 | 85% | 128.4 | teste_a 71 (1), teste_b 54 (1), teste_c 27 (1), teste_d 44 (1) | 425/129 |
@@ -256,7 +261,7 @@ Gerado por `run_sim.ps1` (30 execucoes por cenario; grupo = herois de teste A-D 
 
 **F3-A**
 
-| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
+| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes; so execucoes em que o inimigo morreu) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | F3-A - N1 X+Y basic | 30 | 30 | 0 | 0 | 46.9 | 46.5 | 7.5 | 5.3 | 0.0 | inimigo_y 12.7, inimigo_x 30.1 | 82% | 0.0 | teste_a 106 (1), teste_b 30 (1), teste_c 0 (?), teste_d 62 (1) | 0/0 |
 | F3-A - N1 X+Y smart | 30 | 30 | 0 | 0 | 60.8 | 61.1 | 9.9 | 5.6 | 3.7 | inimigo_y 29.4, inimigo_x 39.4 | 85% | 124.8 | teste_a 70 (1), teste_b 55 (1), teste_c 26 (1), teste_d 44 (1) | 378/133 |
@@ -275,7 +280,7 @@ Gerado por `run_sim.ps1` (30 execucoes por cenario; grupo = herois de teste A-D 
 
 **F3-B**
 
-| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
+| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes; so execucoes em que o inimigo morreu) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | F3-B - N1 X+Y basic | 30 | 30 | 0 | 0 | 46.9 | 46.5 | 7.5 | 5.3 | 0.0 | inimigo_y 12.7, inimigo_x 30.1 | 82% | 0.0 | teste_a 106 (1), teste_b 30 (1), teste_c 0 (?), teste_d 62 (1) | 0/0 |
 | F3-B - N1 X+Y smart | 30 | 30 | 0 | 0 | 58.3 | 59.3 | 9.6 | 5.4 | 3.9 | inimigo_y 28.3, inimigo_x 38.2 | 85% | 109.0 | teste_a 69 (1), teste_b 53 (1), teste_c 28 (1), teste_d 46 (1) | 341/115 |
@@ -294,7 +299,7 @@ Gerado por `run_sim.ps1` (30 execucoes por cenario; grupo = herois de teste A-D 
 
 **F3-C**
 
-| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
+| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes; so execucoes em que o inimigo morreu) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | F3-C - N1 X+Y basic | 30 | 30 | 0 | 0 | 46.9 | 46.5 | 7.5 | 5.3 | 0.0 | inimigo_y 12.7, inimigo_x 30.1 | 82% | 0.0 | teste_a 106 (1), teste_b 30 (1), teste_c 0 (?), teste_d 62 (1) | 0/0 |
 | F3-C - N1 X+Y smart | 30 | 30 | 0 | 0 | 58.3 | 59.3 | 9.6 | 5.4 | 3.9 | inimigo_y 28.3, inimigo_x 38.2 | 85% | 109.0 | teste_a 69 (1), teste_b 53 (1), teste_c 28 (1), teste_d 46 (1) | 341/115 |
@@ -350,7 +355,7 @@ Gerado por `run_sim.ps1` (30 execucoes por cenario; grupo = herois de teste A-D 
 
 **F4-A**
 
-| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
+| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes; so execucoes em que o inimigo morreu) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | F4-A - N1 X+Y basic | 30 | 30 | 0 | 0 | 46.9 | 46.5 | 7.5 | 5.3 | 0.0 | inimigo_y 12.7, inimigo_x 30.1 | 82% | 0.0 | teste_a 106 (1), teste_b 30 (1), teste_c 0 (?), teste_d 62 (1) | 0/0 |
 | F4-A - N1 X+Y smart | 30 | 30 | 0 | 0 | 60.8 | 61.1 | 9.9 | 5.6 | 3.7 | inimigo_y 29.4, inimigo_x 39.4 | 85% | 124.8 | teste_a 70 (1), teste_b 55 (1), teste_c 26 (1), teste_d 44 (1) | 378/133 |
@@ -369,7 +374,7 @@ Gerado por `run_sim.ps1` (30 execucoes por cenario; grupo = herois de teste A-D 
 
 **F4-B**
 
-| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
+| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes; so execucoes em que o inimigo morreu) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | F4-B - N1 X+Y basic | 30 | 30 | 0 | 0 | 73.5 | 72.6 | 10.3 | 4.8 | 0.0 | inimigo_y 21.1, inimigo_x 41.1 | 78% | 0.0 | teste_a 88 (1), teste_b 29 (1), teste_c 31 (1), teste_d 50 (1) | 0/0 |
 | F4-B - N1 X+Y smart | 30 | 30 | 0 | 0 | 82.6 | 82.8 | 11.3 | 4.9 | 4.0 | inimigo_y 37.4, inimigo_x 44.8 | 85% | 144.2 | teste_a 67 (1), teste_b 49 (1), teste_c 37 (1), teste_d 43 (1) | 536/158 |
@@ -388,7 +393,7 @@ Gerado por `run_sim.ps1` (30 execucoes por cenario; grupo = herois de teste A-D 
 
 **F4-C**
 
-| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
+| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes; so execucoes em que o inimigo morreu) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | F4-C - N1 X+Y basic | 30 | 30 | 0 | 0 | 47.0 | 45.6 | 7.5 | 5.3 | 0.0 | inimigo_y 12.7, inimigo_x 30.0 | 82% | 0.0 | teste_a 106 (1), teste_b 30 (1), teste_c 0 (?), teste_d 62 (1) | 0/0 |
 | F4-C - N1 X+Y smart | 30 | 30 | 0 | 0 | 55.0 | 54.2 | 8.7 | 5.1 | 5.0 | inimigo_y 26.7, inimigo_x 34.6 | 84% | 114.6 | teste_a 80 (1), teste_b 48 (1), teste_c 20 (1), teste_d 50 (1) | 248/95 |
@@ -444,7 +449,7 @@ Gerado por `run_sim.ps1` (30 execucoes por cenario; grupo = herois de teste A-D 
 
 **F5-A**
 
-| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
+| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes; so execucoes em que o inimigo morreu) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | F5-A - N1 X+Y basic | 30 | 30 | 0 | 0 | 46.9 | 46.5 | 7.5 | 5.3 | 0.0 | inimigo_y 12.7, inimigo_x 30.1 | 82% | 0.0 | teste_a 106 (1), teste_b 30 (1), teste_c 0 (?), teste_d 62 (1) | 0/0 |
 | F5-A - N1 X+Y smart | 30 | 30 | 0 | 0 | 60.8 | 61.1 | 9.9 | 5.6 | 3.7 | inimigo_y 29.4, inimigo_x 39.4 | 85% | 124.8 | teste_a 70 (1), teste_b 55 (1), teste_c 26 (1), teste_d 44 (1) | 378/133 |
@@ -463,7 +468,7 @@ Gerado por `run_sim.ps1` (30 execucoes por cenario; grupo = herois de teste A-D 
 
 **F5-B**
 
-| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
+| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes; so execucoes em que o inimigo morreu) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | F5-B - N1 X+Y basic | 30 | 30 | 0 | 0 | 37.7 | 37.7 | 6.0 | 6.7 | 0.0 | inimigo_y 11.3, inimigo_x 23.9 | 81% | 0.0 | teste_a 89 (1), teste_b 49 (1), teste_c 0 (?), teste_d 59 (1) | 0/0 |
 | F5-B - N1 X+Y smart | 30 | 30 | 0 | 0 | 54.1 | 54.6 | 8.6 | 6.9 | 5.0 | inimigo_x 28.9, inimigo_y 33.3 | 88% | 120.4 | teste_a 67 (1), teste_b 58 (1), teste_c 25 (1), teste_d 47 (1) | 340/124 |
@@ -482,7 +487,7 @@ Gerado por `run_sim.ps1` (30 execucoes por cenario; grupo = herois de teste A-D 
 
 **F5-C**
 
-| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
+| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes; so execucoes em que o inimigo morreu) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | F5-C - N1 X+Y basic | 30 | 30 | 0 | 0 | 46.9 | 46.5 | 7.5 | 5.3 | 0.0 | inimigo_y 12.7, inimigo_x 30.1 | 84% | 0.0 | teste_a 106 (1), teste_b 30 (1), teste_c 0 (?), teste_d 62 (1) | 0/0 |
 | F5-C - N1 X+Y smart | 30 | 30 | 0 | 0 | 60.6 | 61.1 | 9.8 | 5.6 | 3.7 | inimigo_y 29.4, inimigo_x 39.4 | 87% | 124.9 | teste_a 70 (1), teste_b 55 (1), teste_c 27 (1), teste_d 44 (1) | 381/133 |
@@ -517,28 +522,28 @@ Gerado por `run_sim.ps1` (30 execucoes por cenario; grupo = herois de teste A-D 
 | F6-A | smart | 10 | 100% | 0 | 29.1 | 28.5 | 9.6 | 12.9 | 96% | 68 | 8.0 |
 | F6-A | basic | 1 difícil | 55% | 0 | 185.8 | 187.2 | 5.2 | 0.0 | 5% | 86 | 1.3 |
 | F6-A | smart | 1 difícil | 100% | 0 | 177.8 | 177.1 | 4.7 | 3.7 | 35% | 86 | 1.0 |
-| F6-B | basic | 1 | 100% | 0 | 78.0 | 77.3 | 4.2 | 0.0 | 81% | 68 | 1.0 |
-| F6-B | smart | 1 | 100% | 0 | 82.5 | 82.6 | 4.1 | 4.4 | 83% | 68 | 1.0 |
-| F6-B | basic | 5 | 100% | 0 | 46.8 | 46.0 | 6.7 | 0.0 | 92% | 68 | 3.7 |
-| F6-B | smart | 5 | 100% | 0 | 43.5 | 42.9 | 5.6 | 9.5 | 92% | 68 | 3.1 |
-| F6-B | basic | 10 | 100% | 0 | 35.6 | 34.7 | 8.9 | 0.0 | 95% | 68 | 10.5 |
-| F6-B | smart | 10 | 100% | 0 | 29.9 | 29.7 | 10.1 | 12.4 | 96% | 68 | 8.9 |
-| F6-B | basic | 1 difícil | 35% | 0 | 196.4 | 198.7 | 4.9 | 0.0 | 2% | 87 | 1.5 |
-| F6-B | smart | 1 difícil | 100% | 0 | 198.8 | 198.5 | 4.4 | 3.2 | 27% | 86 | 1.0 |
-| F6-C | basic | 1 | 100% | 0 | 78.0 | 77.3 | 4.1 | 0.0 | 81% | 68 | 1.0 |
-| F6-C | smart | 1 | 100% | 0 | 82.5 | 82.6 | 4.1 | 4.4 | 84% | 68 | 1.0 |
-| F6-C | basic | 5 | 100% | 0 | 46.9 | 46.0 | 6.7 | 0.0 | 92% | 68 | 3.7 |
-| F6-C | smart | 5 | 100% | 0 | 43.5 | 43.1 | 5.7 | 9.5 | 92% | 68 | 3.1 |
-| F6-C | basic | 10 | 100% | 0 | 35.6 | 34.7 | 8.9 | 0.0 | 95% | 68 | 10.5 |
-| F6-C | smart | 10 | 100% | 0 | 30.0 | 29.7 | 10.0 | 12.3 | 96% | 68 | 8.6 |
-| F6-C | basic | 1 difícil | 30% | 0 | 198.2 | 200.1 | 4.9 | 0.0 | 2% | 87 | 1.5 |
-| F6-C | smart | 1 difícil | 100% | 0 | 198.7 | 198.6 | 4.4 | 3.2 | 28% | 86 | 1.0 |
+| F6-B | basic | 1 | 100% | 0 | 71.1 | 70.1 | 4.6 | 0.0 | 82% | 68 | 1.0 |
+| F6-B | smart | 1 | 100% | 0 | 75.9 | 75.8 | 4.5 | 4.8 | 85% | 68 | 1.0 |
+| F6-B | basic | 5 | 100% | 0 | 44.7 | 43.8 | 7.1 | 0.0 | 91% | 68 | 3.7 |
+| F6-B | smart | 5 | 100% | 0 | 40.6 | 40.7 | 6.2 | 10.0 | 92% | 68 | 3.1 |
+| F6-B | basic | 10 | 100% | 0 | 35.4 | 34.7 | 8.9 | 0.0 | 94% | 68 | 9.9 |
+| F6-B | smart | 10 | 100% | 0 | 29.0 | 28.4 | 9.6 | 13.0 | 96% | 68 | 9.0 |
+| F6-B | basic | 1 difícil | 65% | 0 | 184.9 | 185.5 | 5.2 | 0.0 | 5% | 86 | 1.3 |
+| F6-B | smart | 1 difícil | 100% | 0 | 176.6 | 175.2 | 4.7 | 3.7 | 38% | 86 | 1.0 |
+| F6-C | basic | 1 | 100% | 0 | 71.2 | 70.4 | 4.6 | 0.0 | 82% | 68 | 1.0 |
+| F6-C | smart | 1 | 100% | 0 | 76.2 | 76.0 | 4.6 | 4.7 | 85% | 68 | 1.0 |
+| F6-C | basic | 5 | 100% | 0 | 44.7 | 43.8 | 7.0 | 0.0 | 91% | 68 | 3.7 |
+| F6-C | smart | 5 | 100% | 0 | 40.4 | 40.4 | 7.3 | 9.9 | 92% | 68 | 3.1 |
+| F6-C | basic | 10 | 100% | 0 | 35.3 | 34.7 | 8.9 | 0.0 | 94% | 68 | 9.9 |
+| F6-C | smart | 10 | 100% | 0 | 29.2 | 28.4 | 9.8 | 12.8 | 96% | 68 | 8.6 |
+| F6-C | basic | 1 difícil | 70% | 0 | 185.7 | 185.7 | 5.2 | 0.0 | 5% | 86 | 1.3 |
+| F6-C | smart | 1 difícil | 100% | 0 | 175.9 | 174.8 | 4.7 | 3.7 | 38% | 86 | 1.0 |
 
 <details><summary>Detalhe por cenario</summary>
 
 **F6-A**
 
-| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
+| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes; so execucoes em que o inimigo morreu) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | F6-A - N1 X+Y basic | 30 | 30 | 0 | 0 | 46.9 | 46.5 | 7.5 | 5.3 | 0.0 | inimigo_y 12.7, inimigo_x 30.1 | 82% | 0.0 | teste_a 106 (1), teste_b 30 (1), teste_c 0 (?), teste_d 62 (1) | 0/0 |
 | F6-A - N1 X+Y smart | 30 | 30 | 0 | 0 | 60.8 | 61.1 | 9.9 | 5.6 | 3.7 | inimigo_y 29.4, inimigo_x 39.4 | 85% | 124.8 | teste_a 70 (1), teste_b 55 (1), teste_c 26 (1), teste_d 44 (1) | 378/133 |
@@ -557,41 +562,41 @@ Gerado por `run_sim.ps1` (30 execucoes por cenario; grupo = herois de teste A-D 
 
 **F6-B**
 
-| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
+| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes; so execucoes em que o inimigo morreu) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| F6-B - N1 X+Y basic | 30 | 30 | 0 | 0 | 51.9 | 50.9 | 8.4 | 4.8 | 0.0 | inimigo_y 14.3, inimigo_x 33.6 | 82% | 0.0 | teste_a 110 (1), teste_b 26 (1), teste_c 0 (?), teste_d 62 (1) | 0/0 |
-| F6-B - N1 X+Y smart | 30 | 30 | 0 | 0 | 63.6 | 63.7 | 10.3 | 5.0 | 3.5 | inimigo_y 30.2, inimigo_x 41.0 | 84% | 122.5 | teste_a 74 (1), teste_b 53 (1), teste_c 25 (1), teste_d 45 (1) | 327/149 |
-| F6-B - N1 X+Y+Z basic | 30 | 30 | 0 | 0 | 104.0 | 103.7 | 20.1 | 3.5 | 0.0 | inimigo_y 14.4, inimigo_x 33.6, inimigo_z 80.6 | 81% | 0.0 | teste_a 197 (1), teste_b 39 (1), teste_c 14 (1), teste_d 96 (1) | 0/0 |
-| F6-B - N1 X+Y+Z smart | 30 | 30 | 0 | 0 | 101.4 | 101.5 | 18.9 | 3.3 | 5.2 | inimigo_y 26.4, inimigo_x 36.3, inimigo_z 75.6 | 83% | 118.5 | teste_a 172 (1), teste_b 64 (1), teste_c 19 (1), teste_d 91 (1) | 227/111 |
-| F6-B - N5 X+Y basic | 30 | 30 | 0 | 0 | 32.7 | 31.7 | 5.4 | 7.4 | 0.0 | inimigo_y 9.7, inimigo_x 21.7 | 92% | 0.0 | teste_a 102 (1), teste_b 21 (5), teste_c 0 (?), teste_d 75 (2) | 0/0 |
-| F6-B - N5 X+Y smart | 30 | 30 | 0 | 0 | 36.9 | 35.7 | 5.7 | 5.4 | 8.3 | inimigo_x 22.5, inimigo_y 19.9 | 93% | 103.7 | teste_a 72 (2), teste_b 40 (3), teste_c 17 (6), teste_d 67 (2) | 250/108 |
-| F6-B - N5 X+Y+Z basic | 30 | 30 | 0 | 0 | 60.9 | 60.3 | 11.8 | 6.0 | 0.0 | inimigo_y 9.7, inimigo_x 21.8, inimigo_z 47.1 | 92% | 0.0 | teste_a 178 (1), teste_b 31 (3), teste_c 7 (14), teste_d 130 (1) | 0/0 |
-| F6-B - N5 X+Y+Z smart | 30 | 30 | 0 | 0 | 50.1 | 50.1 | 8.9 | 5.7 | 10.7 | inimigo_y 16.0, inimigo_x 19.8, inimigo_z 35.5 | 92% | 97.6 | teste_a 153 (1), teste_b 48 (2), teste_c 11 (8), teste_d 134 (1) | 204/119 |
-| F6-B - N10 X+Y basic | 30 | 30 | 0 | 0 | 25.6 | 24.8 | 4.2 | 9.6 | 0.0 | inimigo_y 7.5, inimigo_x 16.6 | 95% | 0.0 | teste_a 96 (2), teste_b 17 (12), teste_c 0 (?), teste_d 85 (3) | 0/0 |
-| F6-B - N10 X+Y smart | 30 | 30 | 0 | 0 | 24.4 | 23.6 | 3.8 | 7.2 | 12.2 | inimigo_y 14.0, inimigo_x 15.0 | 97% | 71.8 | teste_a 69 (3), teste_b 39 (5), teste_c 6 (34), teste_d 83 (3) | 140/73 |
-| F6-B - N10 X+Y+Z basic | 30 | 30 | 0 | 0 | 45.6 | 44.6 | 8.7 | 8.2 | 0.0 | inimigo_y 7.3, inimigo_x 16.7, inimigo_z 34.9 | 95% | 0.0 | teste_a 170 (2), teste_b 23 (9), teste_c 4 (48), teste_d 148 (2) | 0/0 |
-| F6-B - N10 X+Y+Z smart | 30 | 30 | 0 | 0 | 35.4 | 35.8 | 6.1 | 13.1 | 12.6 | inimigo_y 13.5, inimigo_x 14.5, inimigo_z 24.6 | 96% | 88.9 | teste_a 133 (2), teste_b 53 (4), teste_c 11 (18), teste_d 149 (2) | 219/119 |
-| F6-B - N1 X+Y+Z difícil ×1.125 basic | 20 | 7 | 13 | 0 | 196.4 | 198.7 | 20.6 | 4.9 | 0.0 | inimigo_y 38.0, inimigo_x 55.8, inimigo_z 87.0 | 2% | 0.0 | teste_a 254 (1), teste_b 8 (2), teste_c 10 (2), teste_d 74 (1) | 0/0 |
-| F6-B - N1 X+Y+Z difícil ×1.125 smart | 20 | 20 | 0 | 0 | 198.8 | 198.5 | 24.9 | 4.4 | 3.2 | inimigo_y 53.6, inimigo_x 67.3, inimigo_z 99.7 | 27% | 121.7 | teste_a 159 (1), teste_b 78 (1), teste_c 34 (1), teste_d 74 (1) | 183/83 |
+| F6-B - N1 X+Y basic | 30 | 30 | 0 | 0 | 47.3 | 46.5 | 7.6 | 5.3 | 0.0 | inimigo_y 12.8, inimigo_x 30.4 | 82% | 0.0 | teste_a 106 (1), teste_b 30 (1), teste_c 0 (?), teste_d 62 (1) | 0/0 |
+| F6-B - N1 X+Y smart | 30 | 30 | 0 | 0 | 59.1 | 59.1 | 9.5 | 5.5 | 3.9 | inimigo_y 28.7, inimigo_x 38.0 | 86% | 121.6 | teste_a 72 (1), teste_b 53 (1), teste_c 24 (1), teste_d 47 (1) | 320/142 |
+| F6-B - N1 X+Y+Z basic | 30 | 30 | 0 | 0 | 94.9 | 93.8 | 18.4 | 3.9 | 0.0 | inimigo_y 13.0, inimigo_x 30.6, inimigo_z 73.7 | 82% | 0.0 | teste_a 192 (1), teste_b 43 (1), teste_c 13 (1), teste_d 100 (1) | 0/0 |
+| F6-B - N1 X+Y+Z smart | 30 | 30 | 0 | 0 | 92.8 | 92.6 | 17.2 | 3.6 | 5.6 | inimigo_y 24.7, inimigo_x 33.6, inimigo_z 68.7 | 85% | 118.2 | teste_a 165 (1), teste_b 64 (1), teste_c 18 (1), teste_d 99 (1) | 225/112 |
+| F6-B - N5 X+Y basic | 30 | 30 | 0 | 0 | 31.3 | 30.6 | 5.1 | 7.8 | 0.0 | inimigo_y 9.5, inimigo_x 20.5 | 91% | 0.0 | teste_a 100 (1), teste_b 26 (4), teste_c 0 (?), teste_d 72 (2) | 0/0 |
+| F6-B - N5 X+Y smart | 30 | 30 | 0 | 0 | 34.4 | 35.0 | 5.3 | 5.9 | 8.9 | inimigo_x 20.6, inimigo_y 19.8 | 93% | 99.8 | teste_a 74 (2), teste_b 39 (3), teste_c 15 (6), teste_d 69 (2) | 227/105 |
+| F6-B - N5 X+Y+Z basic | 30 | 30 | 0 | 0 | 58.2 | 57.0 | 11.3 | 6.3 | 0.0 | inimigo_y 9.5, inimigo_x 20.6, inimigo_z 45.1 | 91% | 0.0 | teste_a 177 (1), teste_b 35 (3), teste_c 6 (15), teste_d 128 (1) | 0/0 |
+| F6-B - N5 X+Y+Z smart | 30 | 30 | 0 | 0 | 46.7 | 46.4 | 8.1 | 6.5 | 11.0 | inimigo_y 15.9, inimigo_x 17.4, inimigo_z 32.3 | 91% | 97.9 | teste_a 151 (1), teste_b 48 (2), teste_c 12 (8), teste_d 135 (1) | 203/122 |
+| F6-B - N10 X+Y basic | 30 | 30 | 0 | 0 | 25.6 | 24.8 | 4.2 | 9.6 | 0.0 | inimigo_y 7.5, inimigo_x 16.6 | 94% | 0.0 | teste_a 94 (3), teste_b 21 (9), teste_c 0 (?), teste_d 83 (3) | 0/0 |
+| F6-B - N10 X+Y smart | 30 | 30 | 0 | 0 | 24.2 | 23.6 | 3.7 | 5.9 | 12.4 | inimigo_y 13.9, inimigo_x 14.9 | 96% | 71.1 | teste_a 68 (3), teste_b 39 (5), teste_c 6 (33), teste_d 84 (3) | 139/72 |
+| F6-B - N10 X+Y+Z basic | 30 | 30 | 0 | 0 | 45.3 | 44.6 | 8.7 | 8.2 | 0.0 | inimigo_y 7.3, inimigo_x 16.6, inimigo_z 34.6 | 94% | 0.0 | teste_a 167 (2), teste_b 28 (7), teste_c 4 (48), teste_d 147 (2) | 0/0 |
+| F6-B - N10 X+Y+Z smart | 30 | 30 | 0 | 0 | 33.9 | 33.2 | 5.8 | 13.3 | 13.5 | inimigo_y 13.4, inimigo_x 14.5, inimigo_z 23.3 | 95% | 84.7 | teste_a 134 (2), teste_b 52 (4), teste_c 10 (20), teste_d 150 (2) | 205/109 |
+| F6-B - N1 X+Y+Z difícil ×1.125 basic | 20 | 13 | 7 | 0 | 184.9 | 185.5 | 19.9 | 5.2 | 0.0 | inimigo_y 34.7, inimigo_x 51.2, inimigo_z 81.8 | 5% | 0.0 | teste_a 244 (1), teste_b 10 (2), teste_c 12 (1), teste_d 81 (1) | 0/0 |
+| F6-B - N1 X+Y+Z difícil ×1.125 smart | 20 | 20 | 0 | 0 | 176.6 | 175.2 | 23.3 | 4.7 | 3.7 | inimigo_y 50.8, inimigo_x 62.7, inimigo_z 93.3 | 38% | 123.0 | teste_a 150 (1), teste_b 85 (1), teste_c 35 (1), teste_d 74 (1) | 179/80 |
 
 **F6-C**
 
-| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
+| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes; so execucoes em que o inimigo morreu) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| F6-C - N1 X+Y basic | 30 | 30 | 0 | 0 | 51.9 | 50.9 | 8.4 | 4.8 | 0.0 | inimigo_y 14.3, inimigo_x 33.6 | 82% | 0.0 | teste_a 110 (1), teste_b 26 (1), teste_c 0 (?), teste_d 62 (1) | 0/0 |
-| F6-C - N1 X+Y smart | 30 | 30 | 0 | 0 | 63.5 | 63.8 | 10.2 | 5.0 | 3.5 | inimigo_y 30.2, inimigo_x 41.0 | 84% | 122.5 | teste_a 74 (1), teste_b 52 (1), teste_c 26 (1), teste_d 45 (1) | 327/149 |
-| F6-C - N1 X+Y+Z basic | 30 | 30 | 0 | 0 | 104.2 | 103.7 | 20.2 | 3.5 | 0.0 | inimigo_y 14.5, inimigo_x 33.7, inimigo_z 80.7 | 81% | 0.0 | teste_a 196 (1), teste_b 39 (1), teste_c 14 (1), teste_d 97 (1) | 0/0 |
-| F6-C - N1 X+Y+Z smart | 30 | 30 | 0 | 0 | 101.5 | 101.4 | 18.9 | 3.3 | 5.2 | inimigo_y 26.4, inimigo_x 36.3, inimigo_z 75.6 | 83% | 118.7 | teste_a 172 (1), teste_b 64 (1), teste_c 19 (1), teste_d 91 (1) | 227/113 |
-| F6-C - N5 X+Y basic | 30 | 30 | 0 | 0 | 32.9 | 31.7 | 5.5 | 7.3 | 0.0 | inimigo_y 9.8, inimigo_x 21.8 | 92% | 0.0 | teste_a 102 (1), teste_b 21 (5), teste_c 0 (?), teste_d 75 (2) | 0/0 |
-| F6-C - N5 X+Y smart | 30 | 30 | 0 | 0 | 37.0 | 35.7 | 5.7 | 5.7 | 8.3 | inimigo_x 22.5, inimigo_y 19.9 | 92% | 103.6 | teste_a 72 (2), teste_b 40 (3), teste_c 17 (6), teste_d 68 (2) | 249/107 |
-| F6-C - N5 X+Y+Z basic | 30 | 30 | 0 | 0 | 60.9 | 60.3 | 11.8 | 6.0 | 0.0 | inimigo_y 9.8, inimigo_x 21.9, inimigo_z 47.2 | 92% | 0.0 | teste_a 178 (1), teste_b 31 (3), teste_c 7 (14), teste_d 130 (1) | 0/0 |
-| F6-C - N5 X+Y+Z smart | 30 | 30 | 0 | 0 | 50.0 | 50.5 | 8.8 | 5.7 | 10.8 | inimigo_y 16.1, inimigo_x 19.7, inimigo_z 35.4 | 92% | 98.2 | teste_a 152 (1), teste_b 48 (2), teste_c 13 (8), teste_d 133 (1) | 209/112 |
-| F6-C - N10 X+Y basic | 30 | 30 | 0 | 0 | 25.6 | 24.8 | 4.2 | 9.6 | 0.0 | inimigo_y 7.5, inimigo_x 16.6 | 95% | 0.0 | teste_a 96 (2), teste_b 17 (12), teste_c 0 (?), teste_d 85 (3) | 0/0 |
-| F6-C - N10 X+Y smart | 30 | 30 | 0 | 0 | 24.9 | 23.7 | 3.8 | 6.7 | 11.9 | inimigo_y 14.0, inimigo_x 15.4 | 96% | 72.8 | teste_a 69 (3), teste_b 40 (5), teste_c 6 (32), teste_d 83 (3) | 145/75 |
-| F6-C - N10 X+Y+Z basic | 30 | 30 | 0 | 0 | 45.6 | 44.6 | 8.7 | 8.2 | 0.0 | inimigo_y 7.3, inimigo_x 16.7, inimigo_z 34.9 | 95% | 0.0 | teste_a 171 (2), teste_b 23 (9), teste_c 4 (48), teste_d 147 (2) | 0/0 |
-| F6-C - N10 X+Y+Z smart | 30 | 30 | 0 | 0 | 35.1 | 35.7 | 6.1 | 13.4 | 12.7 | inimigo_y 13.5, inimigo_x 14.5, inimigo_z 24.4 | 96% | 88.1 | teste_a 132 (2), teste_b 53 (4), teste_c 11 (18), teste_d 150 (2) | 218/116 |
-| F6-C - N1 X+Y+Z difícil ×1.125 basic | 20 | 6 | 14 | 0 | 198.2 | 200.1 | 20.6 | 4.9 | 0.0 | inimigo_y 38.0, inimigo_x 55.9, inimigo_z 87.8 | 2% | 0.0 | teste_a 255 (1), teste_b 8 (2), teste_c 9 (2), teste_d 75 (1) | 0/0 |
-| F6-C - N1 X+Y+Z difícil ×1.125 smart | 20 | 20 | 0 | 0 | 198.7 | 198.6 | 25.0 | 4.4 | 3.2 | inimigo_y 53.7, inimigo_x 67.3, inimigo_z 99.9 | 28% | 122.0 | teste_a 158 (1), teste_b 78 (1), teste_c 34 (1), teste_d 74 (1) | 183/84 |
+| F6-C - N1 X+Y basic | 30 | 30 | 0 | 0 | 47.4 | 46.0 | 7.6 | 5.3 | 0.0 | inimigo_y 12.9, inimigo_x 30.5 | 82% | 0.0 | teste_a 106 (1), teste_b 30 (1), teste_c 0 (?), teste_d 62 (1) | 0/0 |
+| F6-C - N1 X+Y smart | 30 | 30 | 0 | 0 | 59.5 | 59.6 | 9.5 | 5.5 | 3.9 | inimigo_y 28.8, inimigo_x 38.1 | 86% | 121.6 | teste_a 73 (1), teste_b 53 (1), teste_c 23 (1), teste_d 48 (1) | 317/145 |
+| F6-C - N1 X+Y+Z basic | 30 | 30 | 0 | 0 | 95.0 | 94.9 | 18.5 | 3.9 | 0.0 | inimigo_y 13.0, inimigo_x 30.4, inimigo_z 73.9 | 82% | 0.0 | teste_a 191 (1), teste_b 43 (1), teste_c 13 (1), teste_d 101 (1) | 0/0 |
+| F6-C - N1 X+Y+Z smart | 30 | 30 | 0 | 0 | 92.9 | 92.4 | 17.2 | 3.6 | 5.6 | inimigo_y 24.7, inimigo_x 33.6, inimigo_z 68.8 | 85% | 117.9 | teste_a 166 (1), teste_b 64 (1), teste_c 18 (1), teste_d 98 (1) | 227/111 |
+| F6-C - N5 X+Y basic | 30 | 30 | 0 | 0 | 31.5 | 30.6 | 5.2 | 7.7 | 0.0 | inimigo_y 9.5, inimigo_x 20.7 | 91% | 0.0 | teste_a 100 (1), teste_b 26 (4), teste_c 0 (?), teste_d 71 (2) | 0/0 |
+| F6-C - N5 X+Y smart | 30 | 30 | 0 | 0 | 34.2 | 34.4 | 5.2 | 8.1 | 8.9 | inimigo_x 20.6, inimigo_y 19.4 | 93% | 99.5 | teste_a 73 (2), teste_b 39 (3), teste_c 15 (6), teste_d 69 (2) | 228/103 |
+| F6-C - N5 X+Y+Z basic | 30 | 30 | 0 | 0 | 57.9 | 57.0 | 11.2 | 6.4 | 0.0 | inimigo_y 9.5, inimigo_x 20.6, inimigo_z 44.8 | 91% | 0.0 | teste_a 177 (1), teste_b 35 (3), teste_c 6 (15), teste_d 127 (1) | 0/0 |
+| F6-C - N5 X+Y+Z smart | 30 | 30 | 0 | 0 | 46.7 | 46.4 | 8.1 | 6.5 | 11.0 | inimigo_y 15.8, inimigo_x 17.8, inimigo_z 32.4 | 91% | 98.1 | teste_a 152 (1), teste_b 48 (2), teste_c 12 (8), teste_d 134 (1) | 209/119 |
+| F6-C - N10 X+Y basic | 30 | 30 | 0 | 0 | 25.6 | 24.8 | 4.2 | 9.6 | 0.0 | inimigo_y 7.5, inimigo_x 16.6 | 94% | 0.0 | teste_a 94 (3), teste_b 21 (9), teste_c 0 (?), teste_d 83 (3) | 0/0 |
+| F6-C - N10 X+Y smart | 30 | 30 | 0 | 0 | 24.1 | 23.6 | 3.7 | 6.5 | 12.3 | inimigo_y 13.8, inimigo_x 14.9 | 96% | 70.8 | teste_a 68 (3), teste_b 39 (5), teste_c 6 (31), teste_d 84 (3) | 139/72 |
+| F6-C - N10 X+Y+Z basic | 30 | 30 | 0 | 0 | 45.1 | 44.6 | 8.6 | 8.3 | 0.0 | inimigo_y 7.3, inimigo_x 16.6, inimigo_z 34.5 | 94% | 0.0 | teste_a 167 (2), teste_b 28 (7), teste_c 4 (48), teste_d 147 (2) | 0/0 |
+| F6-C - N10 X+Y+Z smart | 30 | 30 | 0 | 0 | 34.3 | 33.2 | 5.9 | 13.0 | 13.4 | inimigo_y 13.4, inimigo_x 14.5, inimigo_z 23.6 | 95% | 85.5 | teste_a 134 (2), teste_b 53 (4), teste_c 10 (19), teste_d 150 (2) | 210/110 |
+| F6-C - N1 X+Y+Z difícil ×1.125 basic | 20 | 14 | 6 | 0 | 185.7 | 185.7 | 19.9 | 5.2 | 0.0 | inimigo_y 34.8, inimigo_x 51.5, inimigo_z 81.8 | 5% | 0.0 | teste_a 244 (1), teste_b 10 (2), teste_c 12 (1), teste_d 80 (1) | 0/0 |
+| F6-C - N1 X+Y+Z difícil ×1.125 smart | 20 | 20 | 0 | 0 | 175.9 | 174.8 | 23.2 | 4.7 | 3.7 | inimigo_y 51.0, inimigo_x 61.6, inimigo_z 92.7 | 38% | 122.8 | teste_a 148 (1), teste_b 84 (1), teste_c 38 (1), teste_d 75 (1) | 190/71 |
 
 </details>
 
@@ -632,7 +637,7 @@ Gerado por `run_sim.ps1` (30 execucoes por cenario; grupo = herois de teste A-D 
 
 **F7-A**
 
-| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
+| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes; so execucoes em que o inimigo morreu) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | F7-A - N1 X+Y basic | 30 | 30 | 0 | 0 | 46.9 | 46.5 | 7.5 | 5.3 | 0.0 | inimigo_y 12.7, inimigo_x 30.1 | 82% | 0.0 | teste_a 106 (1), teste_b 30 (1), teste_c 0 (?), teste_d 62 (1) | 0/0 |
 | F7-A - N1 X+Y smart | 30 | 30 | 0 | 0 | 60.8 | 61.1 | 9.9 | 5.6 | 3.7 | inimigo_y 29.4, inimigo_x 39.4 | 85% | 124.8 | teste_a 70 (1), teste_b 55 (1), teste_c 26 (1), teste_d 44 (1) | 378/133 |
@@ -651,7 +656,7 @@ Gerado por `run_sim.ps1` (30 execucoes por cenario; grupo = herois de teste A-D 
 
 **F7-B**
 
-| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
+| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes; so execucoes em que o inimigo morreu) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | F7-B - N1 X+Y basic | 30 | 30 | 0 | 0 | 45.4 | 45.4 | 7.3 | 5.5 | 0.0 | inimigo_y 12.0, inimigo_x 29.0 | 81% | 0.0 | teste_a 106 (1), teste_b 30 (1), teste_c 0 (?), teste_d 62 (1) | 0/0 |
 | F7-B - N1 X+Y smart | 30 | 30 | 0 | 0 | 60.1 | 61.0 | 9.7 | 5.8 | 3.7 | inimigo_y 29.3, inimigo_x 38.9 | 85% | 124.4 | teste_a 70 (1), teste_b 56 (1), teste_c 26 (1), teste_d 45 (1) | 371/135 |
@@ -670,7 +675,7 @@ Gerado por `run_sim.ps1` (30 execucoes por cenario; grupo = herois de teste A-D 
 
 **F7-C**
 
-| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
+| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes; so execucoes em que o inimigo morreu) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | F7-C - N1 X+Y basic | 30 | 30 | 0 | 0 | 45.4 | 45.4 | 7.3 | 5.5 | 0.0 | inimigo_y 12.0, inimigo_x 29.0 | 81% | 0.0 | teste_a 106 (1), teste_b 30 (1), teste_c 0 (?), teste_d 62 (1) | 0/0 |
 | F7-C - N1 X+Y smart | 30 | 30 | 0 | 0 | 60.0 | 60.9 | 9.7 | 5.8 | 3.7 | inimigo_y 29.3, inimigo_x 38.8 | 85% | 124.4 | teste_a 71 (1), teste_b 55 (1), teste_c 26 (1), teste_d 44 (1) | 372/134 |
@@ -726,7 +731,7 @@ Gerado por `run_sim.ps1` (30 execucoes por cenario; grupo = herois de teste A-D 
 
 **F8-A**
 
-| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
+| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes; so execucoes em que o inimigo morreu) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | F8-A - N1 X+Y basic | 30 | 30 | 0 | 0 | 46.9 | 46.5 | 7.5 | 5.3 | 0.0 | inimigo_y 12.7, inimigo_x 30.1 | 82% | 0.0 | teste_a 106 (1), teste_b 30 (1), teste_c 0 (?), teste_d 62 (1) | 0/0 |
 | F8-A - N1 X+Y smart | 30 | 30 | 0 | 0 | 60.8 | 61.1 | 9.9 | 5.6 | 3.7 | inimigo_y 29.4, inimigo_x 39.4 | 85% | 124.8 | teste_a 70 (1), teste_b 55 (1), teste_c 26 (1), teste_d 44 (1) | 378/133 |
@@ -745,7 +750,7 @@ Gerado por `run_sim.ps1` (30 execucoes por cenario; grupo = herois de teste A-D 
 
 **F8-B**
 
-| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
+| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes; so execucoes em que o inimigo morreu) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | F8-B - N1 X+Y basic | 30 | 30 | 0 | 0 | 46.9 | 46.5 | 7.5 | 5.3 | 0.0 | inimigo_y 12.7, inimigo_x 30.1 | 82% | 0.0 | teste_a 106 (1), teste_b 30 (1), teste_c 0 (?), teste_d 62 (1) | 0/0 |
 | F8-B - N1 X+Y smart | 30 | 30 | 0 | 0 | 60.8 | 61.1 | 9.9 | 5.6 | 3.7 | inimigo_y 29.4, inimigo_x 39.4 | 85% | 124.8 | teste_a 70 (1), teste_b 55 (1), teste_c 26 (1), teste_d 44 (1) | 378/133 |
@@ -764,7 +769,7 @@ Gerado por `run_sim.ps1` (30 execucoes por cenario; grupo = herois de teste A-D 
 
 **F8-C**
 
-| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
+| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes; so execucoes em que o inimigo morreu) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | F8-C - N1 X+Y basic | 30 | 30 | 0 | 0 | 46.9 | 46.5 | 7.5 | 5.3 | 0.0 | inimigo_y 12.7, inimigo_x 30.1 | 82% | 0.0 | teste_a 106 (1), teste_b 30 (2), teste_c 0 (?), teste_d 62 (1) | 0/0 |
 | F8-C - N1 X+Y smart | 30 | 30 | 0 | 0 | 60.8 | 61.1 | 9.9 | 5.6 | 3.7 | inimigo_y 29.4, inimigo_x 39.4 | 85% | 124.8 | teste_a 70 (1), teste_b 55 (1), teste_c 26 (2), teste_d 44 (2) | 378/133 |
@@ -820,7 +825,7 @@ Gerado por `run_sim.ps1` (30 execucoes por cenario; grupo = herois de teste A-D 
 
 **F9-A**
 
-| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
+| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes; so execucoes em que o inimigo morreu) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | F9-A - N1 X+Y basic | 30 | 30 | 0 | 0 | 46.9 | 46.5 | 7.5 | 5.3 | 0.0 | inimigo_y 12.7, inimigo_x 30.1 | 82% | 0.0 | teste_a 106 (1), teste_b 30 (1), teste_c 0 (?), teste_d 62 (1) | 0/0 |
 | F9-A - N1 X+Y smart | 30 | 30 | 0 | 0 | 60.8 | 61.1 | 9.9 | 5.6 | 3.7 | inimigo_y 29.4, inimigo_x 39.4 | 85% | 124.8 | teste_a 70 (1), teste_b 55 (1), teste_c 26 (1), teste_d 44 (1) | 378/133 |
@@ -839,7 +844,7 @@ Gerado por `run_sim.ps1` (30 execucoes por cenario; grupo = herois de teste A-D 
 
 **F9-B**
 
-| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
+| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes; so execucoes em que o inimigo morreu) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | F9-B - N1 X+Y basic | 30 | 30 | 0 | 0 | 46.9 | 46.5 | 7.5 | 5.3 | 0.0 | inimigo_y 12.7, inimigo_x 30.1 | 82% | 0.0 | teste_a 106 (1), teste_b 30 (1), teste_c 0 (?), teste_d 62 (1) | 0/0 |
 | F9-B - N1 X+Y smart | 30 | 30 | 0 | 0 | 60.8 | 61.1 | 9.9 | 5.6 | 3.7 | inimigo_y 29.4, inimigo_x 39.4 | 85% | 124.8 | teste_a 70 (1), teste_b 55 (1), teste_c 26 (1), teste_d 44 (1) | 378/133 |
@@ -858,7 +863,7 @@ Gerado por `run_sim.ps1` (30 execucoes por cenario; grupo = herois de teste A-D 
 
 **F9-C**
 
-| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
+| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes; so execucoes em que o inimigo morreu) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | F9-C - N1 X+Y basic | 30 | 30 | 0 | 0 | 46.9 | 46.5 | 7.5 | 5.3 | 0.0 | inimigo_y 12.7, inimigo_x 30.1 | 82% | 0.0 | teste_a 106 (1), teste_b 30 (1), teste_c 0 (?), teste_d 62 (1) | 0/0 |
 | F9-C - N1 X+Y smart | 30 | 30 | 0 | 0 | 60.8 | 61.1 | 9.9 | 5.6 | 3.7 | inimigo_y 29.4, inimigo_x 39.4 | 85% | 124.8 | teste_a 70 (1), teste_b 55 (1), teste_c 26 (1), teste_d 44 (1) | 378/133 |
@@ -914,7 +919,7 @@ Gerado por `run_sim.ps1` (30 execucoes por cenario; grupo = herois de teste A-D 
 
 **F10-A**
 
-| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
+| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes; so execucoes em que o inimigo morreu) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | F10-A - N1 X+Y basic | 30 | 30 | 0 | 0 | 46.9 | 46.5 | 7.5 | 5.3 | 0.0 | inimigo_y 12.7, inimigo_x 30.1 | 82% | 0.0 | teste_a 106 (1), teste_b 30 (1), teste_c 0 (?), teste_d 62 (1) | 0/0 |
 | F10-A - N1 X+Y smart | 30 | 30 | 0 | 0 | 60.8 | 61.1 | 9.9 | 5.6 | 3.7 | inimigo_y 29.4, inimigo_x 39.4 | 85% | 124.8 | teste_a 70 (1), teste_b 55 (1), teste_c 26 (1), teste_d 44 (1) | 378/133 |
@@ -933,7 +938,7 @@ Gerado por `run_sim.ps1` (30 execucoes por cenario; grupo = herois de teste A-D 
 
 **F10-B**
 
-| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
+| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes; so execucoes em que o inimigo morreu) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | F10-B - N1 X+Y basic | 30 | 30 | 0 | 0 | 46.9 | 46.5 | 7.5 | 5.3 | 0.0 | inimigo_y 12.7, inimigo_x 30.1 | 82% | 0.0 | teste_a 106 (1), teste_b 30 (1), teste_c 0 (?), teste_d 62 (1) | 0/0 |
 | F10-B - N1 X+Y smart | 30 | 30 | 0 | 0 | 60.8 | 61.1 | 9.9 | 5.6 | 3.7 | inimigo_y 29.4, inimigo_x 39.4 | 85% | 124.8 | teste_a 70 (1), teste_b 55 (1), teste_c 26 (1), teste_d 44 (1) | 378/133 |
@@ -952,7 +957,7 @@ Gerado por `run_sim.ps1` (30 execucoes por cenario; grupo = herois de teste A-D 
 
 **F10-C**
 
-| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
+| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes; so execucoes em que o inimigo morreu) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | F10-C - N1 X+Y basic | 30 | 30 | 0 | 0 | 46.9 | 46.5 | 7.5 | 5.3 | 0.0 | inimigo_y 12.7, inimigo_x 30.1 | 82% | 0.0 | teste_a 106 (1), teste_b 30 (1), teste_c 0 (?), teste_d 62 (1) | 0/0 |
 | F10-C - N1 X+Y smart | 30 | 30 | 0 | 0 | 60.8 | 61.1 | 9.9 | 5.6 | 3.7 | inimigo_y 29.4, inimigo_x 39.4 | 85% | 124.8 | teste_a 70 (1), teste_b 55 (1), teste_c 26 (1), teste_d 44 (1) | 378/133 |
@@ -1008,7 +1013,7 @@ Gerado por `run_sim.ps1` (30 execucoes por cenario; grupo = herois de teste A-D 
 
 **F11-A**
 
-| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
+| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes; so execucoes em que o inimigo morreu) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | F11-A - N1 X+Y basic | 30 | 30 | 0 | 0 | 46.9 | 46.5 | 7.5 | 5.3 | 0.0 | inimigo_y 12.7, inimigo_x 30.1 | 82% | 0.0 | teste_a 106 (1), teste_b 30 (1), teste_c 0 (?), teste_d 62 (1) | 0/0 |
 | F11-A - N1 X+Y smart | 30 | 30 | 0 | 0 | 60.8 | 61.1 | 9.9 | 5.6 | 3.7 | inimigo_y 29.4, inimigo_x 39.4 | 85% | 124.8 | teste_a 70 (1), teste_b 55 (1), teste_c 26 (1), teste_d 44 (1) | 378/133 |
@@ -1027,7 +1032,7 @@ Gerado por `run_sim.ps1` (30 execucoes por cenario; grupo = herois de teste A-D 
 
 **F11-B**
 
-| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
+| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes; so execucoes em que o inimigo morreu) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | F11-B - N1 X+Y basic | 30 | 30 | 0 | 0 | 46.9 | 46.5 | 7.5 | 5.3 | 0.0 | inimigo_y 12.7, inimigo_x 30.1 | 82% | 0.0 | teste_a 106 (1), teste_b 30 (1), teste_c 0 (?), teste_d 62 (1) | 0/0 |
 | F11-B - N1 X+Y smart | 30 | 30 | 0 | 0 | 60.8 | 61.1 | 9.9 | 5.6 | 3.7 | inimigo_y 29.4, inimigo_x 39.4 | 85% | 124.8 | teste_a 70 (1), teste_b 55 (1), teste_c 26 (1), teste_d 44 (1) | 378/133 |
@@ -1046,7 +1051,7 @@ Gerado por `run_sim.ps1` (30 execucoes por cenario; grupo = herois de teste A-D 
 
 **F11-C**
 
-| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
+| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes; so execucoes em que o inimigo morreu) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | F11-C - N1 X+Y basic | 30 | 30 | 0 | 0 | 46.9 | 46.5 | 7.5 | 5.3 | 0.0 | inimigo_y 12.7, inimigo_x 30.1 | 82% | 0.0 | teste_a 106 (1), teste_b 30 (1), teste_c 0 (?), teste_d 62 (1) | 0/0 |
 | F11-C - N1 X+Y smart | 30 | 30 | 0 | 0 | 59.2 | 58.8 | 9.6 | 5.7 | 3.7 | inimigo_y 29.4, inimigo_x 38.3 | 86% | 124.8 | teste_a 70 (1), teste_b 55 (1), teste_c 28 (1), teste_d 43 (1) | 378/133 |
@@ -1069,6 +1074,8 @@ Gerado por `run_sim.ps1` (30 execucoes por cenario; grupo = herois de teste A-D 
 
 - A: valores de teste por estado
 - B: tabela unica por forca
+
+> Nota: a tabela B de duracoes so difere dos dados dos estados para barreira, aceleracao e paralisia, que as politicas `basic`/`smart` quase nao usam; na pratica F12 nao e exercitada por este simulador (resultados A e B praticamente iguais).
 
 | Opcao | Politica | Nivel | Vitorias | Tempos esg. | Dur media (s) | Dur mediana (s) | Dano basico | Dano habil. | HP final | XP/vit/heroi | Batalhas p/ nivel |
 |---|---|---|---|---|---|---|---|---|---|---|---|
@@ -1093,7 +1100,7 @@ Gerado por `run_sim.ps1` (30 execucoes por cenario; grupo = herois de teste A-D 
 
 **F12-A**
 
-| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
+| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes; so execucoes em que o inimigo morreu) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | F12-A - N1 X+Y basic | 30 | 30 | 0 | 0 | 46.9 | 46.5 | 7.5 | 5.3 | 0.0 | inimigo_y 12.7, inimigo_x 30.1 | 82% | 0.0 | teste_a 106 (1), teste_b 30 (1), teste_c 0 (?), teste_d 62 (1) | 0/0 |
 | F12-A - N1 X+Y smart | 30 | 30 | 0 | 0 | 60.8 | 61.1 | 9.9 | 5.6 | 3.7 | inimigo_y 29.4, inimigo_x 39.4 | 85% | 124.8 | teste_a 70 (1), teste_b 55 (1), teste_c 26 (1), teste_d 44 (1) | 378/133 |
@@ -1112,7 +1119,7 @@ Gerado por `run_sim.ps1` (30 execucoes por cenario; grupo = herois de teste A-D 
 
 **F12-B**
 
-| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
+| Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes; so execucoes em que o inimigo morreu) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | F12-B - N1 X+Y basic | 30 | 30 | 0 | 0 | 46.9 | 46.5 | 7.5 | 5.3 | 0.0 | inimigo_y 12.7, inimigo_x 30.1 | 82% | 0.0 | teste_a 106 (1), teste_b 30 (1), teste_c 0 (?), teste_d 62 (1) | 0/0 |
 | F12-B - N1 X+Y smart | 30 | 30 | 0 | 0 | 60.8 | 61.1 | 9.9 | 5.6 | 3.7 | inimigo_y 29.4, inimigo_x 39.4 | 85% | 124.8 | teste_a 70 (1), teste_b 55 (1), teste_c 26 (1), teste_d 44 (1) | 378/133 |

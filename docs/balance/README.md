@@ -15,7 +15,7 @@ Na raiz do repositório:
 ./run_sim.ps1 -Search -Runs 30     # só a busca do fator (não grava relatório)
 ```
 
-O script acha o Godot como o `run_tests.ps1` (variável `GODOT` ou pacote do winget), roda `--import` e depois `tools/sim/run_sim.gd`. `-Hard`, `-HardRuns` e `-Search` são repassados ao script do Godot (`-hard`, `-hardruns`, `-search`). `-Search` varre os fatores 1,12 / 1,125 / 1,13 / 1,135 / 1,14 (`basic` e `smart`, com `-Runs` execuções) e imprime a vitória e a duração de cada um, sem gerar relatório. Com os padrões (30 execuções, 20 no cenário difícil) leva cerca de 12 minutos; o tempo cresce linearmente com `-Runs`. O resultado é determinístico: a execução *i* usa a semente `1 + i`.
+O script acha o Godot como o `run_tests.ps1` (variável `GODOT` ou pacote do winget), roda `--import` e depois `tools/sim/run_sim.gd`. `-Hard`, `-HardRuns` e `-Search` são repassados ao script do Godot (`-hard`, `-hardruns`, `-search`). `-Search` varre os fatores 1,12 / 1,125 / 1,13 / 1,135 / 1,14 (`basic` e `smart`, com `-Runs` execuções) e imprime a vitória e a duração de cada um, sem gerar relatório. Com os padrões (30 execuções, 20 no cenário difícil) leva cerca de 9 minutos (medido: 530 s); o tempo cresce linearmente com `-Runs`. O resultado é determinístico: a execução *i* usa a semente `1 + i`.
 
 Arquivos gerados: `2026-10-19-relatorio-opcoes.md` e `2026-10-19-relatorio-opcoes.csv`.
 
