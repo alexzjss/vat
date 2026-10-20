@@ -114,3 +114,4 @@ enum DurationMode { A, B }
 @export var text_speeds: Array[float] = [30.0, 60.0, 120.0] # valor de teste (M10: caracteres por segundo; indice = text_speed - 1)
 @export var event_actor_speed: float = 120.0 # valor de teste (M10: px/s do MoveActor quando o passo nao define velocidade)
 @export var event_camera_time: float = 0.8 # valor de teste (M10: segundos do CameraTo)
+@export var trap_damage_pct: float = 0.1 # valor de teste (M10: fracao do HP maximo que a armadilha de dano tira dos ativos; nunca mata)

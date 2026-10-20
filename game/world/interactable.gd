@@ -69,6 +69,15 @@ func _activate() -> void:
 	if event != null:
 		event_requested.emit(event)
 
+## Estado do jogo do mapa (null antes do setup). Objetos de dungeon guardam tudo em flags dele.
+func game_state() -> GameState:
+	return LocalMap.state_of(self)
+
+## Pede um roteiro montado em código (e avisa `interacted`).
+func _run_script(script: EventScript) -> void:
+	interacted.emit()
+	event_requested.emit(script)
+
 func _add_blocker() -> void:
 	var body := StaticBody2D.new()
 	body.collision_layer = 1

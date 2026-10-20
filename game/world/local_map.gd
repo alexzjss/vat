@@ -65,6 +65,21 @@ func _ready() -> void:
 	if OS.get_cmdline_user_args().has("--demo-local") and get_parent() == get_tree().root:
 		_run_demo.call_deferred()
 
+## O LocalMap que contém `node` (null fora de um mapa).
+static func map_of(node: Node) -> LocalMap:
+	var n: Node = node
+	while n != null:
+		var m: LocalMap = n as LocalMap
+		if m != null:
+			return m
+		n = n.get_parent()
+	return null
+
+## Estado do jogo do mapa que contém `node` (null enquanto o mapa não foi configurado).
+static func state_of(node: Node) -> GameState:
+	var m: LocalMap = map_of(node)
+	return m.state if m != null else null
+
 ## Posiciona o jogador no marcador `spawn`, liga a câmera e configura os inimigos.
 func setup(game_state: GameState, spawn: StringName) -> void:
 	state = game_state
