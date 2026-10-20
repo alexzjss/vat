@@ -405,6 +405,8 @@ func _outcome_text(outcome: BattleController.Outcome) -> String:
 func _grant_victory(b: BattleState) -> void:
 	last_xp = XpCalculator.combat_xp(b.ledger, b.enemies, b.heroes, false)
 	var before: Dictionary = {}
+	for hs: HeroState in hero_states:
+		hs.last_learned = []
 	for c: Combatant in b.heroes:
 		var h: HeroState = c.hero_state
 		before[h.def.id] = h.level

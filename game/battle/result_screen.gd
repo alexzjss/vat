@@ -47,7 +47,8 @@ func _init() -> void:
 	_actions_box = VBoxContainer.new()
 	box.add_child(_actions_box)
 
-## Vitória: uma linha por herói, "Nome: +N XP (Nv a → b)" ou "(Nv a)" sem subida.
+## Vitória: uma linha por herói, "Nome: +N XP (Nv a → b)" ou "(Nv a)" sem subida; depois "Nome aprendeu X!"
+## para cada técnica nova (HeroState.last_learned).
 func show_for(xp: Dictionary[StringName, int], before_levels: Dictionary, heroes: Array[HeroState]) -> void:
 	mode = Mode.VICTORY
 	var rows := PackedStringArray()
@@ -56,6 +57,9 @@ func show_for(xp: Dictionary[StringName, int], before_levels: Dictionary, heroes
 		var gained: int = xp.get(h.def.id, 0)
 		var lv: String = "Nv %d → %d" % [before, h.level] if h.level != before else "Nv %d" % h.level
 		rows.append("%s: +%d XP (%s)" % [h.def.display_name, gained, lv])
+	for h: HeroState in heroes:
+		for ab: AbilityDef in h.last_learned:
+			rows.append("%s aprendeu %s!" % [h.def.display_name, ab.display_name])
 	_present("Vitória!", TITLE_COLOR, rows, PackedStringArray(["Continuar"]))
 
 ## Derrota; título e ações configuráveis (ex.: "Game Over"/["Continuar"] no modo mapa).

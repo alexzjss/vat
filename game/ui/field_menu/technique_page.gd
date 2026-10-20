@@ -116,4 +116,8 @@ func _show_techs() -> void:
 	for ab: AbilityDef in _techs:
 		texts.append("%s — %d AP" % [ab.display_name, ab.ap_cost])
 		enabled.append(user.hp > 0 and user.ap >= ab.ap_cost)
+	var nxt: LearnEntry = user.next_learn()
+	if nxt != null:
+		texts.append("Próxima: Nv %d" % nxt.level)
+		enabled.append(false)
 	_set_entries(texts, enabled)

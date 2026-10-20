@@ -12,11 +12,11 @@ Baseline: **padrao escolhido (balance.tres)**. Gerado por `run_sim.ps1 -Final` (
 | Cenario | Politica | Vitorias | Dur media (s) | Dur mediana (s) | HP final | Meta |
 |---|---|---|---|---|---|---|
 | N1 X+Y | basic | 100% | 25.1 | 24.3 | 64% | ok |
-| N1 X+Y | smart | 100% | 33.0 | 31.4 | 55% | ok |
+| N1 X+Y | smart | 100% | 28.1 | 27.6 | 74% | ok |
 | N5 X+Y | basic | 100% | 18.5 | 17.5 | 80% | ok |
-| N5 X+Y | smart | 100% | 25.4 | 24.3 | 84% | ok |
+| N5 X+Y | smart | 100% | 22.0 | 22.1 | 92% | ok |
 | N5 X+Y+Z | basic | 100% | 30.8 | 30.0 | 69% | ok |
-| N5 X+Y+Z | smart | 100% | 35.3 | 32.3 | 85% | ok |
+| N5 X+Y+Z | smart | 100% | 31.7 | 32.3 | 90% | ok |
 | N10 X+Y+Z | basic | 100% | 27.6 | 27.4 | 80% | ok |
 | N10 X+Y+Z | smart | 100% | 38.0 | 35.4 | 89% | ok |
 
@@ -25,11 +25,11 @@ Baseline: **padrao escolhido (balance.tres)**. Gerado por `run_sim.ps1 -Final` (
 | Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes; so execucoes em que o inimigo morreu) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | escolhido - N1 X+Y basic | 30 | 30 | 0 | 0 | 25.1 | 24.3 | 3.0 | 7.7 | 0.0 | inimigo_x 6.3, inimigo_y 12.0 | 64% | 0.0 | teste_a 89 (1), teste_b 21 (3), teste_c 23 (2), teste_d 65 (1) | 0/0 |
-| escolhido - N1 X+Y smart | 30 | 30 | 0 | 0 | 33.0 | 31.4 | 3.0 | 7.2 | 11.3 | inimigo_y 10.7, inimigo_x 11.2 | 55% | 37.8 | teste_a 66 (1), teste_b 66 (1), teste_c 2 (20), teste_d 62 (1) | 20/11 |
+| escolhido - N1 X+Y smart | 30 | 30 | 0 | 0 | 28.1 | 27.6 | 3.1 | 8.5 | 9.8 | inimigo_x 8.3, inimigo_y 11.8 | 74% | 22.3 | teste_a 64 (1), teste_b 61 (1), teste_c 16 (3), teste_d 55 (1) | 26/4 |
 | escolhido - N5 X+Y basic | 30 | 30 | 0 | 0 | 18.5 | 17.5 | 2.4 | 7.6 | 0.0 | inimigo_x 6.0, inimigo_y 9.6 | 80% | 0.0 | teste_a 73 (3), teste_b 60 (3), teste_c 0 (381), teste_d 63 (3) | 0/0 |
-| escolhido - N5 X+Y smart | 30 | 30 | 0 | 0 | 25.4 | 24.3 | 2.7 | 7.1 | 9.0 | inimigo_x 9.0, inimigo_y 10.3 | 84% | 31.9 | teste_a 53 (4), teste_b 100 (2), teste_c 1 (113), teste_d 42 (4) | 47/26 |
+| escolhido - N5 X+Y smart | 30 | 30 | 0 | 0 | 22.0 | 22.1 | 2.5 | 5.3 | 12.1 | inimigo_x 9.0, inimigo_y 8.6 | 92% | 20.7 | teste_a 50 (4), teste_b 102 (2), teste_c 0 (?), teste_d 45 (4) | 0/0 |
 | escolhido - N5 X+Y+Z basic | 30 | 30 | 0 | 0 | 30.8 | 30.0 | 4.6 | 7.6 | 0.0 | inimigo_x 5.9, inimigo_y 9.7, inimigo_z 18.3 | 69% | 0.0 | teste_a 132 (2), teste_b 74 (3), teste_c 24 (8), teste_d 116 (2) | 0/0 |
-| escolhido - N5 X+Y+Z smart | 30 | 30 | 0 | 0 | 35.3 | 32.3 | 4.5 | 9.4 | 7.9 | inimigo_y 9.5, inimigo_x 9.9, inimigo_z 18.0 | 85% | 54.1 | teste_a 73 (3), teste_b 195 (1), teste_c 6 (26), teste_d 71 (3) | 108/66 |
+| escolhido - N5 X+Y+Z smart | 30 | 30 | 0 | 0 | 31.7 | 32.3 | 4.3 | 5.9 | 15.0 | inimigo_y 10.6, inimigo_x 8.6, inimigo_z 17.0 | 90% | 29.0 | teste_a 109 (2), teste_b 142 (2), teste_c 5 (32), teste_d 89 (2) | 9/13 |
 | escolhido - N10 X+Y+Z basic | 30 | 30 | 0 | 0 | 27.6 | 27.4 | 4.3 | 7.9 | 0.0 | inimigo_x 5.0, inimigo_y 9.1, inimigo_z 17.1 | 80% | 0.0 | teste_a 121 (3), teste_b 97 (4), teste_c 11 (29), teste_d 116 (3) | 0/0 |
 | escolhido - N10 X+Y+Z smart | 30 | 30 | 0 | 0 | 38.0 | 35.4 | 4.5 | 8.6 | 9.5 | inimigo_x 12.0, inimigo_y 12.6, inimigo_z 17.9 | 89% | 66.2 | teste_a 84 (4), teste_b 184 (2), teste_c 3 (96), teste_d 74 (5) | 120/74 |
 
@@ -57,3 +57,8 @@ Baseline: **padrao escolhido (balance.tres)**. Gerado por `run_sim.ps1 -Final` (
 ## Efeito do Limite (M8)
 
 Regerado com a barra de Limite no jogo (`limit_fill_mult` 1,5, valor de teste). A política `smart` usa o golpe de Limite assim que a barra enche; `basic` não usa, então suas linhas não mudam. Efeito: as batalhas `smart` ficam mais curtas (N1 X+Y 45,7 s -> 33,0 s; N5 X+Y 41,6 -> 25,4; N5 X+Y+Z 55,4 -> 35,3; N10 X+Y+Z 43,3 -> 38,0) e continuam dentro das metas (vitória 100%, 20–60 s; `basic` 100% >= 75%). Nenhum valor precisou de ajuste.
+
+## Técnicas por nível (M9)
+
+Regerado com o learnset por personagem: no nível 1 cada herói só tem 1 técnica (A Investida, B Cura, C Veneno, D Golpe em área; E fora do grupo-meta) e aprende as demais pelo nível (3, 6, 10, 15, 20); os heróis do cenário aprendem pelo nível e ninguém tem técnica de evento. `basic` não usa técnicas, então suas linhas não mudam. Efeito em `smart`: N1 X+Y 33,0 s -> 28,1 s (HP final 55% -> 74%); N5 X+Y 25,4 -> 22,0; N5 X+Y+Z 35,3 -> 31,7; N10 X+Y+Z sem mudança (38,0 s). Todas as metas continuam ok (vitória 100%, 20–60 s; `basic` 100% >= 75%). Nenhum nível de aprendizado precisou de ajuste; a variação vem do novo conjunto de técnicas por herói (ex.: Lâmina e Golpe Pesado no lugar de só Investida/Golpe em área para A) e da troca de alvos do `smart`, não de queda de poder no nível 1.
+
