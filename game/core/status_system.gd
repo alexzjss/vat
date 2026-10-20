@@ -7,6 +7,7 @@ enum ApplyResult { APPLIED, RENEWED, IMMUNE, RESISTED }
 class AtbFullOutcome:
 	extends RefCounted
 	var poison_damage: int = 0
+	var regen_heal: int = 0
 	var lost_turn: bool = false
 	var expired: Array[StringName] = []
 
@@ -42,8 +43,11 @@ func _install(target: Combatant, def: StatusDef, source: Combatant, living_enemi
 			var r: int = s.remaining
 			s.remaining = dur
 			s.source_id = source.id
+			s.source_team = source.team
 			if def.kind == StatusDef.Kind.BARRIER:
 				s.barrier_left = def.potency
+			if def.kind == StatusDef.Kind.STOP:
+				s.time_left = def.seconds
 			if credit and dur > 0:
 				_credit_apply(target, source, float(def.apply_contribution) * float(dur - r) / float(dur), living_enemies)
 			return ApplyResult.RENEWED
@@ -52,6 +56,7 @@ func _install(target: Combatant, def: StatusDef, source: Combatant, living_enemi
 	_order_counter += 1
 	var fresh: ActiveStatus = ActiveStatus.create(def, source.id, _order_counter)
 	fresh.remaining = dur
+	fresh.source_team = source.team
 	target.statuses.append(fresh)
 	if credit:
 		_credit_apply(target, source, float(def.apply_contribution), living_enemies)
@@ -87,6 +92,45 @@ func remove(target: Combatant, id: StringName) -> bool:
 			return true
 	return false
 
+## Remove os estados da lista (ids) e devolve quantos saíram.
+func remove_many(target: Combatant, defs: Array[StatusDef]) -> int:
+	var n: int = 0
+	for d: StatusDef in defs:
+		if remove(target, d.id):
+			n += 1
+	return n
+
+## Remove todos os estados negativos (`StatusDef.negative`) e devolve quantos saíram.
+func remove_negative(target: Combatant) -> int:
+	var kept: Array[ActiveStatus] = []
+	var n: int = 0
+	for s: ActiveStatus in target.statuses:
+		if s.def.negative:
+			n += 1
+		else:
+			kept.append(s)
+	target.statuses = kept
+	return n
+
+## Tempo de batalha (segundos, já com a velocidade da batalha): desconta o Pare de quem está parado.
+## Devolve quem deixou de estar parado neste passo; o chamador devolve à fila quem tem o ATB cheio.
+func tick_time(combatants: Array[Combatant], delta: float) -> Array[Combatant]:
+	var freed: Array[Combatant] = []
+	for c: Combatant in combatants:
+		if c.is_down() or not c.is_stopped():
+			continue
+		var kept: Array[ActiveStatus] = []
+		for s: ActiveStatus in c.statuses:
+			if s.def.kind == StatusDef.Kind.STOP:
+				s.time_left -= delta
+				if s.time_left <= 0.0:
+					continue
+			kept.append(s)
+		c.statuses = kept
+		if not c.is_stopped():
+			freed.append(c)
+	return freed
+
 func _first_blocker(c: Combatant) -> ActiveStatus:
 	var best: ActiveStatus = null
 	for s: ActiveStatus in c.statuses:
@@ -98,7 +142,7 @@ func _first_blocker(c: Combatant) -> ActiveStatus:
 func is_blocked(c: Combatant) -> bool:
 	return _first_blocker(c) != null
 
-func on_atb_full(c: Combatant, _living_enemies: Array[Combatant]) -> AtbFullOutcome:
+func on_atb_full(c: Combatant, living_enemies: Array[Combatant]) -> AtbFullOutcome:
 	var out := AtbFullOutcome.new()
 	# (a) dano de veneno
 	for s: ActiveStatus in c.statuses:
@@ -111,6 +155,15 @@ func on_atb_full(c: Combatant, _living_enemies: Array[Combatant]) -> AtbFullOutc
 				_ledger.add(s.source_id, c.id, float(dmg))
 	if c.hp <= 0:
 		return out
+	# (a2) regeneração: depois do veneno, nunca revive
+	for s: ActiveStatus in c.statuses:
+		if s.def.kind == StatusDef.Kind.REGEN:
+			var hp_max: int = StatCalculator.hp_max(c, _cfg)
+			var healed: int = maxi(0, mini(maxi(1, floori(hp_max * _cfg.regen_pct)), hp_max - c.hp))
+			c.hp += healed
+			out.regen_heal += healed
+			if c.team == Combatant.Team.HERO and s.source_team == Combatant.Team.HERO:
+				_ledger.add_ally_benefit(s.source_id, c, float(healed), living_enemies)
 	# (b) bloqueio
 	var blocker: ActiveStatus = _first_blocker(c)
 	if blocker != null:
@@ -120,6 +173,9 @@ func on_atb_full(c: Combatant, _living_enemies: Array[Combatant]) -> AtbFullOutc
 	# (c) duração
 	var kept: Array[ActiveStatus] = []
 	for s: ActiveStatus in c.statuses:
+		if s.def.kind == StatusDef.Kind.STOP:
+			kept.append(s)
+			continue
 		s.remaining -= 1
 		if s.remaining <= 0:
 			out.expired.append(s.def.id)
@@ -147,7 +203,7 @@ func absorb_with_barrier(target: Combatant, dmg: int, attacker: Combatant) -> in
 func on_hp_damage(target: Combatant) -> void:
 	var kept: Array[ActiveStatus] = []
 	for s: ActiveStatus in target.statuses:
-		if s.def.kind != StatusDef.Kind.SLEEP:
+		if s.def.kind != StatusDef.Kind.SLEEP and s.def.kind != StatusDef.Kind.CONFUSION:
 			kept.append(s)
 	target.statuses = kept
 

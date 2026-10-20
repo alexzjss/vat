@@ -10,3 +10,4 @@ duration = 3
 potency = 40
 apply_contribution = 10
 cancels = Array[StringName]([&"haste"])
+negative = true

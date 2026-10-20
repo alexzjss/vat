@@ -13,6 +13,12 @@ signal status_tick(c: Combatant, outcome: StatusSystem.AtbFullOutcome)
 signal battle_ended(outcome: Outcome)
 ## O herói da sessão aberta caiu (modo Ativo): a sessão foi desfeita e o menu deve fechar.
 signal session_cancelled(s: SelectionSession)
+## Silêncio (M11): a sessão aberta continua do mesmo herói, mas voltou ao comando raiz (técnica desfeita); o menu deve reabrir a raiz.
+signal session_reset(s: SelectionSession)
+## Confusão (M11): o combatente age sozinho (ataque básico num alvo sorteado) em vez de abrir menu ou consultar a IA.
+signal confused_act(c: Combatant)
+## O Pare de `c` acabou neste passo.
+signal stop_ended(c: Combatant)
 
 enum Outcome { ONGOING, VICTORY, DEFEAT, FLED }
 
@@ -32,6 +38,8 @@ var can_flee: bool = true
 var _clock: AtbClock
 ## Ação confirmada durante a execução de outra (só no modo Ativo); começa assim que ela termina.
 var _queued: PendingAction
+## O menu da sessão aberta já foi avisado de que o herói está mudo.
+var _silence_notified: bool = false
 
 func _init(p_b: BattleState) -> void:
 	b = p_b
@@ -49,9 +57,12 @@ func tick(delta: float) -> void:
 	if outcome != Outcome.ONGOING or is_paused():
 		return
 	_cancel_session_if_down()
+	_enforce_statuses()
 	_advance_atb(delta)
 	if executing != null:
 		_advance_execution(delta)
+	# O impacto pode ter aplicado Pare ou Silêncio: ninguém parado chega ao _start_next.
+	_enforce_statuses()
 	if executing == null:
 		_try_flee()
 		_check_end()
@@ -110,6 +121,11 @@ func submit(a: PendingAction) -> void:
 
 func _advance_atb(delta: float) -> void:
 	b.tick += 1
+	# Pare conta em segundos de batalha (o ATB do afetado está parado); quem tem o ATB cheio volta à fila.
+	for c: Combatant in b.statuses.tick_time(b.all(), delta * speed_mult):
+		stop_ended.emit(c)
+		if c.atb >= 1.0 and not b.queue.has(c) and not _is_busy(c):
+			b.queue.push(c, b.tick)
 	for c: Combatant in _clock.advance(delta * speed_mult, b.all(), b.queue):
 		var out: StatusSystem.AtbFullOutcome = b.statuses.on_atb_full(c, b.living(b.enemies))
 		status_tick.emit(c, out)
@@ -149,10 +165,52 @@ func _check_end() -> void:
 	_discard_queued()
 	battle_ended.emit(outcome)
 
+## Quem está com a vez nas mãos (executando, em sessão ou com ação enfileirada) não entra na fila.
+func _is_busy(c: Combatant) -> bool:
+	if executing != null and executing.turn_owner() == c:
+		return true
+	if session != null and session.actor == c:
+		return true
+	return _queued != null and _queued.turn_owner() == c
+
+## Pare e Silêncio aplicados no meio da batalha. Pare: o combatente sai da fila mantendo o ATB cheio (volta
+## quando o Pare acaba), a sessão aberta é desfeita e a ação enfileirada é reembolsada. Silêncio: a técnica
+## escolhida na sessão é desfeita e a enfileirada é reembolsada (o herói volta à fila para escolher de novo).
+func _enforce_statuses() -> void:
+	for c: Combatant in b.all():
+		if c.is_stopped() and not c.is_down():
+			b.queue.remove(c)
+	if session != null and session.actor.is_stopped():
+		_drop_session()
+	if _queued != null and _queued.turn_owner().is_stopped():
+		_discard_queued()
+	if session != null and session.actor.is_silenced() and not _silence_notified:
+		_silence_notified = true
+		if session.ability != null and session.technique_blocked(session.ability):
+			session.back()
+		session_reset.emit(session)
+	if _queued != null:
+		var q: PendingAction = _queued
+		var o: Combatant = q.turn_owner()
+		if q.caller == null and q.item == null and not q.is_limit and q.ability != o.basic_attack and o.is_silenced():
+			_queued = null
+			_refund(q)
+			if not o.is_down() and o.atb >= 1.0 and not b.queue.has(o):
+				b.queue.push(o, b.tick)
+
 func _start_next() -> void:
 	# Com a sessão de um herói aberta (modo Ativo) só os inimigos seguem; os outros heróis esperam.
 	var c: Combatant = _pop_next_enemy() if session != null else b.queue.pop_next()
 	if c == null:
+		return
+	if c.is_confused():
+		var ca: PendingAction = EnemyAI.confused_action(c, b)
+		if ca == null:
+			c.atb = 0.0
+			turn_lost.emit(c)
+			return
+		confused_act.emit(c)
+		_begin(ca)
 		return
 	if c.team == Combatant.Team.ENEMY:
 		var a: PendingAction = EnemyAI.decide(c, b)
@@ -162,6 +220,7 @@ func _start_next() -> void:
 		_begin(a)
 	else:
 		session = SelectionSession.new(c, b)
+		_silence_notified = c.is_silenced()
 		hero_turn.emit(session)
 
 func _begin(a: PendingAction) -> void:

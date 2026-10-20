@@ -44,6 +44,25 @@ var damage_taken_from: Dictionary[StringName, int] = {}
 func is_down() -> bool:
 	return hp <= 0
 
+func has_kind(k: StatusDef.Kind) -> bool:
+	for s: ActiveStatus in statuses:
+		if s.def.kind == k:
+			return true
+	return false
+
+## Pare: o ATB nao enche e nao age (M11).
+func is_stopped() -> bool:
+	return has_kind(StatusDef.Kind.STOP)
+
+func is_silenced() -> bool:
+	return has_kind(StatusDef.Kind.SILENCE)
+
+func is_confused() -> bool:
+	return has_kind(StatusDef.Kind.CONFUSION)
+
+func is_blind() -> bool:
+	return has_kind(StatusDef.Kind.BLIND)
+
 ## Unico lugar do enchimento da barra de Limite: dano efetivo sofrido por heroi (dano direto e veneno).
 ## Inimigos nao enchem; clamp em 1. Heroi ja caido nao recebe dano, logo nao enche.
 func gain_limit(damage: int, hp_max: int, cfg: BalanceConfig) -> void:

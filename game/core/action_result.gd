@@ -4,6 +4,6 @@ extends RefCounted
 
 var fizzled: bool = false
 var targets: Array[Combatant] = []
-## Entradas: {target_id, kind, amount, dodged, status_result}
+## Entradas: {target_id, kind, amount, dodged, status_result, missed}
 var hits: Array[Dictionary] = []
 var downed: Array[Combatant] = []

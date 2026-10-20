@@ -4,8 +4,12 @@ extends RefCounted
 
 static func decide(actor: Combatant, b: BattleState) -> PendingAction:
 	if actor.enemy_def != null:
+		var silenced: bool = actor.is_silenced()
 		for rule: AiRule in actor.enemy_def.ai_rules:
 			if rule.ability == null or rule.ability.ap_cost > actor.ap:
+				continue
+			# Silêncio: as regras de técnica são puladas; só o ataque básico segue valendo.
+			if silenced and rule.ability != actor.basic_attack:
 				continue
 			if not _condition_holds(rule, actor, b):
 				continue
@@ -22,6 +26,21 @@ static func decide(actor: Combatant, b: BattleState) -> PendingAction:
 	if target == null:
 		return null
 	return _make(actor, actor.basic_attack, target)
+
+## Confusão (M11): ataque básico num alvo sorteado entre todos os combatentes vivos, menos o próprio.
+## Nulo se não há ataque básico nem alvo.
+static func confused_action(actor: Combatant, b: BattleState) -> PendingAction:
+	if actor.basic_attack == null:
+		return null
+	var cands: Array[Combatant] = []
+	for c: Combatant in b.living(b.all()):
+		if c != actor:
+			cands.append(c)
+	if cands.is_empty():
+		return null
+	var pa: PendingAction = _make(actor, actor.basic_attack, cands[b.dice.pick_index(cands.size())])
+	pa.confused = true
+	return pa
 
 static func _make(actor: Combatant, ability: AbilityDef, center: Combatant) -> PendingAction:
 	var pa := PendingAction.new()

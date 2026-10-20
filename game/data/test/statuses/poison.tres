@@ -9,3 +9,4 @@ kind = 0
 duration = 4
 potency = 5
 apply_contribution = 10
+negative = true

@@ -29,7 +29,15 @@ func user() -> Combatant:
 	return support if support != null else actor
 
 func can_use(ab: AbilityDef) -> bool:
-	return user().ap >= ab.ap_cost
+	return user().ap >= ab.ap_cost and not technique_blocked(ab)
+
+## Silêncio (M11): técnicas (tudo que não é o ataque básico) ficam bloqueadas; Limite e itens não passam por aqui.
+func technique_blocked(ab: AbilityDef) -> bool:
+	return user().is_silenced() and ab != user().basic_attack
+
+## "Habilidade" do menu raiz: há técnicas e o herói não está mudo.
+func techniques_available() -> bool:
+	return not actor.abilities.is_empty() and not actor.is_silenced()
 
 ## Reservas que podem ser chamados: com HP > 0.
 func support_candidates() -> Array[HeroState]:

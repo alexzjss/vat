@@ -16,8 +16,8 @@ static func apply(a: PendingAction, b: BattleState) -> ActionResult:
 			_apply_effect(e, a.actor, t, b, r, credit)
 	return r
 
-static func _hit(r: ActionResult, t: Combatant, kind: EffectDef.Kind, amount: int, dodged: bool, status_result: int) -> void:
-	r.hits.append({"target_id": t.id, "kind": kind, "amount": amount, "dodged": dodged, "status_result": status_result})
+static func _hit(r: ActionResult, t: Combatant, kind: EffectDef.Kind, amount: int, dodged: bool, status_result: int, missed: bool = false) -> void:
+	r.hits.append({"target_id": t.id, "kind": kind, "amount": amount, "dodged": dodged, "status_result": status_result, "missed": missed})
 
 static func _scaled(e: EffectDef, actor: Combatant, attr: StringName, cfg: BalanceConfig) -> int:
 	if e.scale == EffectDef.Scale.FIXED:
@@ -30,6 +30,10 @@ static func _apply_effect(e: EffectDef, actor: Combatant, t: Combatant, b: Battl
 	match e.kind:
 		EffectDef.Kind.DAMAGE:
 			if t.is_down():
+				return
+			# Cegueira: erra antes da esquiva, só em dano de Força ("Errou").
+			if e.scale == EffectDef.Scale.STRENGTH and actor.is_blind() and b.dice.roll() < b.cfg.blind_miss_chance:
+				_hit(r, t, e.kind, 0, false, -1, true)
 				return
 			if e.dodgeable and b.dice.roll() < StatCalculator.dodge_chance(t, b.cfg, actor):
 				_hit(r, t, e.kind, 0, true, -1)
@@ -80,10 +84,14 @@ static func _apply_effect(e: EffectDef, actor: Combatant, t: Combatant, b: Battl
 			var res: int = b.statuses.apply(t, e.status, actor, e.chance, enemies_alive)
 			_hit(r, t, e.kind, 0, false, res)
 		EffectDef.Kind.REMOVE_STATUS:
-			if e.status == null:
-				return
-			var removed: bool = b.statuses.remove(t, e.status.id)
-			_hit(r, t, e.kind, 1 if removed else 0, false, -1)
+			var count: int = 0
+			if e.status == null and e.statuses.is_empty():
+				count = b.statuses.remove_negative(t)
+			else:
+				count = b.statuses.remove_many(t, e.statuses)
+				if e.status != null and b.statuses.remove(t, e.status.id):
+					count += 1
+			_hit(r, t, e.kind, count, false, -1)
 
 static func _restore(amount: int, t: Combatant, b: BattleState) -> int:
 	var restored: int = maxi(0, mini(amount, StatCalculator.hp_max(t, b.cfg) - t.hp))

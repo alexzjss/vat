@@ -22,10 +22,13 @@ static func diminishing(raw: int, cfg: BalanceConfig) -> int:
 static func effective(c: Combatant, attr: StringName, cfg: BalanceConfig) -> int:
 	var raw: int = c.base.get_attr(attr) + c.allocated.get_attr(attr) + c.equipment_mods.get_attr(attr)
 	var total: int = diminishing(raw, cfg)
+	var modded: bool = false
 	for s: ActiveStatus in c.statuses:
 		if s.def.kind == StatusDef.Kind.ATTR_MOD and s.def.attr == attr:
 			total += s.def.potency
-	return maxi(0, total)
+			modded = true
+	# Buff/debuff nunca zera o atributo (minimo 1); sem estado, o valor base segue como era.
+	return maxi(1 if modded else 0, total)
 
 static func hp_max(c: Combatant, cfg: BalanceConfig) -> int:
 	var vit: int = effective(c, &"vitality", cfg)
@@ -59,6 +62,8 @@ static func atb_rate(c: Combatant, cfg: BalanceConfig, field_avg_speed: float = 
 	return maxf(cfg.atb_min_rate, rate)
 
 static func dodge_chance(c: Combatant, cfg: BalanceConfig, attacker: Combatant = null) -> float:
+	if c.is_stopped():
+		return 0.0
 	if cfg.dodge_mode == BalanceConfig.DodgeMode.C:
 		return 0.0
 	if cfg.dodge_mode == BalanceConfig.DodgeMode.B and attacker != null:

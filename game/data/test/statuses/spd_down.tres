@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="StatusDef" format=3]
+
+[ext_resource type="Script" path="res://core/defs/status_def.gd" id="1_r"]
+
+[resource]
+script = ExtResource("1_r")
+id = &"spd_down"
+kind = 6
+duration = 3
+potency = -4
+attr = &"speed"
+apply_contribution = 10
+negative = true

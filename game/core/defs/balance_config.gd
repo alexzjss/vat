@@ -97,7 +97,10 @@ enum DurationMode { A, B }
 @export var poison_mode: PoisonMode = PoisonMode.B
 @export var poison_pct: float = 0.06 # valor de teste (B, C)
 @export var duration_mode: DurationMode = DurationMode.A
-@export var duration_table: Dictionary[StringName, int] = {&"poison": 4, &"sleep": 2, &"paralysis": 2, &"haste": 4, &"slow": 3, &"barrier": 4, &"str_up": 3} # valor de teste (B)
+@export var duration_table: Dictionary[StringName, int] = {&"poison": 4, &"sleep": 2, &"paralysis": 2, &"haste": 4, &"slow": 3, &"barrier": 4, &"str_up": 3, &"str_down": 3, &"vit_up": 3, &"vit_down": 3, &"spd_up": 3, &"spd_down": 3, &"confusion": 3, &"silence": 3, &"blind": 3, &"regen": 4} # valor de teste (B)
+# Estados (M11).
+@export var blind_miss_chance: float = 0.5 # valor de teste (M11: chance extra de errar de quem esta Cego; so dano de Forca)
+@export var regen_pct: float = 0.05 # valor de teste (M11: fracao do HP maximo curada por ATB cheio, minimo 1)
 @export var sim_tick: float = 0.1 # valor de teste (simulador: passo de tempo por tick)
 @export var sim_max_seconds: float = 600.0 # valor de teste (simulador: limite de uma batalha, em segundos de jogo)
 

@@ -14,6 +14,8 @@ var is_limit: bool = false
 ## Suporte (M8.5): `actor` e o heroi da reserva (Combatant temporario, fora de b.heroes) e `caller` quem o chamou.
 ## O ATB zerado no fim e o Limite gasto sao de `caller`; o credito de contribuicao tambem.
 var caller: Combatant
+## Confusão (M11): ataque básico automático que pode acertar qualquer combatente vivo (lado BOTH).
+var confused: bool = false
 
 ## Quem gasta o turno: o chamador no Suporte, senao o proprio ator.
 func turn_owner() -> Combatant:
@@ -23,6 +25,8 @@ func shape() -> AbilityDef.Shape:
 	return item.shape if item != null else ability.shape
 
 func side() -> AbilityDef.Side:
+	if confused:
+		return AbilityDef.Side.BOTH
 	return item.side if item != null else ability.side
 
 func effects() -> Array[EffectDef]:

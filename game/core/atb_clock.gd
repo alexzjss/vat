@@ -7,13 +7,13 @@ var _cfg: BalanceConfig
 func _init(cfg: BalanceConfig) -> void:
 	_cfg = cfg
 
-## Enche o ATB de quem não está caído, não está na fila e ainda não está cheio.
+## Enche o ATB de quem não está caído, parado (Pare), na fila ou já cheio.
 ## Devolve quem chegou a 1.0 neste passo; o chamador decide fila x turno perdido.
 func advance(delta: float, combatants: Array[Combatant], queue: ReadyQueue) -> Array[Combatant]:
 	var reached: Array[Combatant] = []
 	var avg: float = _living_avg_speed(combatants)
 	for c: Combatant in combatants:
-		if c.is_down() or c.atb >= 1.0 or queue.has(c):
+		if c.is_down() or c.atb >= 1.0 or c.is_stopped() or queue.has(c):
 			continue
 		c.atb = minf(1.0, c.atb + StatCalculator.atb_rate(c, _cfg, avg) * delta)
 		if c.atb >= 1.0:
