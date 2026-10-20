@@ -23,7 +23,10 @@ var save_spawn: StringName
 var save_pos: Vector2 = NO_POS
 ## Ids de encontros únicos (chefes) já vencidos; o mapa não os instancia de novo.
 var defeated: Array[StringName] = []
+## Flags de evento (M10): bool = 0/1, ou contador. Vão no save.
+var flags: Dictionary[StringName, int] = {}
 var _saved_defeated: Array[StringName] = []
+var _saved_flags: Dictionary[StringName, int] = {}
 var _saved_heroes: Array[Dictionary] = []
 var _saved_active_ids: Array[StringName] = []
 var _saved_reserve_ids: Array[StringName] = []
@@ -150,6 +153,11 @@ func to_dict() -> Dictionary:
 		for id: StringName in defeated:
 			ids.append(String(id))
 		out["defeated"] = ids
+	if not flags.is_empty():
+		var fl: Dictionary = {}
+		for k: StringName in flags:
+			fl[String(k)] = flags[k]
+		out["flags"] = fl
 	return out
 
 ## Reconstroi o estado e grava o ponto de salvamento em memoria. Null se o formato for invalido
@@ -184,6 +192,12 @@ static func from_dict(d: Dictionary, registry: DefRegistry, p_cfg: BalanceConfig
 		for e: Variant in (dv as Array):
 			if e is String and not (e as String).is_empty() and not g.is_defeated(StringName(e as String)):
 				g.defeated.append(StringName(e as String))
+	var fv: Variant = d.get("flags")
+	if fv is Dictionary:
+		for k: Variant in (fv as Dictionary):
+			var val: Variant = (fv as Dictionary)[k]
+			if k is String and not (k as String).is_empty() and (val is int or val is float):
+				g.flags[StringName(k as String)] = int(val)
 	g.save(StringName(str(d.get("save_map", ""))), StringName(str(d.get("save_spawn", ""))), pos)
 	return g
 
@@ -204,6 +218,18 @@ func mark_defeated(id: StringName) -> void:
 	if id != &"" and not defeated.has(id):
 		defeated.append(id)
 
+## Valor da flag (0 se nunca gravada).
+func get_flag(id: StringName) -> int:
+	return flags.get(id, 0)
+
+func set_flag(id: StringName, value: int) -> void:
+	if id != &"":
+		flags[id] = value
+
+func add_flag(id: StringName, delta: int) -> void:
+	if id != &"":
+		flags[id] = get_flag(id) + delta
+
 func has_save_pos() -> bool:
 	return save_pos != NO_POS
 
@@ -222,6 +248,7 @@ func save(map: StringName, spawn: StringName, pos: Vector2 = NO_POS) -> void:
 		_saved_heroes.append(h.snapshot())
 		_saved_reserve_ids.append(h.def.id)
 	_saved_defeated = defeated.duplicate()
+	_saved_flags = flags.duplicate()
 	_saved_inventory = inventory.copy()
 	_saved_bag = bag.copy()
 
@@ -241,5 +268,6 @@ func restore_save() -> void:
 	for i: int in saved.size():
 		saved[i].restore(_saved_heroes[i])
 	defeated = _saved_defeated.duplicate()
+	flags = _saved_flags.duplicate()
 	inventory = _saved_inventory.copy()
 	bag = _saved_bag.copy()

@@ -108,3 +108,9 @@ enum DurationMode { A, B }
 @export var default_text_speed: int = 2 # valor de teste
 @export var volume_max: int = 10 # valor de teste
 @export var default_volume: int = 10 # valor de teste
+
+# Eventos e dialogo (M10).
+@export var event_max_steps: int = 1000 # valor de teste (M10: passos seguidos sem apresentacao antes de abortar o evento)
+@export var text_speeds: Array[float] = [30.0, 60.0, 120.0] # valor de teste (M10: caracteres por segundo; indice = text_speed - 1)
+@export var event_actor_speed: float = 120.0 # valor de teste (M10: px/s do MoveActor quando o passo nao define velocidade)
+@export var event_camera_time: float = 0.8 # valor de teste (M10: segundos do CameraTo)
