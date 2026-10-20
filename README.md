@@ -2,7 +2,7 @@
 
 Prototipo de um RPG com combate em tempo real por barra de ATB, feito em Godot 4 com GDScript tipado e placeholders geometricos. Nao ha conteudo narrativo; personagens, inimigos e lugares sao genericos.
 
-O marco atual e o M6: o jogo abre numa tela de título (Novo jogo / Continuar), de onde se chega a um mapa-mundi de teste com áreas locais e inimigos de mapa; tocar um inimigo inicia a batalha no próprio mapa. Há save em disco com 3 slots, gravado só em pontos de descanso e no mapa-mundi, e a página Config do menu de campo. Na derrota (Game Over), o jogo volta ao título e o progresso desde o último save em disco se perde.
+O marco atual e o M7, que acrescenta ao M6 fuga, iniciativa por contato, corrida e inimigos com comportamento no mapa: o jogo abre numa tela de título (Novo jogo / Continuar), de onde se chega a um mapa-mundi de teste com áreas locais e inimigos de mapa; tocar um inimigo inicia a batalha no próprio mapa. Há save em disco com 3 slots, gravado só em pontos de descanso e no mapa-mundi, e a página Config do menu de campo. Na derrota (Game Over), o jogo volta ao título e o progresso desde o último save em disco se perde.
 
 A batalha do M1 continua disponivel como cena isolada: ATB com modo Wait, fila de prontos, pontos de Aura, itens, estados, areas de efeito, contribuicao e XP.
 
@@ -63,6 +63,7 @@ No mapa:
 | Tecla | Acao |
 |-------|------|
 | Setas / WASD | Andar |
+| Shift / X (segurar) | Correr; o grupo segue o líder em fila |
 | Tab / Esc | Abrir o menu de campo (fora de batalha e de transicao) |
 | Enter / Espaço / Z | Interagir (ex.: abrir o menu do ponto de descanso) |
 
@@ -86,6 +87,7 @@ Na batalha:
 | Enter | Confirmar |
 | Esc | Voltar um nivel de menu (na etapa de alvo, volta a lista de onde o comando veio) |
 | F1 | Painel de debug (fila ATB, acao em execucao, estados, contribuicao) |
+| Q (segurar) | Encher a barra de fuga (não funciona em encontros sem fuga, como o chefe de teste) |
 
 ## Fluxo da batalha
 
@@ -97,6 +99,19 @@ Na batalha isolada (M1, `--scene res://battle/battle_scene.tscn`):
 - Derrota: **Tentar de novo** (volta ao estado do inicio da batalha) ou **Descansar e tentar de novo** (volta ao inicio e enche HP/AP).
 - Na batalha isolada, o descanso e um substituto provisorio do ponto de descanso (M6), que existe so nos mapas (spec, secao 12, item 15).
 - A verificacao manual dos menus e das telas de resultado/nivel ainda depende do playtest do usuario; ate agora foram verificados por testes automatizados e por quadros gravados com `--write-movie`.
+
+**Fuga (M7).** Segurando **Q** na batalha, enche-se uma barra de fuga em tempo real, inclusive com o menu aberto no modo Espera. Ela enche mais rápido quando a Velocidade média do grupo supera a dos inimigos; soltar a tecla a esvazia. A fuga só se conclui quando nenhuma ação está executando. Ao encher, a batalha termina sem XP: o grupo volta ao ponto de onde saiu, e o inimigo fica alguns segundos sem poder encostar.
+
+**Iniciativa por contato (M7).** Quem toca primeiro define o começo da batalha. Encostar num inimigo pelas costas mostra **Ataque surpresa!** e os heróis começam com a barra ATB cheia. Ser tocado por um inimigo que estava perseguindo, ou um escondido, mostra **Emboscada!** e são os inimigos que começam com a barra cheia. Nos demais casos, a batalha começa como antes.
+
+**Inimigos de teste no mapa (M7)**, na área `area_teste`:
+
+- **Vagante**: o inimigo de sempre, anda ao acaso.
+- **Patrulheiro**: anda entre dois pontos fixos, em laço, parando um instante em cada um.
+- **Perseguidor**: vagueia e, ao ver o jogador num cone de 70° (abertura total) a até 220 px, corre atrás dele. Desiste a 380 px e volta à base.
+- **Escondido** (`lurking`): fica invisível e sem contato até o jogador chegar a 90 px; aparece e persegue. O contato com ele sempre conta como emboscada.
+- **Dupla de grupo**: dois inimigos perto um do outro. Ao tocar um, o outro entra na mesma batalha.
+- **Chefe de teste** (`chefe_teste`): não permite fuga e não reaparece depois de vencido, mesmo após salvar e carregar.
 
 ## Testes
 
@@ -122,6 +137,7 @@ Passadas depois de `--` (argumentos de usuario), roteirizam entradas para verifi
 & "<Godot_v4.x-stable_win64_console.exe>" --path game -- --demo-m3   # menu de campo (Pocao, Cura, Status, troca D<->E) e depois o ciclo do M2 com a nova formacao
 & "<Godot_v4.x-stable_win64_console.exe>" --path game -- --demo-m4   # Equipar no Teste A (Armadura Pesada com previa, Amuleto Anti-Sono), Status e depois o ciclo do M2
 & "<Godot_v4.x-stable_win64_console.exe>" --path game -- --demo-m6   # ponto de descanso: descansa, salva, reinicia os atributos com o Cristal e mostra a pagina Salvar
+& "<Godot_v4.x-stable_win64_console.exe>" --path game -- --demo-m7   # corre com o grupo em fila, toca um inimigo pelas costas (Ataque surpresa), foge segurando Q e depois toca o chefe ("Não dá para fugir!")
 & "<Godot_v4.x-stable_win64_console.exe>" --path game -- --demo-field-menu   # abre o menu de campo e percorre as paginas
 ```
 

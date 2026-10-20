@@ -85,7 +85,8 @@ Entregue: tela de título (Novo jogo / Continuar), save em disco com 3 slots, po
 - Save em disco com **3 slots**, tela de título "Novo jogo / Continuar", carregar volta ao ponto de descanso.
 - Remove o "descanso provisório" do M1 e o save só na memória do M2.
 
-**M7 — Fuga, iniciativa e inimigos no mapa**
+**M7 — Fuga, iniciativa e inimigos no mapa** · **Concluído** (2026-10-19) · plano [`m7-fuga-iniciativa-mapa`](superpowers/plans/2026-10-19-m7-fuga-iniciativa-mapa.md)
+Entregue: corrida e grupo em fila (Shift/X), fuga segurando Q (barra, sem XP, chefes não fogem), iniciativa por contato (Ataque surpresa / Emboscada), patrulha, perseguição em cone, inimigo escondido, grupo que se junta e chefe que não reaparece.
 - Comando **Fugir** (chance por Velocidade do grupo vs inimigos; tentativa consome o turno; sem XP, regra já confirmada).
 - **Iniciativa por contato** (CT): encostar pelas costas = ATB do grupo começa cheio; inimigo que encosta primeiro = emboscada (ATB dos inimigos começa cheio).
 - Comportamentos novos: **rota fixa**, **perseguir ao ver** (cone de visão), **grupo que se junta** (encostar em um puxa os vizinhos); chefes que não reaparecem.
