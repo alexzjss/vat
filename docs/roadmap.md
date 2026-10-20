@@ -97,8 +97,9 @@ Entregue: corrida e grupo em fila (Shift/X), fuga segurando Q (barra, sem XP, ch
 **M8.5 — Suporte** · **Concluído** (2026-10-19) · plano [`m8-limite-suporte`](superpowers/plans/2026-10-19-m8-limite-suporte.md)
 - A reserva vira **suporte** (spec): comando "Suporte" chama um herói da reserva para uma ação dele (ataque ou habilidade que gasta o AP dele), custando 50% do Limite de quem chama; sem limite de usos por luta; não recebe XP (confirmado).
 
-**M9 — Habilidades por progressão**
+**M9 — Habilidades por progressão** · **Concluído** (2026-10-19) · plano [`m9-tecnicas`](superpowers/plans/2026-10-19-m9-tecnicas.md)
 - Cada personagem tem uma **lista de habilidades por nível** (FF) e algumas liberadas por eventos (CT); aviso "Aprendeu X!" na tela de resultado.
+- Entregue: `LearnEntry` e learnset fixo por personagem, técnicas aprendidas por nível e por evento (`HeroState.learn`, aceita só ids do próprio learnset), `learned` no save (com derivação para saves antigos), aviso de aprendizado na tela de resultado e página Técnicas no menu de campo.
 
 **M10 — Eventos, diálogo e dungeon**
 - Caixas de diálogo com nome, escolhas simples, **flags** de história e **XP narrativa** (regra já confirmada) — só o sistema e textos de teste.

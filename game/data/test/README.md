@@ -12,3 +12,13 @@ Golpes de Limite (um por herói de teste, sem custo de AP; nomes placeholder):
 - `abilities/limite_c.tres`: **Luz Restauradora** (herói C). Cura todos os aliados (ALL), potência 4.0.
 - `abilities/limite_d.tres`: **Investida Dupla** (herói D). Dois golpes em linha (LINE), potência 1.4 cada.
 - `abilities/limite_e.tres`: **Onda de Aura** (herói E). Dano em área de raio 180 ao redor do alvo (CIRCLE_TARGET), potência 2.2.
+
+Learnsets (M9): cada herói aprende a técnica ao alcançar o nível indicado. Nível 0 significa só por evento (não é aprendida por nível). Os nomes são os ids dos arquivos em `abilities/`.
+
+- `heroes/teste_a.tres` (Teste A): `investida` (nv 1), `golpe_area` (nv 3), `golpe_pesado` (nv 6), `lamina` (nv 10), `rajada` (evento).
+- `heroes/teste_b.tres` (Teste B): `cura` (nv 1), `barreira` (nv 3), `pressa` (nv 6), `sono` (nv 10), `cura_maior` (nv 15), `tempestade` (evento).
+- `heroes/teste_c.tres` (Teste C): `veneno` (nv 1), `lentidao` (nv 3), `pulso` (nv 6), `raio` (nv 10), `tempestade` (nv 15), `sono` (evento).
+- `heroes/teste_d.tres` (Teste D): `golpe_area` (nv 1), `cura` (nv 3), `investida` (nv 6), `golpe_pesado` (nv 10), `cura_maior` (nv 20), `lamina` (evento).
+- `heroes/teste_e.tres` (Teste E): `pulso` (nv 1), `veneno` (nv 3), `raio` (nv 6), `tempestade` (nv 10), `cura` (nv 15), `lentidao` (evento).
+
+Habilidades placeholder novas (M9), com efeitos já existentes e potências coerentes com o custo: `golpe_pesado`, `lamina`, `raio`, `tempestade` e `cura_maior`.

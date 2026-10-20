@@ -2,7 +2,7 @@
 
 Prototipo de um RPG com combate em tempo real por barra de ATB, feito em Godot 4 com GDScript tipado e placeholders geometricos. Nao ha conteudo narrativo; personagens, inimigos e lugares sao genericos.
 
-O marco atual e o M8.5, que acrescenta ao M7 a barra de Limite (M8) e o Suporte da reserva (M8.5), mantendo fuga, iniciativa por contato, corrida e inimigos com comportamento no mapa: o jogo abre numa tela de título (Novo jogo / Continuar), de onde se chega a um mapa-mundi de teste com áreas locais e inimigos de mapa; tocar um inimigo inicia a batalha no próprio mapa. Há save em disco com 3 slots, gravado só em pontos de descanso e no mapa-mundi, e a página Config do menu de campo. Na derrota (Game Over), o jogo volta ao título e o progresso desde o último save em disco se perde.
+O marco atual e o M9, que acrescenta ao M8.5 as técnicas por personagem, mantendo a barra de Limite (M8), o Suporte da reserva (M8.5), fuga, iniciativa por contato, corrida e inimigos com comportamento no mapa: o jogo abre numa tela de título (Novo jogo / Continuar), de onde se chega a um mapa-mundi de teste com áreas locais e inimigos de mapa; tocar um inimigo inicia a batalha no próprio mapa. Há save em disco com 3 slots, gravado só em pontos de descanso e no mapa-mundi, e a página Config do menu de campo. Na derrota (Game Over), o jogo volta ao título e o progresso desde o último save em disco se perde.
 
 A batalha do M1 continua disponivel como cena isolada: ATB com modo Wait, fila de prontos, pontos de Aura, itens, estados, areas de efeito, contribuicao e XP.
 
@@ -107,6 +107,8 @@ Na batalha isolada (M1, `--scene res://battle/battle_scene.tscn`):
 **Limite (M8).** Cada herói tem uma barra de Limite (estilo FF7). Ela enche com o dano que o herói sofre, proporcional ao HP máximo (veneno também conta); herói caído não enche, mas mantém a barra. A barra persiste entre as lutas e vai no save. Com a barra cheia, o comando **Limite** substitui **Atacar** no menu do herói e usa o golpe próprio dele, sem custo de AP; usar zera a barra. Se a ação for perdida por falta de alvo, a barra volta. A barra aparece sob o ATB de cada herói na batalha, no painel do grupo do menu de campo, e a página Status mostra a porcentagem. Inimigos não têm barra.
 
 **Suporte (M8.5).** Com pelo menos 50% da barra de Limite, o comando **Suporte** (depois de Itens) chama um herói da reserva para uma ação dele: o ataque básico ou uma habilidade que gasta o AP do próprio reserva. Quem chama perde 50% de Limite. O reserva não entra no grupo, não vira alvo e não ganha XP; a contribuição da ação conta para quem chamou. O comando fica desabilitado se a barra estiver abaixo de 50% ou se a reserva estiver vazia ou caída.
+
+**Técnicas (M9).** Cada herói tem uma lista fixa de técnicas, como em Chrono Trigger. Todo herói começa com a técnica de nível 1 e aprende as demais ao alcançar o nível indicado no seu learnset (entre os níveis 3 e 20, conforme o herói). Algumas técnicas não entram por nível: são liberadas só por evento, e o sistema de eventos do M10 vai ligá-las à história e à dungeon. Ao ganhar XP, quando um herói aprende uma técnica, a tela de resultado mostra "<Herói> aprendeu <Técnica>!" entre a XP e a tela de nível. A página Técnicas do menu de campo lista as técnicas aprendidas e mostra, em cinza, a próxima com o nível em que chega. Os learnsets de teste estão em [`game/data/test/README.md`](game/data/test/README.md).
 
 **Inimigos de teste no mapa (M7)**, na área `area_teste`:
 
