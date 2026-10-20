@@ -40,6 +40,10 @@ var resistances: Dictionary[StringName, float]:
 		_resistances = v
 var start_statuses: Array[StatusDef] = []
 var damage_taken_from: Dictionary[StringName, int] = {}
+## Chefe (M11): ataque anunciado em preparacao (sai no proximo ATB cheio); nulo = nao esta preparando.
+var charging: PendingAction
+## Chefe (M11): quantas fases de EnemyDef.phases ja foram aplicadas (0 = regras originais).
+var phase_index: int = 0
 
 func is_down() -> bool:
 	return hp <= 0
@@ -62,6 +66,17 @@ func is_confused() -> bool:
 
 func is_blind() -> bool:
 	return has_kind(StatusDef.Kind.BLIND)
+
+func is_charging() -> bool:
+	return charging != null
+
+## Regras de IA em vigor: as da fase atual do chefe ou, sem fase, as do EnemyDef. Vazio para herois.
+func ai_rules() -> Array[AiRule]:
+	if enemy_def == null:
+		return []
+	if phase_index > 0 and phase_index <= enemy_def.phases.size():
+		return enemy_def.phases[phase_index - 1].ai_rules
+	return enemy_def.ai_rules
 
 ## Unico lugar do enchimento da barra de Limite: dano efetivo sofrido por heroi (dano direto e veneno).
 ## Inimigos nao enchem; clamp em 1. Heroi ja caido nao recebe dano, logo nao enche.

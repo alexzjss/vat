@@ -101,6 +101,8 @@ enum DurationMode { A, B }
 # Estados (M11).
 @export var blind_miss_chance: float = 0.5 # valor de teste (M11: chance extra de errar de quem esta Cego; so dano de Forca)
 @export var regen_pct: float = 0.05 # valor de teste (M11: fracao do HP maximo curada por ATB cheio, minimo 1)
+# Chefes (M11).
+@export var core_shield_mult: float = 0.25 # valor de teste (M11: multiplicador de dano no nucleo enquanto uma parte protetora esta de pe)
 @export var sim_tick: float = 0.1 # valor de teste (simulador: passo de tempo por tick)
 @export var sim_max_seconds: float = 600.0 # valor de teste (simulador: limite de uma batalha, em segundos de jogo)
 

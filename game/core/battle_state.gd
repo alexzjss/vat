@@ -62,3 +62,56 @@ func apply_initiative(kind: Initiative.Kind) -> void:
 			continue
 		c.atb = 1.0
 		queue.push(c, tick)
+
+# --- Chefes com nucleo e partes (M11) ---
+
+func _role_of(c: Combatant) -> EnemyDef.Role:
+	return c.enemy_def.role if c.enemy_def != null else EnemyDef.Role.NORMAL
+
+func has_core() -> bool:
+	for c: Combatant in enemies:
+		if _role_of(c) == EnemyDef.Role.CORE:
+			return true
+	return false
+
+## O nucleo `c` esta protegido: ha uma parte com `shields_core` de pe.
+func core_shielded(c: Combatant) -> bool:
+	if c.is_down() or _role_of(c) != EnemyDef.Role.CORE:
+		return false
+	for p: Combatant in enemies:
+		if not p.is_down() and _role_of(p) == EnemyDef.Role.PART and p.enemy_def.shields_core:
+			return true
+	return false
+
+## Os inimigos foram derrotados: com nucleo, a queda de todos os nucleos; senao, de todos os inimigos.
+func enemies_defeated() -> bool:
+	if not has_core():
+		return living(enemies).is_empty()
+	for c: Combatant in enemies:
+		if _role_of(c) == EnemyDef.Role.CORE and not c.is_down():
+			return false
+	return true
+
+## Se todos os nucleos cairam, as partes de pe caem junto (HP 0, sem estados, fora da fila, sem preparacao).
+## Cada parte sem contribuicao registrada herda a divisao de contribuicao do(s) nucleo(s), para dar XP.
+## Devolve as partes que cairam agora.
+func collapse_parts() -> Array[Combatant]:
+	var fallen: Array[Combatant] = []
+	if not has_core() or not enemies_defeated():
+		return fallen
+	for p: Combatant in enemies:
+		if p.is_down() or _role_of(p) != EnemyDef.Role.PART:
+			continue
+		p.hp = 0
+		p.atb = 0.0
+		p.charging = null
+		statuses.clear_all(p)
+		queue.remove(p)
+		if ledger.total_against(p.id) <= 0.0:
+			for core: Combatant in enemies:
+				if _role_of(core) != EnemyDef.Role.CORE:
+					continue
+				for h: Combatant in heroes:
+					ledger.add(h.id, p.id, ledger.get_points(h.id, core.id))
+		fallen.append(p)
+	return fallen

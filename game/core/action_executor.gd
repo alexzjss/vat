@@ -14,10 +14,14 @@ static func apply(a: PendingAction, b: BattleState) -> ActionResult:
 	for t: Combatant in r.targets:
 		for e: EffectDef in effects:
 			_apply_effect(e, a.actor, t, b, r, credit)
+	# Chefe com nucleo: a queda do ultimo nucleo derruba as partes junto.
+	for p: Combatant in b.collapse_parts():
+		if not r.downed.has(p):
+			r.downed.append(p)
 	return r
 
-static func _hit(r: ActionResult, t: Combatant, kind: EffectDef.Kind, amount: int, dodged: bool, status_result: int, missed: bool = false) -> void:
-	r.hits.append({"target_id": t.id, "kind": kind, "amount": amount, "dodged": dodged, "status_result": status_result, "missed": missed})
+static func _hit(r: ActionResult, t: Combatant, kind: EffectDef.Kind, amount: int, dodged: bool, status_result: int, missed: bool = false, shielded: bool = false) -> void:
+	r.hits.append({"target_id": t.id, "kind": kind, "amount": amount, "dodged": dodged, "status_result": status_result, "missed": missed, "shielded": shielded})
 
 static func _scaled(e: EffectDef, actor: Combatant, attr: StringName, cfg: BalanceConfig) -> int:
 	if e.scale == EffectDef.Scale.FIXED:
@@ -40,6 +44,10 @@ static func _apply_effect(e: EffectDef, actor: Combatant, t: Combatant, b: Battl
 				return
 			var attr: StringName = &"aura" if e.scale == EffectDef.Scale.AURA else &"strength"
 			var dmg: int = EffectMath.damage(e, StatCalculator.effective(actor, attr, b.cfg), StatCalculator.effective(t, &"vitality", b.cfg), t.equipment_mods.vitality, b.cfg, b.dice)
+			# Nucleo protegido por uma parte: dano reduzido (minimo 1 se havia dano).
+			var shielded: bool = dmg > 0 and b.core_shielded(t)
+			if shielded:
+				dmg = maxi(1, floori(float(dmg) * b.cfg.core_shield_mult))
 			dmg = b.statuses.absorb_with_barrier(t, dmg, actor)
 			var eff: int = mini(dmg, t.hp)
 			t.hp -= eff
@@ -50,10 +58,11 @@ static func _apply_effect(e: EffectDef, actor: Combatant, t: Combatant, b: Battl
 			if eff > 0:
 				t.gain_limit(eff, StatCalculator.hp_max(t, b.cfg), b.cfg)
 				b.statuses.on_hp_damage(t)
-			_hit(r, t, e.kind, eff, false, -1)
+			_hit(r, t, e.kind, eff, false, -1, false, shielded)
 			if t.is_down():
 				b.statuses.clear_all(t)
 				t.atb = 0.0
+				t.charging = null
 				b.queue.remove(t)
 				if not r.downed.has(t):
 					r.downed.append(t)

@@ -19,6 +19,12 @@ signal session_reset(s: SelectionSession)
 signal confused_act(c: Combatant)
 ## O Pare de `c` acabou neste passo.
 signal stop_ended(c: Combatant)
+## Chefe (M11): `c` entrou numa nova fase de HP; a batalha mostra o banner.
+signal phase_changed(c: Combatant, banner: String)
+## Chefe (M11): `c` gastou o turno preparando a acao `a` (ataque anunciado); sai no proximo ATB cheio dele.
+signal charge_started(c: Combatant, a: PendingAction)
+## Chefe (M11): `c` contra-ataca `target` (logo depois da acao do heroi).
+signal counter_fired(c: Combatant, target: Combatant)
 
 enum Outcome { ONGOING, VICTORY, DEFEAT, FLED }
 
@@ -40,6 +46,8 @@ var _clock: AtbClock
 var _queued: PendingAction
 ## O menu da sessão aberta já foi avisado de que o herói está mudo.
 var _silence_notified: bool = false
+## Contra-ataques (M11) decididos no impacto da acao de um heroi; rodam um a um assim que ela termina.
+var _counters: Array[PendingAction] = []
 
 func _init(p_b: BattleState) -> void:
 	b = p_b
@@ -59,6 +67,7 @@ func tick(delta: float) -> void:
 	_cancel_session_if_down()
 	_enforce_statuses()
 	_advance_atb(delta)
+	_check_phases()
 	if executing != null:
 		_advance_execution(delta)
 	# O impacto pode ter aplicado Pare ou Silêncio: ninguém parado chega ao _start_next.
@@ -107,6 +116,7 @@ func _try_flee() -> void:
 	outcome = Outcome.FLED
 	_drop_session()
 	_discard_queued()
+	_counters.clear()
 	battle_ended.emit(outcome)
 
 func submit(a: PendingAction) -> void:
@@ -132,30 +142,111 @@ func _advance_atb(delta: float) -> void:
 		if c.is_down():
 			b.statuses.clear_all(c)
 			c.atb = 0.0
+			c.charging = null
 			b.queue.remove(c)
 		elif out.lost_turn:
 			c.atb = 0.0
 			turn_lost.emit(c)
 		else:
 			b.queue.push(c, b.tick)
+	# Veneno pode derrubar o ultimo nucleo: as partes caem junto.
+	b.collapse_parts()
 
 func _advance_execution(delta: float) -> void:
 	var a: PendingAction = executing
 	a.elapsed += delta
 	if not a.impacted and a.elapsed >= a.impact_time(b.cfg):
+		var ready: Array[Combatant] = _counter_ready(a)
 		var r: ActionResult = ActionExecutor.apply(a, b)
 		a.impacted = true
+		_collect_counters(a, r, ready)
 		action_impact.emit(a, r)
+		_check_phases()
 	if a.elapsed >= a.cast_time(b.cfg):
-		a.turn_owner().atb = 0.0
+		# Contra-ataque nao usa nem zera o ATB de quem contra-ataca.
+		if not a.is_counter:
+			a.turn_owner().atb = 0.0
 		executing = null
 		action_finished.emit(a)
+		_next_counter()
+
+# --- Fases, contra-ataque e preparacao (chefes, M11) ---
+
+## Troca de fase logo depois do dano que cruzou o limiar: uma vez por fase, em ordem; se um golpe cruza
+## duas fases, vale a ultima.
+func _check_phases() -> void:
+	for c: Combatant in b.enemies:
+		var d: EnemyDef = c.enemy_def
+		if c.is_down() or d == null or d.phases.is_empty():
+			continue
+		var hp_max: int = StatCalculator.hp_max(c, b.cfg)
+		if hp_max <= 0:
+			continue
+		var ratio: float = float(c.hp) / float(hp_max)
+		var reached: int = c.phase_index
+		for i: int in range(c.phase_index, d.phases.size()):
+			if ratio < d.phases[i].hp_below:
+				reached = i + 1
+		if reached > c.phase_index:
+			c.phase_index = reached
+			phase_changed.emit(c, d.phases[reached - 1].banner)
+
+## Pode contra-atacar agora: de pe, nao parado, nem dormindo/paralisado, nem preparando um ataque.
+func _can_counter(e: Combatant) -> bool:
+	return e.enemy_def != null and e.enemy_def.counter != null and not e.is_down() and not e.is_stopped() and not b.statuses.is_blocked(e) and not e.is_charging()
+
+## Antes do impacto de uma acao de heroi: quem poderia contra-atacar (o estado pre-golpe vale: dormir/paralisia
+## so somem com o dano). O ataque basico e o unico que conta se `counter_only_basic`.
+func _counter_ready(a: PendingAction) -> Array[Combatant]:
+	var out: Array[Combatant] = []
+	if a.is_counter or a.actor.team != Combatant.Team.HERO:
+		return out
+	var basic: bool = a.item == null and not a.is_limit and a.ability == a.actor.basic_attack
+	for e: Combatant in b.enemies:
+		if _can_counter(e) and (basic or not e.enemy_def.counter_only_basic):
+			out.append(e)
+	return out
+
+## Sorteia (Dice) e enfileira o contra-ataque de cada inimigo pronto que sofreu dano de HP na acao.
+## Alvo: o heroi que agiu; no Suporte, o reserva temporario nao e alvo valido, entao quem o chamou.
+func _collect_counters(a: PendingAction, r: ActionResult, ready: Array[Combatant]) -> void:
+	var attacker: Combatant = a.caller if a.caller != null else a.actor
+	for e: Combatant in ready:
+		var hurt: bool = false
+		for h: Dictionary in r.hits:
+			if h["target_id"] == e.id and h["kind"] == EffectDef.Kind.DAMAGE and int(h["amount"]) > 0:
+				hurt = true
+		if not hurt or e.is_down() or b.dice.roll() >= e.enemy_def.counter_chance:
+			continue
+		var pa := PendingAction.new()
+		pa.actor = e
+		pa.ability = e.enemy_def.counter
+		pa.center = attacker
+		pa.center_pos = attacker.position
+		pa.is_counter = true
+		_counters.append(pa)
+
+## Comeca o proximo contra-ataque pendente, se ainda valer: batalha nao decidida e o inimigo ainda apto.
+## Contra-ataque nao gera contra-ataque (so acoes de heroi o provocam).
+func _next_counter() -> void:
+	while executing == null and not _counters.is_empty():
+		var pa: PendingAction = _counters.pop_front()
+		if outcome != Outcome.ONGOING or b.enemies_defeated() or b.living(b.heroes).is_empty():
+			_counters.clear()
+			return
+		if not _can_counter(pa.actor) or not _retarget(pa):
+			continue
+		pa.elapsed = 0.0
+		pa.impacted = false
+		executing = pa
+		counter_fired.emit(pa.actor, pa.center)
+		action_started.emit(pa)
 
 ## [P-plano] 9: só checado quando nenhuma ação está executando.
 func _check_end() -> void:
 	if outcome != Outcome.ONGOING:
 		return
-	if b.living(b.enemies).is_empty():
+	if b.enemies_defeated():
 		outcome = Outcome.VICTORY
 	elif b.living(b.heroes).is_empty():
 		outcome = Outcome.DEFEAT
@@ -163,11 +254,13 @@ func _check_end() -> void:
 		return
 	_drop_session()
 	_discard_queued()
+	_counters.clear()
 	battle_ended.emit(outcome)
 
 ## Quem está com a vez nas mãos (executando, em sessão ou com ação enfileirada) não entra na fila.
 func _is_busy(c: Combatant) -> bool:
-	if executing != null and executing.turn_owner() == c:
+	# O contra-ataque nao e o turno de quem contra-ataca.
+	if executing != null and executing.turn_owner() == c and not executing.is_counter:
 		return true
 	if session != null and session.actor == c:
 		return true
@@ -213,15 +306,35 @@ func _start_next() -> void:
 		_begin(ca)
 		return
 	if c.team == Combatant.Team.ENEMY:
-		var a: PendingAction = EnemyAI.decide(c, b)
+		# Preparacao (chefe): o ataque anunciado sai agora, sem passar pela IA.
+		var a: PendingAction = _release_charge(c) if c.is_charging() else null
+		if a == null:
+			a = EnemyAI.decide(c, b)
 		if a == null:
 			c.atb = 0.0
+			return
+		if a.telegraph:
+			# Anunciar gasta o turno; o AP so sai na execucao.
+			c.charging = a
+			c.atb = 0.0
+			charge_started.emit(c, a)
 			return
 		_begin(a)
 	else:
 		session = SelectionSession.new(c, b)
 		_silence_notified = c.is_silenced()
 		hero_turn.emit(session)
+
+## O ataque anunciado de `c` vira acao: gasta o AP agora e o alvo e revalidado em _begin. Nulo se a preparacao
+## caiu (Silencio ou AP insuficiente): a IA decide normalmente.
+func _release_charge(c: Combatant) -> PendingAction:
+	var a: PendingAction = c.charging
+	c.charging = null
+	if (c.is_silenced() and a.ability != c.basic_attack) or a.ability.ap_cost > c.ap:
+		return null
+	c.ap -= a.ability.ap_cost
+	a.telegraph = false
+	return a
 
 func _begin(a: PendingAction) -> void:
 	if not _retarget(a):

@@ -16,6 +16,10 @@ var is_limit: bool = false
 var caller: Combatant
 ## Confusão (M11): ataque básico automático que pode acertar qualquer combatente vivo (lado BOTH).
 var confused: bool = false
+## Chefe (M11): a IA escolheu uma regra anunciada; o controlador guarda a acao em Combatant.charging em vez de executar.
+var telegraph: bool = false
+## Chefe (M11): contra-ataque. Nao usa nem zera o ATB de quem contra-ataca.
+var is_counter: bool = false
 
 ## Quem gasta o turno: o chamador no Suporte, senao o proprio ator.
 func turn_owner() -> Combatant:
