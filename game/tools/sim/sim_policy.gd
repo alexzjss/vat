@@ -27,7 +27,9 @@ static func _basic(session: SelectionSession, _b: BattleState) -> PendingAction:
 	return session.confirm()
 
 static func _smart(session: SelectionSession, b: BattleState) -> PendingAction:
-	var a: PendingAction = _revive(session, b)
+	var a: PendingAction = _limit(session)
+	if a == null:
+		a = _revive(session, b)
 	if a == null:
 		a = _heal(session, b)
 	if a == null:
@@ -37,6 +39,24 @@ static func _smart(session: SelectionSession, b: BattleState) -> PendingAction:
 	if a == null:
 		a = _status(session, b)
 	return a
+
+## Golpe de Limite assim que a barra enche (so a politica smart usa).
+static func _limit(session: SelectionSession) -> PendingAction:
+	if not session.choose_limit():
+		return null
+	var best: Combatant = null
+	var best_n: int = 0
+	for c: Combatant in session.target_candidates():
+		session.set_center(c)
+		var n: int = session.preview_area().size()
+		if best == null or n > best_n or (n == best_n and c.hp < best.hp):
+			best = c
+			best_n = n
+	if best == null:
+		session.back()
+		return null
+	session.set_center(best)
+	return session.confirm()
 
 static func _lowest_hp(arr: Array[Combatant]) -> Combatant:
 	var best: Combatant = null

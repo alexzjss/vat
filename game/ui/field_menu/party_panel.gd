@@ -14,6 +14,7 @@ const PENDING_COLOR: Color = Color(0.5, 0.9, 0.5)
 const CURSOR_COLOR: Color = Color(1.0, 0.85, 0.3)
 const HP_BAR_COLOR: Color = Color(0.3, 0.8, 0.4)
 const AP_BAR_COLOR: Color = Color(0.35, 0.55, 0.95)
+const LIMIT_BAR_COLOR: Color = Color(0.95, 0.6, 0.2)
 
 var state: GameState
 var picking: bool = false
@@ -168,11 +169,14 @@ func _make_card(h: HeroState, small: bool) -> PanelContainer:
 	var ap_text: String = "AP %d/%d" % [h.ap, ap_max]
 	parts.append(hp_text)
 	parts.append(ap_text)
+	var limit_text: String = "Limite %d%%" % roundi(h.limit * 100.0)
+	parts.append(limit_text)
 	if small:
-		box.add_child(_label("%s   %s" % [hp_text, ap_text], fs - 1, Color(0.8, 0.82, 0.9), false))
+		box.add_child(_label("%s   %s   %s" % [hp_text, ap_text, limit_text], fs - 1, Color(0.8, 0.82, 0.9), false))
 	else:
 		box.add_child(_bar_row(hp_text, h.hp, hp_max, HP_BAR_COLOR))
 		box.add_child(_bar_row(ap_text, h.ap, ap_max, AP_BAR_COLOR))
+		box.add_child(_bar_row(limit_text, roundi(h.limit * 100.0), 100, LIMIT_BAR_COLOR))
 	_texts.append(" ".join(parts))
 	return card
 

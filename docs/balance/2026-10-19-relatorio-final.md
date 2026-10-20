@@ -12,26 +12,26 @@ Baseline: **padrao escolhido (balance.tres)**. Gerado por `run_sim.ps1 -Final` (
 | Cenario | Politica | Vitorias | Dur media (s) | Dur mediana (s) | HP final | Meta |
 |---|---|---|---|---|---|---|
 | N1 X+Y | basic | 100% | 25.1 | 24.3 | 64% | ok |
-| N1 X+Y | smart | 100% | 45.7 | 44.1 | 46% | ok |
+| N1 X+Y | smart | 100% | 33.0 | 31.4 | 55% | ok |
 | N5 X+Y | basic | 100% | 18.5 | 17.5 | 80% | ok |
-| N5 X+Y | smart | 100% | 41.6 | 45.2 | 87% | ok |
+| N5 X+Y | smart | 100% | 25.4 | 24.3 | 84% | ok |
 | N5 X+Y+Z | basic | 100% | 30.8 | 30.0 | 69% | ok |
-| N5 X+Y+Z | smart | 100% | 55.4 | 56.1 | 88% | ok |
+| N5 X+Y+Z | smart | 100% | 35.3 | 32.3 | 85% | ok |
 | N10 X+Y+Z | basic | 100% | 27.6 | 27.4 | 80% | ok |
-| N10 X+Y+Z | smart | 100% | 43.3 | 43.0 | 88% | ok |
+| N10 X+Y+Z | smart | 100% | 38.0 | 35.4 | 89% | ok |
 
 ## Detalhe
 
 | Cenario | Exec | Vit | Der | Tempo esg | Dur media (s) | Dur mediana (s) | Acoes/heroi | Dano basico | Dano habil. | TTK (acoes; so execucoes em que o inimigo morreu) | HP final | AP gasto | XP/vit (batalhas p/ nivel) | Estados apl/res |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | escolhido - N1 X+Y basic | 30 | 30 | 0 | 0 | 25.1 | 24.3 | 3.0 | 7.7 | 0.0 | inimigo_x 6.3, inimigo_y 12.0 | 64% | 0.0 | teste_a 89 (1), teste_b 21 (3), teste_c 23 (2), teste_d 65 (1) | 0/0 |
-| escolhido - N1 X+Y smart | 30 | 30 | 0 | 0 | 45.7 | 44.1 | 4.5 | 7.0 | 7.9 | inimigo_y 16.3, inimigo_x 18.2 | 46% | 67.7 | teste_a 72 (1), teste_b 60 (1), teste_c 3 (18), teste_d 63 (1) | 48/17 |
+| escolhido - N1 X+Y smart | 30 | 30 | 0 | 0 | 33.0 | 31.4 | 3.0 | 7.2 | 11.3 | inimigo_y 10.7, inimigo_x 11.2 | 55% | 37.8 | teste_a 66 (1), teste_b 66 (1), teste_c 2 (20), teste_d 62 (1) | 20/11 |
 | escolhido - N5 X+Y basic | 30 | 30 | 0 | 0 | 18.5 | 17.5 | 2.4 | 7.6 | 0.0 | inimigo_x 6.0, inimigo_y 9.6 | 80% | 0.0 | teste_a 73 (3), teste_b 60 (3), teste_c 0 (381), teste_d 63 (3) | 0/0 |
-| escolhido - N5 X+Y smart | 30 | 30 | 0 | 0 | 41.6 | 45.2 | 5.0 | 7.8 | 5.2 | inimigo_y 17.2, inimigo_x 19.1 | 87% | 70.7 | teste_a 49 (4), teste_b 99 (2), teste_c 3 (65), teste_d 47 (4) | 111/64 |
+| escolhido - N5 X+Y smart | 30 | 30 | 0 | 0 | 25.4 | 24.3 | 2.7 | 7.1 | 9.0 | inimigo_x 9.0, inimigo_y 10.3 | 84% | 31.9 | teste_a 53 (4), teste_b 100 (2), teste_c 1 (113), teste_d 42 (4) | 47/26 |
 | escolhido - N5 X+Y+Z basic | 30 | 30 | 0 | 0 | 30.8 | 30.0 | 4.6 | 7.6 | 0.0 | inimigo_x 5.9, inimigo_y 9.7, inimigo_z 18.3 | 69% | 0.0 | teste_a 132 (2), teste_b 74 (3), teste_c 24 (8), teste_d 116 (2) | 0/0 |
-| escolhido - N5 X+Y+Z smart | 30 | 30 | 0 | 0 | 55.4 | 56.1 | 7.2 | 8.6 | 5.8 | inimigo_y 21.7, inimigo_x 20.6, inimigo_z 28.7 | 88% | 94.1 | teste_a 85 (2), teste_b 171 (1), teste_c 5 (36), teste_d 86 (2) | 148/89 |
+| escolhido - N5 X+Y+Z smart | 30 | 30 | 0 | 0 | 35.3 | 32.3 | 4.5 | 9.4 | 7.9 | inimigo_y 9.5, inimigo_x 9.9, inimigo_z 18.0 | 85% | 54.1 | teste_a 73 (3), teste_b 195 (1), teste_c 6 (26), teste_d 71 (3) | 108/66 |
 | escolhido - N10 X+Y+Z basic | 30 | 30 | 0 | 0 | 27.6 | 27.4 | 4.3 | 7.9 | 0.0 | inimigo_x 5.0, inimigo_y 9.1, inimigo_z 17.1 | 80% | 0.0 | teste_a 121 (3), teste_b 97 (4), teste_c 11 (29), teste_d 116 (3) | 0/0 |
-| escolhido - N10 X+Y+Z smart | 30 | 30 | 0 | 0 | 43.3 | 43.0 | 5.3 | 6.7 | 9.3 | inimigo_x 16.2, inimigo_y 16.1, inimigo_z 21.4 | 88% | 83.0 | teste_a 102 (4), teste_b 146 (3), teste_c 3 (105), teste_d 95 (4) | 137/92 |
+| escolhido - N10 X+Y+Z smart | 30 | 30 | 0 | 0 | 38.0 | 35.4 | 4.5 | 8.6 | 9.5 | inimigo_x 12.0, inimigo_y 12.6, inimigo_z 17.9 | 89% | 66.2 | teste_a 84 (4), teste_b 184 (2), teste_c 3 (96), teste_d 74 (5) | 120/74 |
 
 ## Antes x depois
 
@@ -53,3 +53,7 @@ Baseline: **padrao escolhido (balance.tres)**. Gerado por `run_sim.ps1 -Final` (
 - A familia "difícil" (fator unico sobre os inimigos) foi desligada no M5b: o conteudo foi reajustado para as formulas escolhidas e os cenarios-meta ja exercem `basic` entre ~50% e 100% de vitoria; o fator antigo (x1,125) era uma aresta de faca calibrada para os atributos antigos.
 - TTK (acoes) e a media so das execucoes em que o inimigo morreu (derrotas/tempos esgotados nao entram).
 - Diferencas pequenas (alguns pontos de vitoria) em poucas execucoes sao ruido, nao efeito da formula.
+
+## Efeito do Limite (M8)
+
+Regerado com a barra de Limite no jogo (`limit_fill_mult` 1,5, valor de teste). A política `smart` usa o golpe de Limite assim que a barra enche; `basic` não usa, então suas linhas não mudam. Efeito: as batalhas `smart` ficam mais curtas (N1 X+Y 45,7 s -> 33,0 s; N5 X+Y 41,6 -> 25,4; N5 X+Y+Z 55,4 -> 35,3; N10 X+Y+Z 43,3 -> 38,0) e continuam dentro das metas (vitória 100%, 20–60 s; `basic` 100% >= 75%). Nenhum valor precisou de ajuste.

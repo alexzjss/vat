@@ -64,6 +64,7 @@ func _build_text(h: HeroState) -> String:
 	lines.append("XP: %d / %d" % [h.xp, XpCalculator.xp_for_level(h.level + 1, cfg)])
 	lines.append("HP: %d / %d" % [h.hp, StatCalculator.hp_max(c, cfg)])
 	lines.append("AP: %d / %d" % [h.ap, StatCalculator.ap_max(c, cfg)])
+	lines.append("Limite: %d%%" % roundi(h.limit * 100.0))
 	if h.pending_points > 0:
 		lines.append("Pontos a distribuir: %d" % h.pending_points)
 	lines.append("")

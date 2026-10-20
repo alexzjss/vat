@@ -9,6 +9,8 @@ const BAR_W: float = 96.0
 const BAR_H: float = 7.0
 const HERO_COLOR: Color = Color(0.25, 0.45, 0.95)
 const ENEMY_COLOR: Color = Color(0.9, 0.25, 0.25)
+const LIMIT_COLOR: Color = Color(0.95, 0.55, 0.15)
+const LIMIT_FULL_COLOR: Color = Color(1.0, 0.95, 0.5)
 const DOWN_COLOR: Color = Color(0.4, 0.4, 0.4)
 const STATUS_LABELS: Dictionary[StatusDef.Kind, String] = {
 	StatusDef.Kind.POISON: "VEN",
@@ -57,8 +59,17 @@ func _draw() -> void:
 	draw_string(font, Vector2(x0 + BAR_W + 4.0, y + BAR_H), "%d/%d" % [combatant.ap, ap_max], HORIZONTAL_ALIGNMENT_LEFT, -1, 12)
 	y += BAR_H + 4.0
 	_bar(Vector2(x0, y), clampf(combatant.atb, 0.0, 1.0), Color(0.95, 0.8, 0.2))
+	if combatant.team == Combatant.Team.HERO:
+		y += BAR_H + 4.0
+		_bar(Vector2(x0, y), clampf(combatant.limit, 0.0, 1.0), limit_color())
 	y += BAR_H + 16.0
 	draw_string(font, Vector2(x0, y), status_text(), HORIZONTAL_ALIGNMENT_CENTER, BAR_W, 12)
+
+## Barra de Limite cheia pisca entre dois tons (relogio de parede; so visual).
+func limit_color() -> Color:
+	if combatant != null and combatant.limit >= 1.0 and Time.get_ticks_msec() % 500 < 250:
+		return LIMIT_FULL_COLOR
+	return LIMIT_COLOR
 
 func _ratio(v: int, m: int) -> float:
 	return clampf(float(v) / float(m), 0.0, 1.0) if m > 0 else 0.0

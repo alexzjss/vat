@@ -8,7 +8,7 @@ extends PanelContainer
 signal submitted(a: PendingAction)
 
 enum Mode { CLOSED, ROOT, ABILITIES, ITEMS, TARGET }
-enum Kind { ATTACK, ABILITIES, ITEMS, ABILITY, ITEM }
+enum Kind { ATTACK, ABILITIES, ITEMS, ABILITY, ITEM, LIMIT }
 
 const ENABLED_COLOR: Color = Color(1.0, 1.0, 1.0)
 const DISABLED_COLOR: Color = Color(0.45, 0.45, 0.5)
@@ -166,6 +166,9 @@ func _pick(e: Entry) -> void:
 		Kind.ATTACK:
 			if session.choose_ability(session.actor.basic_attack):
 				_enter_target()
+		Kind.LIMIT:
+			if session.choose_limit():
+				_enter_target()
 		Kind.ABILITIES:
 			_show_abilities()
 		Kind.ITEMS:
@@ -201,8 +204,11 @@ func _root_enabled(at: int) -> bool:
 func _show_root(at: int) -> void:
 	mode = Mode.ROOT
 	_entries = []
-	var attack := Entry.new("Atacar", session.actor.basic_attack != null, Kind.ATTACK)
-	_entries.append(attack)
+	# Barra de Limite cheia: "Limite" ocupa o lugar de "Atacar" (mesma posicao, o cursor continua valendo).
+	if session.actor.limit_ready():
+		_entries.append(Entry.new("Limite", true, Kind.LIMIT))
+	else:
+		_entries.append(Entry.new("Atacar", session.actor.basic_attack != null, Kind.ATTACK))
 	_entries.append(Entry.new("Habilidade", not session.actor.abilities.is_empty(), Kind.ABILITIES))
 	_entries.append(Entry.new("Item", _has_items(), Kind.ITEMS))
 	cursor = at
