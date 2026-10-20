@@ -195,8 +195,11 @@ func test_event_end_does_not_open_menu_or_move_player() -> void:
 	var p0: Vector2 = map.player.global_position
 	await _press(KEY_SPACE)
 	assert_true(game.event_player.active)
-	await _press(KEY_SPACE)
-	await _press(KEY_SPACE)
+	# Uma ou duas teclas encerram o evento (depende de o texto já estar revelado); parar assim que acabar.
+	var guard: int = 0
+	while game.event_player.active and guard < 4:
+		await _press(KEY_SPACE)
+		guard += 1
 	assert_false(game.event_player.active)
 	assert_false(game.menu.is_open)
 	assert_eq(map.player.global_position, p0, "jogador não se mexeu")
