@@ -114,8 +114,6 @@ func _until_turn(ctrl: BattleController, menu: CommandMenu, hero: Combatant) -> 
 	while guard < MAX_FRAMES:
 		guard += 1
 		await get_tree().process_frame
-		if guard % 120 == 0:
-			_log("espera turno: sessao=%s modo=%s exec=%s out=%s el=%s" % [ctrl.session.actor.display_name if ctrl.session != null else "-", menu.mode, ctrl.executing.actor.id if ctrl.executing != null else "-", ctrl.outcome, ctrl.executing.elapsed if ctrl.executing != null else -1.0])
 		if ctrl.session == null or menu.mode != CommandMenu.Mode.ROOT:
 			continue
 		if ctrl.session.actor == hero:
