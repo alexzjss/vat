@@ -5,7 +5,8 @@ extends Resource
 @export var display_name: String = ""
 @export var base: Stats
 @export var basic_attack: AbilityDef
-@export var abilities: Array[AbilityDef] = []
+## Técnicas do herói, na ordem de aprendizado (M9). `level` 0 = só por evento.
+@export var learnset: Array[LearnEntry] = []
 ## Golpe de Limite (M8): sem custo de AP, liberado com a barra cheia.
 @export var limit_ability: AbilityDef
 ## Tipos de arma que o herói usa; vazio = não usa armas com tipo.

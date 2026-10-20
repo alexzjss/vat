@@ -184,7 +184,7 @@ func test_field_techniques_lists_only_ally_restoratives() -> void:
 	var sono := _tech([_effect(EffectDef.Kind.APPLY_STATUS, EffectDef.Scale.FIXED, 0.0)], 2, AbilityDef.Shape.SINGLE, AbilityDef.Side.ENEMIES)
 	var cura_inimiga := _tech([_effect(EffectDef.Kind.HEAL, EffectDef.Scale.AURA, 3.0)], 2, AbilityDef.Shape.SINGLE, AbilityDef.Side.ENEMIES)
 	var mixed := _tech([_effect(EffectDef.Kind.HEAL, EffectDef.Scale.AURA, 1.0), _effect(EffectDef.Kind.APPLY_STATUS, EffectDef.Scale.FIXED, 0.0)], 2)
-	user.def.abilities = [cura, golpe, sono, cura_inimiga, mixed]
+	Fixtures.give_abilities(user, [cura, golpe, sono, cura_inimiga, mixed])
 	assert_eq(FieldActions.field_techniques(user), [cura])
 
 func test_is_field_usable() -> void:

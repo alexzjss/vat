@@ -27,7 +27,7 @@ static func would_affect(effects: Array[EffectDef], target: HeroState, cfg: Bala
 
 static func field_techniques(user: HeroState) -> Array[AbilityDef]:
 	var out: Array[AbilityDef] = []
-	for ab: AbilityDef in user.def.abilities:
+	for ab: AbilityDef in user.abilities():
 		if ab.side == AbilityDef.Side.ALLIES and is_field_usable(ab.effects):
 			out.append(ab)
 	return out

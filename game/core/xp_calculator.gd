@@ -39,6 +39,7 @@ static func grant(h: HeroState, xp: int, cfg: BalanceConfig) -> int:
 		gained += 1
 	if cfg.max_level > 0 and h.level >= cfg.max_level:
 		h.xp = mini(h.xp, xp_for_level(cfg.max_level, cfg))
+	h.last_learned = h.learn_up_to(h.level)
 	return gained
 
 static func allocate(h: HeroState, attr: StringName, n: int) -> bool:

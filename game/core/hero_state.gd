@@ -11,6 +11,10 @@ var hp: int = 0
 var ap: int = 0
 ## Barra de Limite (M8), de 0 a 1; persiste entre batalhas e vai no save.
 var limit: float = 0.0
+## Ids das técnicas aprendidas, na ordem do learnset (M9).
+var learned: Array[StringName] = []
+## Técnicas aprendidas pela última XpCalculator.grant (para o aviso da tela de resultado); não vai no save.
+var last_learned: Array[AbilityDef] = []
 
 static func create(d: CharacterDef, cfg: BalanceConfig) -> HeroState:
 	var h := HeroState.new()
@@ -20,8 +24,56 @@ static func create(d: CharacterDef, cfg: BalanceConfig) -> HeroState:
 			h.equipment[e.slot] = e
 		else:
 			push_error("equipamento inicial invalido em %s" % d.id)
+	h.learn_up_to(1)
 	h.rest(cfg)
 	return h
+
+## Aprende as técnicas do learnset com nível 1..`lv` ainda não aprendidas; devolve as novas, em ordem.
+func learn_up_to(lv: int) -> Array[AbilityDef]:
+	var out: Array[AbilityDef] = []
+	for e: LearnEntry in def.learnset:
+		if e != null and e.ability != null and e.level > 0 and e.level <= lv and not learned.has(e.ability.id):
+			learned.append(e.ability.id)
+			out.append(e.ability)
+	_sort_learned()
+	return out
+
+## Aprende uma técnica do próprio learnset (eventos). false se o id não é do herói ou já estava aprendida.
+func learn(id: StringName) -> bool:
+	if learned.has(id):
+		return false
+	for e: LearnEntry in def.learnset:
+		if e != null and e.ability != null and e.ability.id == id:
+			learned.append(id)
+			_sort_learned()
+			return true
+	return false
+
+func _sort_learned() -> void:
+	var ordered: Array[StringName] = []
+	for e: LearnEntry in def.learnset:
+		if e != null and e.ability != null and learned.has(e.ability.id):
+			ordered.append(e.ability.id)
+	learned = ordered
+
+## Técnicas aprendidas (na ordem do learnset).
+func abilities() -> Array[AbilityDef]:
+	var out: Array[AbilityDef] = []
+	for id: StringName in learned:
+		for e: LearnEntry in def.learnset:
+			if e != null and e.ability != null and e.ability.id == id:
+				out.append(e.ability)
+				break
+	return out
+
+## Próxima técnica por nível ainda não aprendida (menor nível); null se não há.
+func next_learn() -> LearnEntry:
+	var best: LearnEntry = null
+	for e: LearnEntry in def.learnset:
+		if e != null and e.ability != null and e.level > 0 and not learned.has(e.ability.id):
+			if best == null or e.level < best.level:
+				best = e
+	return best
 
 ## HP e AP cheios (máximos via StatCalculator com nível, alocação e equipamento atuais);
 ## revive caídos. Único lugar da recuperação total: criação e descanso ([P-plano] 15).
@@ -58,6 +110,7 @@ func to_dict() -> Dictionary:
 			"vitality": allocated.vitality, "aura": allocated.aura,
 		},
 		"equipment": eq, "hp": hp, "ap": ap, "limit": limit,
+		"learned": learned.map(func(i: StringName) -> String: return String(i)),
 	}
 
 ## Null se o id do heroi ou de algum equipamento for desconhecido, ou se o formato for invalido.
@@ -79,6 +132,15 @@ static func from_dict(d: Dictionary, registry: DefRegistry) -> HeroState:
 	h.ap = int(d["ap"])
 	if d.get("limit") is float or d.get("limit") is int:
 		h.limit = clampf(float(d["limit"]), 0.0, 1.0)
+	var raw: Variant = d.get("learned")
+	if raw is Array:
+		for v: Variant in (raw as Array):
+			var lid := StringName(str(v))
+			if not h.learned.has(lid):
+				h.learned.append(lid)
+		h._sort_learned()
+	else:
+		h.learn_up_to(h.level)
 	var a: Dictionary = al
 	for attr: StringName in Stats.ATTRS:
 		if not (a.get(String(attr)) is float or a.get(String(attr)) is int):
@@ -96,7 +158,7 @@ func snapshot() -> Dictionary:
 	return {
 		"hp": hp, "ap": ap, "limit": limit, "xp": xp, "level": level, "pending": pending_points,
 		"allocated": Stats.make(allocated.strength, allocated.speed, allocated.vitality, allocated.aura),
-		"equipment": equipment.duplicate(),
+		"equipment": equipment.duplicate(), "learned": learned.duplicate(),
 	}
 
 ## Restaura os valores de [method snapshot]; `allocated` ganha uma cópia nova.
@@ -111,3 +173,6 @@ func restore(snap: Dictionary) -> void:
 	allocated = Stats.make(a.strength, a.speed, a.vitality, a.aura)
 	var eq: Dictionary[StringName, EquipmentDef] = snap["equipment"]
 	equipment = eq.duplicate()
+	var lr: Array[StringName] = []
+	lr.assign(snap.get("learned", learned))
+	learned = lr

@@ -61,7 +61,7 @@ func test_smart_policy_always_submits() -> void:
 	var costly := Fixtures.hit(2.0, AbilityDef.Shape.CIRCLE_TARGET)
 	costly.ap_cost = 50
 	costly.radius = 200.0
-	d.abilities = [costly]
+	Fixtures.set_abilities(d, [costly])
 	var hs := HeroState.create(d, cfg)
 	hs.ap = 0
 	var hero := Combatant.from_hero(hs, Vector2(300, 135))
@@ -79,7 +79,7 @@ func test_smart_uses_area_when_two_enemies_hit() -> void:
 	area.id = &"area"
 	area.ap_cost = 2
 	area.radius = 300.0
-	d.abilities = [area]
+	Fixtures.set_abilities(d, [area])
 	var hs := HeroState.create(d, cfg)
 	var hero := Combatant.from_hero(hs, Vector2(300, 135))
 	var foes: Array[Combatant] = [_foe(&"x", Vector2(900, 200), cfg), _foe(&"y", Vector2(900, 360), cfg)]
@@ -93,7 +93,7 @@ func test_smart_uses_ether_without_ap() -> void:
 	var d := Fixtures.hero_def(&"a", Stats.make(10, 5, 5, 1))
 	var costly := Fixtures.hit(2.0)
 	costly.ap_cost = 3
-	d.abilities = [costly]
+	Fixtures.set_abilities(d, [costly])
 	var hs := HeroState.create(d, cfg)
 	hs.ap = 0
 	var hero := Combatant.from_hero(hs, Vector2(300, 135))
@@ -153,7 +153,7 @@ func _revive_item() -> ItemDef:
 func _world(abilities: Array[AbilityDef], n_foes: int, ally_hp_pct: float = 1.0, ally_down: bool = false) -> BattleState:
 	var cfg := Fixtures.cfg()
 	var d := Fixtures.hero_def(&"a", Stats.make(10, 5, 5, 3))
-	d.abilities = abilities
+	Fixtures.set_abilities(d, abilities)
 	var hero := Combatant.from_hero(HeroState.create(d, cfg), Vector2(300, 135))
 	hero.ap = 10
 	var heroes: Array[Combatant] = [hero]
@@ -333,7 +333,7 @@ func test_statuses_applied_and_resisted_counts() -> void:
 	s.cfg = Fixtures.cfg()
 	s.cfg.sim_max_seconds = 40.0
 	var hd: CharacterDef = Fixtures.hero_def(&"a", Stats.make(10, 5, 5, 1))
-	hd.abilities = [ab] as Array[AbilityDef]
+	Fixtures.set_abilities(hd, [ab])
 	s.heroes = [hd]
 	var foe: EnemyDef = Fixtures.enemy_def(&"tank", Stats.make(1, 1, 500, 1))
 	foe.resistances = {&"sleep": 0.5} as Dictionary[StringName, float]

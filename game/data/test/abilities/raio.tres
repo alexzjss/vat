@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="AbilityDef" format=3]
+
+[ext_resource type="Script" path="res://core/defs/effect_def.gd" id="1_r"]
+[ext_resource type="Script" path="res://core/defs/ability_def.gd" id="2_r"]
+
+[sub_resource type="Resource" id="effect_def_1"]
+script = ExtResource("1_r")
+kind = 0
+scale = 1
+potency = 1.7
+chance = 1.0
+dodgeable = false
+
+[resource]
+script = ExtResource("2_r")
+id = &"raio"
+display_name = "Raio"
+ap_cost = 5
+shape = 0
+side = 0
+radius = 0.0
+width = 0.0
+cast_time = 1.2
+impact_time = 0.7
+effects = Array[ExtResource("1_r")]([SubResource("effect_def_1")])

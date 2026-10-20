@@ -10,7 +10,7 @@ var x: Combatant
 func _setup(limit: float) -> void:
 	var cfg: BalanceConfig = Fixtures.cfg()
 	var d: CharacterDef = Fixtures.hero_def(&"a", Stats.make(10, 10, 5, 2))
-	d.abilities = [Fixtures.hit(1.0)]
+	Fixtures.set_abilities(d, [Fixtures.hit(1.0)])
 	d.limit_ability = Fixtures.hit(3.0)
 	d.limit_ability.id = &"golpe_final"
 	d.limit_ability.display_name = "Golpe Final"

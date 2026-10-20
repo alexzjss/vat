@@ -10,7 +10,7 @@ func _def(id: StringName) -> CharacterDef:
 	var ab: AbilityDef = Fixtures.hit(2.0)
 	ab.ap_cost = 3
 	ab.display_name = "Forte"
-	d.abilities = [ab]
+	Fixtures.set_abilities(d, [ab])
 	return d
 
 ## Um heroi ativo (Limite `limit`) + uma reserva em pe + um inimigo resistente.

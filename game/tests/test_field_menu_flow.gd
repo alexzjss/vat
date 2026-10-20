@@ -44,8 +44,8 @@ func before_each() -> void:
 	var defs: Array[CharacterDef] = []
 	for id: StringName in NAMES:
 		defs.append(Fixtures.hero_def(id, Stats.make(1, 1, 3, 2)))
-	defs[0].abilities = [heal_tech, group_tech]
-	defs[2].abilities = [heal_tech]
+	Fixtures.set_abilities(defs[0], [heal_tech, group_tech])
+	Fixtures.set_abilities(defs[2], [heal_tech])
 	potion = _item(&"pocao", "Poção", _effect(EffectDef.Kind.HEAL, 20.0))
 	ether = _item(&"eter", "Éter", _effect(EffectDef.Kind.RESTORE_AP, 5.0))
 	reviver = _item(&"reviver", "Reviver", _effect(EffectDef.Kind.REVIVE, 0.5))

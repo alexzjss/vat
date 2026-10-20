@@ -39,7 +39,7 @@ func _setup(potions: int, ability_cost: int) -> void:
 	area.display_name = "Golpe em área"
 	area.ap_cost = 1
 	area.radius = 100.0
-	d.abilities = [costly, area]
+	Fixtures.set_abilities(d, [costly, area])
 	h = Combatant.from_hero(HeroState.create(d, cfg), Vector2(100, 100))
 	x = Combatant.from_enemy(Fixtures.enemy_def(&"x", Stats.make(1, 1, 1, 1)), &"x", Vector2(500, 100), cfg)
 	y = Combatant.from_enemy(Fixtures.enemy_def(&"y", Stats.make(1, 1, 1, 1)), &"y", Vector2(550, 150), cfg)

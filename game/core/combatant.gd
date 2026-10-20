@@ -72,7 +72,7 @@ static func from_hero(h: HeroState, pos: Vector2) -> Combatant:
 	c.limit = h.limit
 	c.limit_ability = h.def.limit_ability
 	c.position = pos
-	c.abilities = h.def.abilities.duplicate()
+	c.abilities = h.abilities()
 	c.basic_attack = h.def.basic_attack
 	c.hero_state = h
 	c.immunities = EquipmentRules.immunities(h.equipment)

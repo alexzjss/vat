@@ -87,8 +87,9 @@ func _build_text(h: HeroState) -> String:
 	lines.append("  " + EquipPage.passives_line(h.equipment))
 	lines.append("")
 	lines.append("Habilidades:")
-	if h.def.abilities.is_empty():
+	var known: Array[AbilityDef] = h.abilities()
+	if known.is_empty():
 		lines.append("  (nenhuma)")
-	for ab: AbilityDef in h.def.abilities:
+	for ab: AbilityDef in known:
 		lines.append("  %s — %d AP" % [ab.display_name, ab.ap_cost])
 	return "\n".join(lines)

@@ -58,13 +58,13 @@ func test_heroes() -> void:
 		assert_not_null(h.base, id)
 		assert_not_null(h.basic_attack, "%s basic_attack" % id)
 		assert_eq(h.basic_attack.ap_cost, 0)
-		assert_false(h.abilities.is_empty(), "%s abilities" % id)
+		assert_false(h.learnset.is_empty(), "%s learnset" % id)
 	assert_eq(_hero("teste_a").display_name, "Teste A")
-	assert_eq(_hero("teste_a").abilities.size(), 2)
-	assert_eq(_hero("teste_b").abilities.size(), 4)
-	assert_eq(_hero("teste_c").abilities.size(), 3)
-	assert_eq(_hero("teste_d").abilities.size(), 2)
-	assert_eq(_hero("teste_e").abilities.size(), 1)
+	assert_eq(_hero("teste_a").learnset.size(), 5)
+	assert_eq(_hero("teste_b").learnset.size(), 6)
+	assert_eq(_hero("teste_c").learnset.size(), 6)
+	assert_eq(_hero("teste_d").learnset.size(), 6)
+	assert_eq(_hero("teste_e").learnset.size(), 6)
 
 func test_abilities_have_timings_and_effects() -> void:
 	for f: String in _list_tres(ROOT + "/abilities"):

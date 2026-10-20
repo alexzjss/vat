@@ -1,10 +1,14 @@
 [gd_resource type="Resource" script_class="CharacterDef" format=3]
 
 [ext_resource type="Script" path="res://core/defs/stats.gd" id="1_r"]
+[ext_resource type="Resource" path="res://data/test/abilities/golpe_area.tres" id="ab_golpe_area"]
+[ext_resource type="Resource" path="res://data/test/abilities/cura.tres" id="ab_cura"]
+[ext_resource type="Resource" path="res://data/test/abilities/investida.tres" id="ab_investida"]
+[ext_resource type="Resource" path="res://data/test/abilities/golpe_pesado.tres" id="ab_golpe_pesado"]
+[ext_resource type="Resource" path="res://data/test/abilities/cura_maior.tres" id="ab_cura_maior"]
+[ext_resource type="Resource" path="res://data/test/abilities/lamina.tres" id="ab_lamina"]
+[ext_resource type="Script" path="res://core/defs/learn_entry.gd" id="le_script"]
 [ext_resource type="Resource" path="res://data/test/abilities/golpe.tres" id="2_r"]
-[ext_resource type="Resource" path="res://data/test/abilities/golpe_area.tres" id="3_r"]
-[ext_resource type="Resource" path="res://data/test/abilities/cura.tres" id="4_r"]
-[ext_resource type="Script" path="res://core/defs/ability_def.gd" id="5_r"]
 [ext_resource type="Script" path="res://core/defs/character_def.gd" id="6_r"]
 
 [ext_resource type="Resource" path="res://data/test/equipment/lamina_simples.tres" id="w_r"]
@@ -20,6 +24,36 @@ speed = 8
 vitality = 8
 aura = 6
 
+[sub_resource type="Resource" id="le_0"]
+script = ExtResource("le_script")
+ability = ExtResource("ab_golpe_area")
+level = 1
+
+[sub_resource type="Resource" id="le_1"]
+script = ExtResource("le_script")
+ability = ExtResource("ab_cura")
+level = 3
+
+[sub_resource type="Resource" id="le_2"]
+script = ExtResource("le_script")
+ability = ExtResource("ab_investida")
+level = 6
+
+[sub_resource type="Resource" id="le_3"]
+script = ExtResource("le_script")
+ability = ExtResource("ab_golpe_pesado")
+level = 10
+
+[sub_resource type="Resource" id="le_4"]
+script = ExtResource("le_script")
+ability = ExtResource("ab_cura_maior")
+level = 20
+
+[sub_resource type="Resource" id="le_5"]
+script = ExtResource("le_script")
+ability = ExtResource("ab_lamina")
+level = 0
+
 [resource]
 script = ExtResource("6_r")
 id = &"teste_d"
@@ -27,6 +61,6 @@ display_name = "Teste D"
 base = SubResource("stats_1")
 basic_attack = ExtResource("2_r")
 limit_ability = ExtResource("lim_r")
-abilities = Array[ExtResource("5_r")]([ExtResource("3_r"), ExtResource("4_r")])
+learnset = Array[ExtResource("le_script")]([SubResource("le_0"), SubResource("le_1"), SubResource("le_2"), SubResource("le_3"), SubResource("le_4"), SubResource("le_5")])
 weapon_types = Array[StringName]([&"blade", &"staff"])
 starting_equipment = Array[ExtResource("eq_script")]([ExtResource("w_r"), ExtResource("ar_r")])

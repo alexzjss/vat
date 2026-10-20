@@ -66,6 +66,26 @@ static func hero_def(id: StringName, stats: Stats) -> CharacterDef:
 	d.basic_attack = hit(1.0)
 	return d
 
+## Learnset de nivel 1 com `abilities` (ids repetidos ganham sufixo para valerem como tecnicas distintas).
+static func set_abilities(d: CharacterDef, abilities: Array[AbilityDef]) -> void:
+	var seen: Array[StringName] = []
+	var out: Array[LearnEntry] = []
+	for a: AbilityDef in abilities:
+		if seen.has(a.id):
+			a.id = StringName("%s_%d" % [a.id, seen.size()])
+		seen.append(a.id)
+		var e := LearnEntry.new()
+		e.ability = a
+		e.level = 1
+		out.append(e)
+	d.learnset = out
+
+## Troca o learnset de um HeroState ja criado (aprende as de nivel 1).
+static func give_abilities(h: HeroState, abilities: Array[AbilityDef]) -> void:
+	set_abilities(h.def, abilities)
+	h.learned = []
+	h.learn_up_to(1)
+
 static func enemy_def(id: StringName, stats: Stats, xp_base: int = 100) -> EnemyDef:
 	var d := EnemyDef.new()
 	d.id = id
