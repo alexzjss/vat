@@ -170,6 +170,8 @@ func _begin(a: PendingAction) -> void:
 		return
 	a.elapsed = 0.0
 	a.impacted = false
+	if a.is_limit:
+		a.actor.limit = 0.0
 	executing = a
 	action_started.emit(a)
 
@@ -215,6 +217,8 @@ func _lose(a: PendingAction) -> void:
 	turn_lost.emit(a.actor)
 
 func _refund(a: PendingAction) -> void:
+	if a.is_limit:
+		a.actor.limit = 1.0
 	if a.item != null:
 		b.inventory.refund(a.item.id)
 	elif a.ability != null:

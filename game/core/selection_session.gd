@@ -37,6 +37,20 @@ func choose_ability(ab: AbilityDef) -> bool:
 	step = Step.TARGET
 	return true
 
+## Golpe de Limite: so com a barra cheia; sem custo de AP. A barra zera quando a acao comeca (BattleController).
+func choose_limit() -> bool:
+	if step != Step.COMMAND:
+		push_error("choose_limit fora do passo COMMAND")
+		return false
+	if not actor.limit_ready():
+		return false
+	ability = actor.limit_ability
+	_draft = _new_draft()
+	_draft.ability = ability
+	_draft.is_limit = true
+	step = Step.TARGET
+	return true
+
 func choose_item(it: ItemDef) -> bool:
 	if step != Step.COMMAND:
 		push_error("choose_item fora do passo COMMAND")

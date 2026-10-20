@@ -37,6 +37,8 @@ enum DurationMode { A, B }
 @export var flee_decay: float = 0.5 # valor de teste (M7: esvaziamento da barra por segundo)
 @export var flee_cooldown: float = 3.0 # valor de teste (M7: segundos sem toque do inimigo apos a fuga)
 @export var backstab_angle: float = 120.0 # valor de teste (M7: graus; acima disso o toque e pelas costas)
+@export var limit_fill_mult: float = 1.5 # valor de teste (M8: barra de Limite ganha dano/hp_max x isto)
+@export var support_cost: float = 0.5 # valor de teste (M8.5: Limite gasto ao chamar o Suporte)
 @export var banner_time: float = 1.2 # valor de teste (M7: segundos da faixa Ataque surpresa/Emboscada)
 @export var patrol_wait: float = 0.6 # valor de teste (M7: pausa em cada ponto da patrulha, s)
 @export var vision_range: float = 220.0 # valor de teste (M7: alcance do cone de visao, px)

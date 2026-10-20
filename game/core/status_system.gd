@@ -106,6 +106,7 @@ func on_atb_full(c: Combatant, _living_enemies: Array[Combatant]) -> AtbFullOutc
 			var dmg: int = mini(_poison_damage(s, c), c.hp)
 			c.hp -= dmg
 			out.poison_damage += dmg
+			c.gain_limit(dmg, StatCalculator.hp_max(c, _cfg), _cfg)
 			if c.team == Combatant.Team.ENEMY and dmg > 0:
 				_ledger.add(s.source_id, c.id, float(dmg))
 	if c.hp <= 0:

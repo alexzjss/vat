@@ -13,6 +13,8 @@
 [ext_resource type="Resource" path="res://data/test/equipment/armadura_simples.tres" id="ar_r"]
 [ext_resource type="Script" path="res://core/defs/equipment_def.gd" id="eq_script"]
 
+[ext_resource type="Resource" path="res://data/test/abilities/limite_b.tres" id="lim_r"]
+
 [sub_resource type="Resource" id="stats_1"]
 script = ExtResource("1_r")
 strength = 6
@@ -26,6 +28,7 @@ id = &"teste_b"
 display_name = "Teste B"
 base = SubResource("stats_1")
 basic_attack = ExtResource("2_r")
+limit_ability = ExtResource("lim_r")
 abilities = Array[ExtResource("7_r")]([ExtResource("3_r"), ExtResource("4_r"), ExtResource("5_r"), ExtResource("6_r")])
 weapon_types = Array[StringName]([&"staff"])
 starting_equipment = Array[ExtResource("eq_script")]([ExtResource("w_r"), ExtResource("ar_r")])

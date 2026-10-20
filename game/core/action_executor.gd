@@ -42,6 +42,7 @@ static func _apply_effect(e: EffectDef, actor: Combatant, t: Combatant, b: Battl
 			elif t.team == Combatant.Team.HERO and actor.team == Combatant.Team.ENEMY:
 				t.damage_taken_from[actor.id] = int(t.damage_taken_from.get(actor.id, 0)) + eff
 			if eff > 0:
+				t.gain_limit(eff, StatCalculator.hp_max(t, b.cfg), b.cfg)
 				b.statuses.on_hp_damage(t)
 			_hit(r, t, e.kind, eff, false, -1)
 			if t.is_down():

@@ -338,6 +338,7 @@ func _on_battle_ended(outcome: BattleController.Outcome) -> void:
 	for c: Combatant in b.heroes:
 		c.hero_state.hp = c.hp
 		c.hero_state.ap = c.ap
+		c.hero_state.limit = c.limit
 	if outcome == BattleController.Outcome.VICTORY:
 		_grant_victory(b)
 	elif outcome == BattleController.Outcome.FLED:

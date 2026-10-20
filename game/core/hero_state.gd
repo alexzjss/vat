@@ -9,6 +9,8 @@ var pending_points: int = 0
 var equipment: Dictionary[StringName, EquipmentDef] = {}
 var hp: int = 0
 var ap: int = 0
+## Barra de Limite (M8), de 0 a 1; persiste entre batalhas e vai no save.
+var limit: float = 0.0
 
 static func create(d: CharacterDef, cfg: BalanceConfig) -> HeroState:
 	var h := HeroState.new()
@@ -55,7 +57,7 @@ func to_dict() -> Dictionary:
 			"strength": allocated.strength, "speed": allocated.speed,
 			"vitality": allocated.vitality, "aura": allocated.aura,
 		},
-		"equipment": eq, "hp": hp, "ap": ap,
+		"equipment": eq, "hp": hp, "ap": ap, "limit": limit,
 	}
 
 ## Null se o id do heroi ou de algum equipamento for desconhecido, ou se o formato for invalido.
@@ -75,6 +77,8 @@ static func from_dict(d: Dictionary, registry: DefRegistry) -> HeroState:
 	h.pending_points = int(d["pending"])
 	h.hp = int(d["hp"])
 	h.ap = int(d["ap"])
+	if d.get("limit") is float or d.get("limit") is int:
+		h.limit = clampf(float(d["limit"]), 0.0, 1.0)
 	var a: Dictionary = al
 	for attr: StringName in Stats.ATTRS:
 		if not (a.get(String(attr)) is float or a.get(String(attr)) is int):
@@ -90,7 +94,7 @@ static func from_dict(d: Dictionary, registry: DefRegistry) -> HeroState:
 ## Cópia dos valores mutáveis do herói (usada por retry de batalha e ponto de salvamento).
 func snapshot() -> Dictionary:
 	return {
-		"hp": hp, "ap": ap, "xp": xp, "level": level, "pending": pending_points,
+		"hp": hp, "ap": ap, "limit": limit, "xp": xp, "level": level, "pending": pending_points,
 		"allocated": Stats.make(allocated.strength, allocated.speed, allocated.vitality, allocated.aura),
 		"equipment": equipment.duplicate(),
 	}
@@ -99,6 +103,7 @@ func snapshot() -> Dictionary:
 func restore(snap: Dictionary) -> void:
 	hp = snap["hp"]
 	ap = snap["ap"]
+	limit = float(snap.get("limit", 0.0))
 	xp = snap["xp"]
 	level = snap["level"]
 	pending_points = snap["pending"]

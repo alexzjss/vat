@@ -12,6 +12,9 @@ var allocated: Stats
 var equipment_mods: Stats
 var hp: int = 0
 var ap: int = 0
+## Espelho de HeroState.limit (0 a 1); volta ao HeroState no fim da batalha. Inimigos nao tem barra.
+var limit: float = 0.0
+var limit_ability: AbilityDef
 var atb: float = 0.0
 var position: Vector2 = Vector2.ZERO
 var statuses: Array[ActiveStatus] = []
@@ -41,6 +44,16 @@ var damage_taken_from: Dictionary[StringName, int] = {}
 func is_down() -> bool:
 	return hp <= 0
 
+## Unico lugar do enchimento da barra de Limite: dano efetivo sofrido por heroi (dano direto e veneno).
+## Inimigos nao enchem; clamp em 1. Heroi ja caido nao recebe dano, logo nao enche.
+func gain_limit(damage: int, hp_max: int, cfg: BalanceConfig) -> void:
+	if team != Team.HERO or damage <= 0:
+		return
+	limit = minf(1.0, limit + float(damage) / float(maxi(1, hp_max)) * cfg.limit_fill_mult)
+
+func limit_ready() -> bool:
+	return team == Team.HERO and limit >= 1.0 and limit_ability != null
+
 static func from_hero(h: HeroState, pos: Vector2) -> Combatant:
 	var c := Combatant.new()
 	c.id = h.def.id
@@ -56,6 +69,8 @@ static func from_hero(h: HeroState, pos: Vector2) -> Combatant:
 	c.equipment_mods = mods
 	c.hp = h.hp
 	c.ap = h.ap
+	c.limit = h.limit
+	c.limit_ability = h.def.limit_ability
 	c.position = pos
 	c.abilities = h.def.abilities.duplicate()
 	c.basic_attack = h.def.basic_attack

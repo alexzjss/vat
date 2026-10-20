@@ -9,6 +9,8 @@ var center: Combatant
 var center_pos: Vector2 = Vector2.ZERO
 var elapsed: float = 0.0
 var impacted: bool = false
+## Golpe de Limite (M8): a barra de `actor` zera quando a acao comeca.
+var is_limit: bool = false
 
 func shape() -> AbilityDef.Shape:
 	return item.shape if item != null else ability.shape
