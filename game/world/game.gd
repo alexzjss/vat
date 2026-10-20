@@ -6,6 +6,8 @@ extends Node
 ## Menu de campo (`open_menu`, Tab/Esc): só abre fora de transição, de batalha e de Game Over; enquanto aberto
 ## o mapa atual fica congelado (process_mode DISABLED, o mesmo mecanismo do fade). Ao fechar, o marcador do
 ## jogador passa a mostrar o líder atual.
+## Eventos (M10): `play_event(script)` roda um roteiro no mapa atual com o EventPlayer; enquanto dura, o mapa fica
+## parado e o menu de campo não abre. Troca de mapa e Game Over cancelam o evento.
 ## Debug: `-- --demo-field-menu` (DemoFieldMenu) percorre as páginas do menu; `-- --demo-m2` (DemoM2) e
 ## `-- --demo-m3` (DemoM3) / `-- --demo-m4` (DemoM4) / `-- --demo-m6` (DemoM6, descanso e save) / `-- --demo-m7` (DemoM7, corrida, iniciativa, fuga e chefe) / `-- --demo-m8` (DemoM8, Limite e Suporte) percorrem os ciclos dos marcos sozinhos (verificação com --write-movie).
 
@@ -45,6 +47,8 @@ var busy: bool = false
 var in_title: bool = false
 var title: TitleScreen
 var rest_menu: RestMenu
+## Executa os eventos roteirizados do mapa atual (M10); a caixa de diálogo é filha dele.
+var event_player: EventPlayer
 var game_over_screen: GameOverScreen
 
 static var _registry_cache: DefRegistry
@@ -70,6 +74,8 @@ func _ready() -> void:
 	rest_menu.closed.connect(_on_rest_closed)
 	add_child(rest_menu)
 	menu.save_handler = save_to_slot
+	event_player = EventPlayer.new()
+	add_child(event_player)
 	if skip_title or _has_demo_flag(args):
 		start_new_game()
 	else:
@@ -187,10 +193,10 @@ func _unhandled_input(event: InputEvent) -> void:
 ## Verdadeiro se o menu de campo pode abrir agora: sem transição, menu fechado, sem batalha
 ## (o que inclui as telas de resultado) e mapa não travado (Game Over).
 func can_open_menu() -> bool:
-	if busy or menu.is_open or rest_menu.is_open or current == null:
+	if busy or menu.is_open or rest_menu.is_open or current == null or event_player.active:
 		return false
 	var local: LocalMap = current as LocalMap
-	if local != null and (local.battle != null or local.locked):
+	if local != null and (local.battle != null or local.locked or local.event_active):
 		return false
 	return true
 
@@ -226,6 +232,8 @@ func go_to(map: StringName, spawn: StringName, with_fade: bool = true) -> void:
 	busy = true
 	if current != null:
 		_freeze_outgoing(current)
+	# Um evento em andamento pertence ao mapa que sai (o mapa já está travado: nada é religado).
+	event_player.cancel()
 	if with_fade:
 		await fade.fade_out(state.cfg.fade_time)
 	if current != null:
@@ -263,6 +271,7 @@ func _connect_and_setup(node: Node2D, spawn: StringName) -> void:
 		local.exit_requested.connect(_on_exit_requested)
 		local.game_over.connect(_on_game_over)
 		local.rest_requested.connect(_on_rest_requested)
+		local.event_requested.connect(play_event)
 		local.setup(state, spawn)
 		return
 	push_error("Game: cena de mapa sem tipo conhecido '%s'" % node.name)
@@ -275,8 +284,16 @@ func _on_location_entered(zone_id: StringName) -> void:
 		return
 	go_to(zone_id, &"Entry")
 
+## Executa `event` no mapa atual (pedido por NPCs, placas e demais objetos). Ignorado se já houver evento,
+## transição, menu ou Game Over.
+func play_event(event: EventScript) -> void:
+	var local: LocalMap = current as LocalMap
+	if local == null or busy or in_title or menu.is_open or rest_menu.is_open or game_over_screen != null or event_player.active:
+		return
+	await event_player.play(event, local, state)
+
 func _on_rest_requested() -> void:
-	if busy or in_title or menu.is_open or rest_menu.is_open or game_over_screen != null:
+	if busy or in_title or menu.is_open or rest_menu.is_open or game_over_screen != null or event_player.active:
 		return
 	current.process_mode = Node.PROCESS_MODE_DISABLED
 	rest_menu.open(self)
@@ -294,6 +311,7 @@ func _on_exit_requested() -> void:
 func _on_game_over() -> void:
 	if busy or in_title or game_over_screen != null:
 		return
+	event_player.cancel()
 	state.restore_save()
 	game_over_screen = GameOverScreen.new()
 	game_over_screen.dismissed.connect(_on_game_over_dismissed)

@@ -10,6 +10,10 @@ signal exit_requested
 signal game_over
 ## O jogador pediu o menu do ponto de descanso (tecla interact dentro da área).
 signal rest_requested
+## Um objeto do mapa (NPC, placa...) pede um evento; quem hospeda o jogo (Game) o executa com o EventPlayer.
+signal event_requested(event: EventScript)
+## Fim da batalha iniciada por um evento (StartBattle) com vitória ou fuga; derrota vira `game_over`.
+signal event_battle_finished(outcome: int)
 
 const BATTLE_SCENE: PackedScene = preload("res://battle/battle_scene.tscn")
 const MAP_RECT: Rect2 = Rect2(0, 0, 2400, 720)
@@ -24,6 +28,8 @@ var demo_result: bool = false
 var dice_seed: int = -1
 ## Bloqueia encontros e saída (ex.: depois do Game Over, até o Game trocar de cena).
 var locked: bool = false
+## Um evento está em andamento: jogador e inimigos parados, sem saída, interação nem novos encontros.
+var event_active: bool = false
 
 var state: GameState
 var _battle_enemy: MapEnemy
@@ -33,6 +39,12 @@ var _battle_group: Array[MapEnemy] = []
 var _battle_left_out: Array[MapEnemy] = []
 ## Posição do jogador ao tocar o inimigo (para onde ele volta se fugir).
 var _battle_from: Vector2 = Vector2.ZERO
+## A batalha em andamento veio de um evento (StartBattle), não do toque de um inimigo.
+var _scripted_battle: EncounterDef
+## Um CameraTo soltou a câmera do jogador; ela volta a seguir ao fim do evento.
+var _camera_detached: bool = false
+## Quadro em que o último evento terminou (a tecla desse quadro não interage).
+var _event_end_frame: int = -1
 
 @onready var player: Player = $Player
 @onready var camera: MapCamera = $MapCamera
@@ -48,6 +60,8 @@ func _ready() -> void:
 		rest_point.interacted.connect(_on_rest_interacted)
 	for e: MapEnemy in enemies():
 		e.touched.connect(_on_enemy_touched)
+	for i: Interactable in interactables():
+		_wire(i)
 	if OS.get_cmdline_user_args().has("--demo-local") and get_parent() == get_tree().root:
 		_run_demo.call_deferred()
 
@@ -81,9 +95,84 @@ func rest_spawn() -> StringName:
 	return &""
 
 func _on_rest_interacted() -> void:
-	if battle != null or locked or state == null:
+	if battle != null or locked or event_active or state == null:
 		return
 	rest_requested.emit()
+
+## Adiciona um interagível ao mapa já ligado ao jogador e ao pedido de eventos (objetos criados em código/testes).
+func add_interactable(i: Interactable) -> void:
+	add_child(i)
+	_wire(i)
+
+func _wire(i: Interactable) -> void:
+	i.player = player
+	i.event_requested.connect(run_event)
+
+func interactables() -> Array[Interactable]:
+	var out: Array[Interactable] = []
+	for child: Node in get_children():
+		var i: Interactable = child as Interactable
+		if i != null and not i.is_queued_for_deletion():
+			out.append(i)
+	return out
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("interact") and try_interact():
+		get_viewport().set_input_as_handled()
+
+## Aciona o interagível ao alcance mais próximo do jogador. False se nenhum (ou mapa ocupado).
+func try_interact() -> bool:
+	if battle != null or locked or event_active or state == null:
+		return false
+	if Engine.get_process_frames() <= _event_end_frame:
+		return false
+	var found: Array[Interactable] = []
+	var positions: Array[Vector2] = []
+	for i: Interactable in interactables():
+		if i.can_interact():
+			found.append(i)
+			positions.append(i.global_position)
+	var idx: int = InteractPicker.nearest(player.global_position, positions)
+	return idx >= 0 and found[idx].interact()
+
+## Pede ao Game que execute `event`. False se o mapa está ocupado (batalha, evento, travado).
+func run_event(event: EventScript) -> bool:
+	if event == null or battle != null or locked or event_active or state == null:
+		return false
+	event_requested.emit(event)
+	return true
+
+## Congela/descongela o mapa para um evento (EventPlayer): jogador e inimigos parados, saída desarmada.
+## Ao terminar, rearma tudo (a menos que haja batalha ou Game Over).
+func set_event_frozen(on: bool) -> void:
+	event_active = on
+	if on:
+		player.enabled = false
+		for e: MapEnemy in enemies():
+			e.frozen = true
+		exit_zone.armed = false
+		return
+	if _camera_detached:
+		_camera_detached = false
+		camera.resume_follow(state.cfg.camera_slide_time)
+	_event_end_frame = Engine.get_process_frames()
+	if battle == null and not locked:
+		_resume_world()
+
+## Desliza a câmera para `pos` durante um evento (volta ao jogador no fim).
+func event_camera_to(pos: Vector2, time: float) -> void:
+	_camera_detached = true
+	camera.slide_to(pos, time)
+
+## Jogador, inimigos e saída voltam a funcionar (fora de batalha); durante um evento seguem parados.
+func _resume_world() -> void:
+	player.enabled = not event_active
+	for e: MapEnemy in enemies():
+		e.frozen = event_active
+	exit_zone.armed = not event_active
+	if not event_active:
+		for e: MapEnemy in enemies():
+			e.rearm()
 
 func enemies() -> Array[MapEnemy]:
 	var out: Array[MapEnemy] = []
@@ -98,7 +187,7 @@ func _arena_for(enemy: MapEnemy) -> BattleArena:
 	return a if a != null else default_arena
 
 func _on_enemy_touched(enemy: MapEnemy) -> void:
-	if battle != null or locked or state == null:
+	if battle != null or locked or event_active or state == null:
 		return
 	if enemy.encounter == null:
 		push_error("LocalMap: inimigo '%s' sem encontro" % enemy.name)
@@ -121,9 +210,6 @@ func _on_enemy_touched(enemy: MapEnemy) -> void:
 	var kind: Initiative.Kind = Initiative.classify(enemy.global_position, enemy.facing, enemy.is_chasing(),
 			from_pos, state.cfg.backstab_angle)
 	_battle_from = from_pos
-	player.visible = false
-	if followers != null:
-		followers.hide_all()
 	var defs: Array[EnemyDef] = []
 	var flee_ok: bool = true
 	for g: MapEnemy in group:
@@ -131,6 +217,32 @@ func _on_enemy_touched(enemy: MapEnemy) -> void:
 		g.frozen = true
 		defs.append_array(g.encounter.enemies)
 		flee_ok = flee_ok and g.encounter.can_flee
+	_begin_battle(arena, defs, flee_ok, from_pos, kind)
+
+## Batalha iniciada por um evento (StartBattle): na arena padrão, sem inimigo de mapa. Ao fim com vitória ou
+## fuga emite `event_battle_finished`; a derrota segue o caminho normal (`game_over`).
+func start_event_battle(encounter: EncounterDef) -> void:
+	if battle != null or locked or state == null or encounter == null:
+		return
+	_scripted_battle = encounter
+	_battle_enemy = null
+	_battle_group = []
+	_battle_left_out = []
+	player.enabled = false
+	for e: MapEnemy in enemies():
+		e.frozen = true
+	exit_zone.armed = false
+	var from_pos: Vector2 = player.global_position
+	_battle_from = from_pos
+	camera.slide_to(default_arena.center(), state.cfg.camera_slide_time)
+	var defs: Array[EnemyDef] = []
+	defs.append_array(encounter.enemies)
+	_begin_battle(default_arena, defs, encounter.can_flee, from_pos, Initiative.Kind.NORMAL)
+
+func _begin_battle(arena: BattleArena, defs: Array[EnemyDef], flee_ok: bool, from_pos: Vector2, kind: Initiative.Kind) -> void:
+	player.visible = false
+	if followers != null:
+		followers.hide_all()
 	var max_enemies: int = arena.enemy_count()
 	if max_enemies > 0 and defs.size() > max_enemies:
 		defs.resize(max_enemies)
@@ -176,8 +288,12 @@ func _on_battle_finished(outcome: BattleController.Outcome) -> void:
 		if is_instance_valid(e):
 			e.begin_cooldown(state.cfg.flee_cooldown)
 	_battle_left_out = []
+	var scripted: EncounterDef = _scripted_battle
+	_scripted_battle = null
 	if outcome == BattleController.Outcome.FLED:
 		_after_flee()
+		if scripted != null:
+			event_battle_finished.emit(int(outcome))
 		return
 	if outcome != BattleController.Outcome.VICTORY:
 		locked = true
@@ -190,19 +306,21 @@ func _on_battle_finished(outcome: BattleController.Outcome) -> void:
 			g.queue_free()
 	_battle_group = []
 	_battle_enemy = null
-	player.global_position = arena.hero_positions()[0]
+	if scripted != null:
+		state.mark_defeated(scripted.unique_id)
+		player.global_position = _battle_from
+	else:
+		player.global_position = arena.hero_positions()[0]
 	player.visible = true
 	if followers != null:
 		followers.restart()
-	player.enabled = true
-	for e: MapEnemy in enemies():
-		e.frozen = false
-	exit_zone.armed = true
 	camera.resume_follow(state.cfg.camera_slide_time)
 	# Toques ignorados durante a batalha desarmaram os outros inimigos; rearma por último
 	# (se um deles ainda encosta no líder, o novo encontro começa agora, com o mapa já restaurado).
-	for e: MapEnemy in enemies():
-		e.rearm()
+	# Durante um evento o mundo segue parado até o fim dele.
+	_resume_world()
+	if scripted != null:
+		event_battle_finished.emit(int(outcome))
 
 ## Fuga: o jogador volta para onde estava; o inimigo fica no mapa, piscando e sem tocar por flee_cooldown.
 func _after_flee() -> void:
@@ -216,13 +334,8 @@ func _after_flee() -> void:
 	player.visible = true
 	if followers != null:
 		followers.restart()
-	player.enabled = true
-	for e: MapEnemy in enemies():
-		e.frozen = false
-	exit_zone.armed = true
 	camera.resume_follow(state.cfg.camera_slide_time)
-	for e: MapEnemy in enemies():
-		e.rearm()
+	_resume_world()
 
 func _on_exit_entered(_zone_id: StringName) -> void:
 	if battle != null or locked:
