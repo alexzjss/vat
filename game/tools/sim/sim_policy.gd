@@ -9,17 +9,26 @@ static func decide(session: SelectionSession, b: BattleState, policy: StringName
 		var a: PendingAction = _smart(session, b)
 		if a != null:
 			return a
-	return _basic(session, b)
+	return _basic(session, b, policy == &"smart")
 
 static func _reset(session: SelectionSession) -> void:
 	if session.step == SelectionSession.Step.TARGET or session.step == SelectionSession.Step.CONFIRM:
 		session.back()
 
-static func _basic(session: SelectionSession, _b: BattleState) -> PendingAction:
+## `avoid_shielded` (smart, M11): nao ataca o nucleo de chefe protegido por uma parte enquanto houver outro alvo.
+static func _basic(session: SelectionSession, b: BattleState, avoid_shielded: bool = false) -> PendingAction:
 	_reset(session)
 	if not session.choose_ability(session.actor.basic_attack):
 		return null
-	var target: Combatant = _lowest_hp(session.target_candidates())
+	var cands: Array[Combatant] = session.target_candidates()
+	if avoid_shielded:
+		var open: Array[Combatant] = []
+		for c: Combatant in cands:
+			if not b.core_shielded(c):
+				open.append(c)
+		if not open.is_empty():
+			cands = open
+	var target: Combatant = _lowest_hp(cands)
 	if target == null:
 		session.back()
 		return null
@@ -30,6 +39,8 @@ static func _smart(session: SelectionSession, b: BattleState) -> PendingAction:
 	var a: PendingAction = _limit(session)
 	if a == null:
 		a = _revive(session, b)
+	if a == null:
+		a = _cleanse(session, b)
 	if a == null:
 		a = _heal(session, b)
 	if a == null:
@@ -99,6 +110,33 @@ static func _revive(session: SelectionSession, b: BattleState) -> PendingAction:
 		return null
 	session.set_center(cands[0])
 	return session.confirm()
+
+## Cura estado negativo (M11) com um item que remova aquele estado, se houver.
+static func _cleanse(session: SelectionSession, b: BattleState) -> PendingAction:
+	for h: Combatant in b.living(b.heroes):
+		for s: ActiveStatus in h.statuses:
+			if not s.def.negative:
+				continue
+			var it: ItemDef = _cure_for(b, s.def)
+			if it == null or not session.choose_item(it):
+				continue
+			if not session.target_candidates().has(h):
+				session.back()
+				continue
+			session.set_center(h)
+			return session.confirm()
+	return null
+
+static func _cure_for(b: BattleState, def: StatusDef) -> ItemDef:
+	for it: ItemDef in b.inventory.listing():
+		if b.inventory.available(it.id) <= 0:
+			continue
+		for e: EffectDef in it.effects:
+			if e.kind != EffectDef.Kind.REMOVE_STATUS:
+				continue
+			if (e.status == null and e.statuses.is_empty()) or e.status == def or e.statuses.has(def):
+				return it
+	return null
 
 static func _heal(session: SelectionSession, b: BattleState) -> PendingAction:
 	var needy: Combatant = null

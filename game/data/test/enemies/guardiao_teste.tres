@@ -1,0 +1,131 @@
+[gd_resource type="Resource" script_class="EnemyDef" format=3]
+
+[ext_resource type="Script" path="res://core/defs/stats.gd" id="s_stats"]
+[ext_resource type="Script" path="res://core/defs/ai_rule.gd" id="s_rule"]
+[ext_resource type="Resource" path="res://data/test/abilities/golpe.tres" id="ab_golpe"]
+[ext_resource type="Resource" path="res://data/test/abilities/reerguer.tres" id="ab_reerguer"]
+[ext_resource type="Resource" path="res://data/test/abilities/silencio.tres" id="ab_silencio"]
+[ext_resource type="Resource" path="res://data/test/abilities/cegueira.tres" id="ab_cegueira"]
+[ext_resource type="Resource" path="res://data/test/abilities/confusao.tres" id="ab_confusao"]
+[ext_resource type="Script" path="res://core/defs/boss_phase.gd" id="s_phase"]
+[ext_resource type="Resource" path="res://data/test/abilities/pare.tres" id="ab_pare"]
+[ext_resource type="Resource" path="res://data/test/abilities/golpe_sismico.tres" id="ab_golpe_sismico"]
+[ext_resource type="Script" path="res://core/defs/enemy_def.gd" id="s_def"]
+[ext_resource type="Script" path="res://core/defs/ability_def.gd" id="s_ab"]
+[ext_resource type="Resource" path="res://data/test/abilities/contra_ataque.tres" id="ab_contra_ataque"]
+
+[sub_resource type="Resource" id="sub_1"]
+script = ExtResource("s_stats")
+strength = 24
+speed = 8
+vitality = 28
+aura = 10
+
+[sub_resource type="Resource" id="sub_2"]
+script = ExtResource("s_rule")
+condition = 0
+threshold = 0.0
+ability = ExtResource("ab_golpe")
+pick = 0
+telegraph = false
+chance = 1.0
+
+[sub_resource type="Resource" id="sub_3"]
+script = ExtResource("s_rule")
+condition = 2
+threshold = 0.0
+ability = ExtResource("ab_reerguer")
+pick = 0
+telegraph = false
+chance = 0.7
+
+[sub_resource type="Resource" id="sub_4"]
+script = ExtResource("s_rule")
+condition = 0
+threshold = 0.0
+ability = ExtResource("ab_silencio")
+pick = 1
+telegraph = false
+chance = 0.35
+
+[sub_resource type="Resource" id="sub_5"]
+script = ExtResource("s_rule")
+condition = 0
+threshold = 0.0
+ability = ExtResource("ab_cegueira")
+pick = 1
+telegraph = false
+chance = 0.35
+
+[sub_resource type="Resource" id="sub_6"]
+script = ExtResource("s_rule")
+condition = 0
+threshold = 0.0
+ability = ExtResource("ab_confusao")
+pick = 1
+telegraph = false
+chance = 0.35
+
+[sub_resource type="Resource" id="sub_7"]
+script = ExtResource("s_rule")
+condition = 0
+threshold = 0.0
+ability = ExtResource("ab_golpe")
+pick = 0
+telegraph = false
+chance = 1.0
+
+[sub_resource type="Resource" id="sub_8"]
+script = ExtResource("s_phase")
+hp_below = 0.66
+ai_rules = Array[ExtResource("s_rule")]([SubResource("sub_3"), SubResource("sub_4"), SubResource("sub_5"), SubResource("sub_6"), SubResource("sub_7")])
+banner = "Fase 2 (teste)"
+
+[sub_resource type="Resource" id="sub_9"]
+script = ExtResource("s_rule")
+condition = 0
+threshold = 0.0
+ability = ExtResource("ab_pare")
+pick = 1
+telegraph = false
+chance = 0.35
+
+[sub_resource type="Resource" id="sub_10"]
+script = ExtResource("s_rule")
+condition = 0
+threshold = 0.0
+ability = ExtResource("ab_golpe_sismico")
+pick = 0
+telegraph = true
+chance = 1.0
+
+[sub_resource type="Resource" id="sub_11"]
+script = ExtResource("s_rule")
+condition = 0
+threshold = 0.0
+ability = ExtResource("ab_golpe")
+pick = 0
+telegraph = false
+chance = 1.0
+
+[sub_resource type="Resource" id="sub_12"]
+script = ExtResource("s_phase")
+hp_below = 0.33
+ai_rules = Array[ExtResource("s_rule")]([SubResource("sub_9"), SubResource("sub_10"), SubResource("sub_11")])
+banner = "Fase 3 (teste)"
+
+[resource]
+script = ExtResource("s_def")
+id = &"guardiao_teste"
+display_name = "Guardião (teste)"
+level = 9
+base = SubResource("sub_1")
+xp_base = 400
+abilities = Array[ExtResource("s_ab")]([ExtResource("ab_golpe"), ExtResource("ab_silencio"), ExtResource("ab_cegueira"), ExtResource("ab_confusao"), ExtResource("ab_pare"), ExtResource("ab_reerguer"), ExtResource("ab_golpe_sismico"), ExtResource("ab_contra_ataque")])
+ai_rules = Array[ExtResource("s_rule")]([SubResource("sub_2")])
+phases = Array[ExtResource("s_phase")]([SubResource("sub_8"), SubResource("sub_12")])
+counter = ExtResource("ab_contra_ataque")
+counter_chance = 0.5
+counter_only_basic = true
+role = 1
+shields_core = false

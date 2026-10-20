@@ -4,6 +4,11 @@ extends RefCounted
 ## Relatorio comparativo das formulas F1-F12 (spec M5 §4/§5): varia UMA opcao por vez sobre o padrao (tudo A).
 ## Gera Markdown + CSV. Nao usa Node/cena; roda tambem dentro de testes GUT.
 
+## Chefe de teste do M11 (so relatorio, sem meta): encontro `chefe_dungeon` com o grupo no nivel pensado para a dungeon.
+const BOSS_ENC: String = "Chefe"
+const BOSS_LEVEL: int = 6 # valor de teste (M11: nivel do grupo no cenario do chefe)
+const BOSS_EXTRA_ITEMS: Array[int] = [2, 1] # valor de teste (M11: Remedio e Panaceia no cenario do chefe)
+
 const HERO_IDS: Array[String] = ["teste_a", "teste_b", "teste_c", "teste_d"]
 const LEVELS: Array[int] = [1, 5, 10]
 const ENCOUNTERS: Array[String] = ["X+Y", "X+Y+Z"]
@@ -106,6 +111,8 @@ static func _case_label(c: Dictionary) -> String:
 
 static func _enemies(enc: String) -> Array[EnemyDef]:
 	var out: Array[EnemyDef] = []
+	if enc == BOSS_ENC:
+		return (load("res://data/test/encounters/chefe_dungeon.tres") as EncounterDef).enemies.duplicate()
 	for letter: String in enc.split(" ")[0].split("+"):
 		out.append(load("res://data/test/enemies/inimigo_%s.tres" % letter.to_lower()) as EnemyDef)
 	return out
@@ -133,6 +140,9 @@ static func make_scenario(c: Dictionary, runs: int, prop: String, value: int, la
 	s.cfg = cfg
 	var item_ids: Array[String] = ["pocao", "eter", "reviver"]
 	var counts: Array[int] = [3, 2, 1]
+	if str(c["enc"]) == BOSS_ENC:
+		item_ids.append_array(["remedio", "panaceia"])
+		counts.append_array(BOSS_EXTRA_ITEMS)
 	for i: int in item_ids.size():
 		s.items.append(load("res://data/test/items/%s.tres" % item_ids[i]) as ItemDef)
 		s.item_counts.append(counts[i])
@@ -330,6 +340,38 @@ static func run_targets(runs: int, verbose: bool = false) -> Array[SimMetrics]:
 		out.append(SimRunner.run(make_scenario(c, runs, "", 0, "escolhido - %s" % _case_label(c), true)))
 	return out
 
+static func boss_cases() -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	for p: StringName in POLICIES:
+		out.append({"level": BOSS_LEVEL, "enc": BOSS_ENC, "policy": p})
+	return out
+
+## Roda o chefe de teste (basic e smart) com o padrao escolhido.
+static func run_boss(runs: int, verbose: bool = false) -> Array[SimMetrics]:
+	var out: Array[SimMetrics] = []
+	for c: Dictionary in boss_cases():
+		if verbose:
+			print("[sim] chefe %s" % _case_label(c))
+		out.append(SimRunner.run(make_scenario(c, runs, "", 0, "escolhido - %s" % _case_label(c), true)))
+	return out
+
+## Secao "Chefe (M11)" do relatorio final: so mostra numeros (sem meta obrigatoria; chefe exige tatica).
+static func boss_section(cases: Array[Dictionary], ms: Array[SimMetrics]) -> String:
+	var lines: Array[String] = []
+	lines.append("## Chefe (M11)
+")
+	lines.append("Cenario so de relatorio, sem meta obrigatoria (chefe exige tatica; `basic` pode perder). Encontro `chefe_dungeon` (Guardiao + 2 Bracos) com o grupo A-D no nivel %d, alocacao `main`, itens: Pocao 3, Eter 2, Reviver 1, Remedio %d, Panaceia %d. Referencia de duracao do plano de metas: 2-4 min.
+" % [BOSS_LEVEL, BOSS_EXTRA_ITEMS[0], BOSS_EXTRA_ITEMS[1]])
+	lines.append("| Politica | Vitorias | Derrotas | Tempos esg. | Dur media (s) | Dur mediana (s) | HP final | Estados apl/res |
+|---|---|---|---|---|---|---|---|")
+	for i: int in cases.size():
+		var m: SimMetrics = ms[i]
+		lines.append("| %s | %.0f%% | %d | %d | %.1f | %.1f | %.0f%% | %d/%d |" % [str(cases[i]["policy"]), m.win_rate() * 100.0, m.losses, m.timeouts,
+			m.mean_duration(), m.median_duration(), m.mean_party_hp_pct() * 100.0, m.statuses_applied, m.statuses_resisted])
+	lines.append("")
+	return "
+".join(lines)
+
 ## Meta atendida? smart: vitoria >= 95% e 20-60 s (X+Y puro pode ser mais curto: so piso de 10 s); basic: vitoria >= 75%.
 static func meets_target(policy: StringName, enc: String, m: SimMetrics) -> bool:
 	if policy == &"smart":
@@ -395,6 +437,10 @@ static func build_final(runs: int, verbose: bool = false) -> Dictionary:
 		md.append("")
 	md.append(NOTES + "
 ")
+	var boss_cs: Array[Dictionary] = boss_cases()
+	var boss_ms: Array[SimMetrics] = run_boss(runs, verbose)
+	md.append(boss_section(boss_cs, boss_ms))
+	csv.append_array(_csv_rows("BOSS", "escolhido", boss_cs, boss_ms))
 	return {"markdown": "
 ".join(md), "csv": "
 ".join(csv) + "

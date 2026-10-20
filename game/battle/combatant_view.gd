@@ -37,6 +37,8 @@ const ATTR_LABELS: Dictionary[StringName, String] = {
 var combatant: Combatant
 var cfg: BalanceConfig
 var highlighted: bool = false
+## Nucleo de chefe protegido por uma parte (M11): a cena atualiza todo quadro; o HUD avisa "Protegido".
+var shielded: bool = false
 
 func bind(c: Combatant, p_cfg: BalanceConfig) -> void:
 	combatant = c
@@ -58,9 +60,15 @@ func _draw() -> void:
 		draw_circle(Vector2.ZERO, half, DOWN_COLOR if down else ENEMY_COLOR)
 	if highlighted:
 		draw_rect(Rect2(-half - 4.0, -half - 4.0, SIZE + 8.0, SIZE + 8.0), Color.YELLOW, false, 3.0)
+	if combatant.is_charging() and not down:
+		draw_arc(Vector2.ZERO, half + 8.0, 0.0, TAU, 40, Color(1.0, 0.6, 0.1), 4.0)
 	var font: Font = ThemeDB.fallback_font
 	var x0: float = -BAR_W / 2.0
 	draw_string(font, Vector2(x0, -half - 10.0), combatant.display_name, HORIZONTAL_ALIGNMENT_CENTER, BAR_W, 16)
+	if shielded and not down:
+		draw_string(font, Vector2(x0, -half - 28.0), "Protegido", HORIZONTAL_ALIGNMENT_CENTER, BAR_W, 14, Color(0.55, 0.8, 1.0))
+	if combatant.is_charging() and not down:
+		draw_string(font, Vector2(x0, -half - 28.0), "Preparando", HORIZONTAL_ALIGNMENT_CENTER, BAR_W, 14, Color(1.0, 0.7, 0.2))
 	var y: float = half + 8.0
 	var hp_max: int = StatCalculator.hp_max(combatant, cfg)
 	var ap_max: int = StatCalculator.ap_max(combatant, cfg)
@@ -117,7 +125,7 @@ func show_hit(hit: Dictionary) -> void:
 				# Ex.: Barreira absorveu todo o dano.
 				float_text("Bloqueado", Color.WHITE)
 			else:
-				float_text("-%d" % amount, Color(1.0, 0.4, 0.4))
+				float_text(("Protegido -%d" if hit.get("shielded", false) else "-%d") % amount, Color(1.0, 0.4, 0.4))
 		EffectDef.Kind.HEAL, EffectDef.Kind.REVIVE:
 			float_text("+%d" % amount, Color(0.4, 1.0, 0.5))
 		EffectDef.Kind.RESTORE_AP:

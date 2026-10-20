@@ -65,6 +65,9 @@ var _flee_bar: ProgressBar
 var _flee_label: Label
 var _banner: Label
 var _banner_left: float = 0.0
+## Aviso menor (M11: "X prepara Y!"), abaixo da faixa.
+var _notice: Label
+var _notice_left: float = 0.0
 
 var _demo: bool = false
 var _demo_area_done: bool = false
@@ -186,6 +189,9 @@ func start_with(heroes: Array[HeroState], enemies: Array[EnemyDef], hero_pos: Ar
 	ctrl.action_finished.connect(_on_action_finished)
 	ctrl.action_impact.connect(_on_action_impact)
 	ctrl.status_tick.connect(_on_status_tick)
+	ctrl.phase_changed.connect(_on_phase_changed)
+	ctrl.charge_started.connect(_on_charge_started)
+	ctrl.counter_fired.connect(_on_counter_fired)
 	ctrl.turn_lost.connect(_on_turn_lost)
 	ctrl.battle_ended.connect(_on_battle_ended)
 
@@ -193,6 +199,8 @@ func _process(delta: float) -> void:
 	if ctrl == null:
 		return
 	_tick_banner(delta)
+	for v: CombatantView in views.values():
+		v.shielded = ctrl.b.core_shielded(v.combatant)
 	if _slide_left > 0.0:
 		_advance_slide(delta)
 	else:
@@ -230,6 +238,17 @@ func _build_flee_ui() -> void:
 	_banner.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_banner.visible = false
 	ui.add_child(_banner)
+	_notice = Label.new()
+	_notice.position = Vector2(240, 124)
+	_notice.size = Vector2(800, 40)
+	_notice.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_notice.add_theme_font_size_override("font_size", 28)
+	_notice.add_theme_color_override("font_color", Color(1.0, 0.75, 0.25))
+	_notice.add_theme_color_override("font_outline_color", Color.BLACK)
+	_notice.add_theme_constant_override("outline_size", 6)
+	_notice.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_notice.visible = false
+	ui.add_child(_notice)
 	_flee_bar = ProgressBar.new()
 	_flee_bar.min_value = 0.0
 	_flee_bar.max_value = 1.0
@@ -272,19 +291,50 @@ func banner_visible() -> bool:
 	return _banner != null and _banner.visible
 
 func _show_banner(kind: Initiative.Kind) -> void:
+	_show_message(banner_text(kind))
+
+## Faixa grande no alto (iniciativa, fase de chefe) por `banner_time`; texto vazio apaga.
+func _show_message(t: String) -> void:
 	if _banner == null:
 		return
-	var t: String = banner_text(kind)
 	_banner.text = t
 	_banner.visible = t != ""
 	_banner_left = balance.banner_time if t != "" else 0.0
 
 func _tick_banner(delta: float) -> void:
+	if _notice_left > 0.0:
+		_notice_left = maxf(0.0, _notice_left - delta)
+		if _notice_left <= 0.0:
+			_notice.visible = false
 	if _banner_left <= 0.0:
 		return
 	_banner_left = maxf(0.0, _banner_left - delta)
 	if _banner_left <= 0.0:
 		_banner.visible = false
+
+func notice_text_shown() -> String:
+	return _notice.text if _notice != null and _notice.visible else ""
+
+## Aviso menor por `banner_time`: "X prepara Y!".
+func _show_notice(t: String) -> void:
+	if _notice == null:
+		return
+	_notice.text = t
+	_notice.visible = t != ""
+	_notice_left = balance.banner_time if t != "" else 0.0
+
+## Chefe: entrou numa nova fase de HP.
+func _on_phase_changed(_c: Combatant, banner: String) -> void:
+	_show_message(banner)
+
+## Chefe: gastou o turno preparando um ataque anunciado.
+func _on_charge_started(c: Combatant, a: PendingAction) -> void:
+	_show_notice("%s prepara %s!" % [c.display_name, a.ability.display_name])
+
+## Chefe: contra-ataque logo depois da acao do heroi.
+func _on_counter_fired(c: Combatant, _target: Combatant) -> void:
+	if views.has(c.id):
+		views[c.id].float_text("Contra-ataque!", Color(1.0, 0.8, 0.3))
 
 func _advance_slide(delta: float) -> void:
 	_slide_left = maxf(0.0, _slide_left - delta)

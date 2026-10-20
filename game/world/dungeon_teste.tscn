@@ -20,6 +20,8 @@
 [ext_resource type="Resource" path="res://data/test/items/pocao.tres" id="pocao"]
 [ext_resource type="Resource" path="res://data/test/items/chave_teste.tres" id="chave"]
 [ext_resource type="Resource" path="res://data/test/encounters/encontro_x.tres" id="enc_x"]
+[ext_resource type="PackedScene" path="res://world/map_enemy.tscn" id="map_enemy"]
+[ext_resource type="Resource" path="res://data/test/encounters/chefe_dungeon.tres" id="enc_boss"]
 
 [sub_resource type="RectangleShape2D" id="sh_2400x20"]
 size = Vector2(2400, 20)
@@ -292,6 +294,13 @@ position = Vector2(2150, 520)
 
 [node name="BossSpot" type="Marker2D" parent="."]
 position = Vector2(2280, 360)
+
+[node name="Boss" parent="." instance=ExtResource("map_enemy")]
+position = Vector2(2280, 360)
+encounter = ExtResource("enc_boss")
+region = Rect2(2270, 350, 20, 20)
+arena_path = NodePath("../Arena")
+requires_flag = &"cena_final"
 
 [node name="Arena" type="Node2D" parent="."]
 position = Vector2(1950, 360)

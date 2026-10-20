@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="EncounterDef" format=3]
+
+[ext_resource type="Script" path="res://core/defs/encounter_def.gd" id="s_enc"]
+[ext_resource type="Script" path="res://core/defs/enemy_def.gd" id="s_def"]
+[ext_resource type="Resource" path="res://data/test/enemies/braco_teste.tres" id="e_arm"]
+[ext_resource type="Resource" path="res://data/test/enemies/guardiao_teste.tres" id="e_core"]
+
+
+[resource]
+script = ExtResource("s_enc")
+id = &"chefe_dungeon"
+enemies = Array[ExtResource("s_def")]([ExtResource("e_arm"), ExtResource("e_arm"), ExtResource("e_core")])
+can_flee = false
+unique_id = &"chefe_dungeon"

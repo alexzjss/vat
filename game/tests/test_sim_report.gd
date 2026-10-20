@@ -77,3 +77,41 @@ func test_target_cases_and_final_report() -> void:
 	var r: Dictionary = SimReport.build_final(1)
 	assert_true((r["markdown"] as String).contains(SimScenario.BASELINE_CHOSEN))
 	assert_true((r["markdown"] as String).contains("## Antes x depois"))
+
+# --- Chefe (M11): cenario so de relatorio e politica smart minima ---
+
+func test_boss_cases_and_section_in_the_final_report() -> void:
+	assert_eq(SimReport.boss_cases().size(), 2)
+	var r: Dictionary = SimReport.build_final(1)
+	assert_true((r["markdown"] as String).contains("## Chefe (M11)"))
+	assert_true((r["csv"] as String).contains("BOSS,escolhido"))
+
+func test_boss_scenario_ends_every_run() -> void:
+	var ms: Array[SimMetrics] = SimReport.run_boss(1)
+	assert_eq(ms.size(), 2)
+	for m: SimMetrics in ms:
+		assert_eq(m.timeouts, 0)
+		assert_eq(m.wins + m.losses, 1)
+
+func _boss_battle() -> BattleState:
+	var cfg: BalanceConfig = Fixtures.cfg()
+	var core_def: EnemyDef = Fixtures.enemy_def(&"core", Stats.make(5, 1, 10, 5))
+	core_def.role = EnemyDef.Role.CORE
+	var arm_def: EnemyDef = Fixtures.enemy_def(&"arm", Stats.make(5, 1, 10, 5))
+	arm_def.role = EnemyDef.Role.PART
+	arm_def.shields_core = true
+	var core: Combatant = Combatant.from_enemy(core_def, &"core", Vector2.ZERO, cfg)
+	var arm: Combatant = Combatant.from_enemy(arm_def, &"arm", Vector2.ZERO, cfg)
+	core.hp = 1
+	var hero: Combatant = Combatant.from_hero(HeroState.create(Fixtures.hero_def(&"h", Stats.make(10, 5, 10, 1)), cfg), Vector2.ZERO)
+	return BattleState.create(cfg, ScriptedDice.new(), [hero], [core, arm])
+
+func test_smart_does_not_attack_a_shielded_core_but_basic_does() -> void:
+	var b: BattleState = _boss_battle()
+	var smart: PendingAction = SimPolicy.decide(SelectionSession.new(b.heroes[0], b), b, &"smart")
+	assert_eq(smart.center.id, &"arm", "smart ataca a parte que protege")
+	var basic: PendingAction = SimPolicy.decide(SelectionSession.new(b.heroes[0], b), b, &"basic")
+	assert_eq(basic.center.id, &"core", "basic segue o menor HP")
+	b.enemies[1].hp = 0
+	var open: PendingAction = SimPolicy.decide(SelectionSession.new(b.heroes[0], b), b, &"smart")
+	assert_eq(open.center.id, &"core", "sem a parte de pe o nucleo e alvo normal")

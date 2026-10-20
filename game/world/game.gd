@@ -9,7 +9,7 @@ extends Node
 ## Eventos (M10): `play_event(script)` roda um roteiro no mapa atual com o EventPlayer; enquanto dura, o mapa fica
 ## parado e o menu de campo não abre. Troca de mapa e Game Over cancelam o evento.
 ## Debug: `-- --demo-field-menu` (DemoFieldMenu) percorre as páginas do menu; `-- --demo-m2` (DemoM2) e
-## `-- --demo-m3` (DemoM3) / `-- --demo-m4` (DemoM4) / `-- --demo-m6` (DemoM6, descanso e save) / `-- --demo-m7` (DemoM7, corrida, iniciativa, fuga e chefe) / `-- --demo-m8` (DemoM8, Limite e Suporte) percorrem os ciclos dos marcos sozinhos (verificação com --write-movie).
+## `-- --demo-m3` (DemoM3) / `-- --demo-m4` (DemoM4) / `-- --demo-m6` (DemoM6, descanso e save) / `-- --demo-m7` (DemoM7, corrida, iniciativa, fuga e chefe) / `-- --demo-m8` (DemoM8, Limite e Suporte) / `-- --demo-m11` (DemoM11, chefe de teste da dungeon) percorrem os ciclos dos marcos sozinhos (verificação com --write-movie).
 
 ## Saves das demos (`--demo-*`) vão para cá, nunca para os slots reais.
 const DEMO_SAVE_DIR: String = "user://demo_saves/"
@@ -98,6 +98,8 @@ func _ready() -> void:
 		_add_demo(DemoM8.new(), "DemoM8")
 	if args.has("--demo-m10"):
 		_add_demo(DemoM10.new(), "DemoM10")
+	if args.has("--demo-m11"):
+		_add_demo(DemoM11.new(), "DemoM11")
 	if args.has("--demo-field-menu"):
 		_add_demo(DemoFieldMenu.new(), "DemoFieldMenu")
 

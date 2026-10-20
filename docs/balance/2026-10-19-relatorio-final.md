@@ -54,6 +54,15 @@ Baseline: **padrao escolhido (balance.tres)**. Gerado por `run_sim.ps1 -Final` (
 - TTK (acoes) e a media so das execucoes em que o inimigo morreu (derrotas/tempos esgotados nao entram).
 - Diferencas pequenas (alguns pontos de vitoria) em poucas execucoes sao ruido, nao efeito da formula.
 
+## Chefe (M11)
+
+Cenario so de relatorio, sem meta obrigatoria (chefe exige tatica; `basic` pode perder). Encontro `chefe_dungeon` (Guardiao + 2 Bracos) com o grupo A-D no nivel 6, alocacao `main`, itens: Pocao 3, Eter 2, Reviver 1, Remedio 2, Panaceia 1. Referencia de duracao do plano de metas: 2-4 min.
+
+| Politica | Vitorias | Derrotas | Tempos esg. | Dur media (s) | Dur mediana (s) | HP final | Estados apl/res |
+|---|---|---|---|---|---|---|---|
+| basic | 0% | 30 | 0 | 63.6 | 63.5 | 0% | 0/0 |
+| smart | 83% | 5 | 0 | 163.2 | 178.5 | 34% | 72/7 |
+
 ## Efeito do Limite (M8)
 
 Regerado com a barra de Limite no jogo (`limit_fill_mult` 1,5, valor de teste). A política `smart` usa o golpe de Limite assim que a barra enche; `basic` não usa, então suas linhas não mudam. Efeito: as batalhas `smart` ficam mais curtas (N1 X+Y 45,7 s -> 33,0 s; N5 X+Y 41,6 -> 25,4; N5 X+Y+Z 55,4 -> 35,3; N10 X+Y+Z 43,3 -> 38,0) e continuam dentro das metas (vitória 100%, 20–60 s; `basic` 100% >= 75%). Nenhum valor precisou de ajuste.

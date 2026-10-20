@@ -16,6 +16,8 @@ enum Behavior { WANDER, PATROL }
 @export var lurking: bool = false
 ## Inimigos do mesmo grupo (não vazio) perto do tocado entram na mesma batalha.
 @export var group: StringName = &""
+## Chefe de sala (M11): enquanto essa flag do GameState for 0, o inimigo fica invisível e sem toque.
+@export var requires_flag: StringName = &""
 
 ## Longe demais para qualquer comportamento notar o jogador.
 const FAR: Vector2 = Vector2(1.0e9, 1.0e9)
@@ -28,6 +30,8 @@ var player: Node2D
 var facing: Vector2 = Vector2.ZERO
 
 var _touch_armed: bool = true
+## Já liberado pela flag (`requires_flag`); sem flag exigida vale sempre.
+var _gate_open: bool = true
 var _cfg: BalanceConfig
 ## Apareceu de um esconderijo: o contato conta sempre como emboscada.
 var _revealed: bool = false
@@ -50,8 +54,13 @@ func _ready() -> void:
 	_touch_area.body_entered.connect(_on_touch_body_entered)
 	if lurking:
 		_set_hidden_state(true)
+	if requires_flag != &"":
+		_gate_open = false
+		_set_hidden_state(true)
+		sync_flag_gate()
 
 func _physics_process(delta: float) -> void:
+	sync_flag_gate()
 	_tick_cooldown(delta)
 	if frozen or movement == null:
 		velocity = Vector2.ZERO
@@ -67,6 +76,22 @@ func _physics_process(delta: float) -> void:
 	if velocity != Vector2.ZERO:
 		facing = velocity.normalized()
 	move_and_slide()
+
+## Segue a flag exigida: aparece (e passa a tocar) quando ela deixa de ser 0. Só muda de estado na transição,
+## então o esconde-esconde da batalha e do `lurking` não é desfeito.
+func sync_flag_gate() -> void:
+	if requires_flag == &"":
+		return
+	var s: GameState = LocalMap.state_of(self)
+	var open: bool = s != null and s.get_flag(requires_flag) != 0
+	if open == _gate_open:
+		return
+	_gate_open = open
+	_set_hidden_state(not open)
+
+## O chefe de sala está liberado (sem flag exigida, sempre).
+func gate_open() -> bool:
+	return _gate_open
 
 func arena() -> BattleArena:
 	if arena_path.is_empty():
@@ -110,7 +135,7 @@ func _tick_cooldown(delta: float) -> void:
 
 ## Rearma o toque (menos durante o cooldown de fuga); se o jogador ainda estiver sobreposto, emite de novo.
 func rearm() -> void:
-	if _cooldown > 0.0 or lurking:
+	if _cooldown > 0.0 or lurking or not _gate_open:
 		return
 	_touch_armed = true
 	if _touch_area == null:
@@ -125,7 +150,7 @@ func _on_touch_body_entered(body: Node2D) -> void:
 		_emit_touch()
 
 func _emit_touch() -> void:
-	if not _touch_armed:
+	if not _touch_armed or not _gate_open:
 		return
 	_touch_armed = false
 	touched.emit(self)
