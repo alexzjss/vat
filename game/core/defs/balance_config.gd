@@ -36,6 +36,8 @@ enum DurationMode { A, B }
 @export var flee_base_rate: float = 0.25 # valor de teste (M7: barra de fuga por segundo)
 @export var flee_decay: float = 0.5 # valor de teste (M7: esvaziamento da barra por segundo)
 @export var flee_cooldown: float = 3.0 # valor de teste (M7: segundos sem toque do inimigo apos a fuga)
+@export var backstab_angle: float = 120.0 # valor de teste (M7: graus; acima disso o toque e pelas costas)
+@export var banner_time: float = 1.2 # valor de teste (M7: segundos da faixa Ataque surpresa/Emboscada)
 @export var wander_speed: float = 80.0
 @export var wander_wait_min: float = 0.5
 @export var wander_wait_max: float = 1.5

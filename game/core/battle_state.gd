@@ -43,3 +43,18 @@ func all() -> Array[Combatant]:
 	out.append_array(heroes)
 	out.append_array(enemies)
 	return out
+
+## Iniciativa por contato (M7): o lado favorecido começa com ATB cheio e já na fila; o outro, com 0.
+## NORMAL não mexe em nada (o ATB inicial de sempre).
+func apply_initiative(kind: Initiative.Kind) -> void:
+	if kind == Initiative.Kind.NORMAL:
+		return
+	var favored: Array[Combatant] = heroes if kind == Initiative.Kind.PREEMPTIVE else enemies
+	var other: Array[Combatant] = enemies if kind == Initiative.Kind.PREEMPTIVE else heroes
+	for c: Combatant in other:
+		c.atb = 0.0
+	for c: Combatant in favored:
+		if c.is_down():
+			continue
+		c.atb = 1.0
+		queue.push(c, tick)

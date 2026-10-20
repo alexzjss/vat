@@ -9,6 +9,8 @@ signal touched(enemy: MapEnemy)
 
 var movement: MapMovement
 var frozen: bool = false
+## Frente do inimigo: direção da última velocidade diferente de zero (ZERO = nunca andou).
+var facing: Vector2 = Vector2.ZERO
 
 var _touch_armed: bool = true
 ## Segundos restantes sem poder encostar (depois de uma fuga); o inimigo pisca.
@@ -29,12 +31,17 @@ func _physics_process(delta: float) -> void:
 		velocity = Vector2.ZERO
 		return
 	velocity = movement.step(position, delta)
+	if velocity != Vector2.ZERO:
+		facing = velocity.normalized()
 	move_and_slide()
 
 func arena() -> BattleArena:
 	if arena_path.is_empty():
 		return null
 	return get_node_or_null(arena_path) as BattleArena
+
+func is_chasing() -> bool:
+	return movement != null and movement.is_chasing()
 
 func in_cooldown() -> bool:
 	return _cooldown > 0.0

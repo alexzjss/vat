@@ -102,6 +102,8 @@ func _on_enemy_touched(enemy: MapEnemy) -> void:
 	exit_zone.armed = false
 	camera.slide_to(arena.center(), state.cfg.camera_slide_time)
 	var from_pos: Vector2 = player.global_position
+	var kind: Initiative.Kind = Initiative.classify(enemy.global_position, enemy.facing, enemy.is_chasing(),
+			from_pos, state.cfg.backstab_angle)
 	_battle_from = from_pos
 	player.visible = false
 	if followers != null:
@@ -121,7 +123,7 @@ func _on_enemy_touched(enemy: MapEnemy) -> void:
 	add_child(battle)
 	# Síncrono logo após add_child: o _auto_start adiado da cena só é pulado se ctrl já existir.
 	battle.start_with(state.heroes, defs, arena.hero_positions().slice(0, state.heroes.size()), arena.enemy_positions(defs.size()),
-			state.inventory, from_pos)
+			state.inventory, from_pos, kind)
 
 func _on_battle_finished(outcome: BattleController.Outcome) -> void:
 	var arena: BattleArena = _arena_for(_battle_enemy) if is_instance_valid(_battle_enemy) else default_arena

@@ -58,6 +58,8 @@ var _slide_left: float = 0.0
 var _flee_held: bool = false
 var _flee_bar: ProgressBar
 var _flee_label: Label
+var _banner: Label
+var _banner_left: float = 0.0
 
 var _demo: bool = false
 var _demo_area_done: bool = false
@@ -111,7 +113,8 @@ func start(heroes: Array[HeroState]) -> void:
 ## from_pos finito: as views começam lá e deslizam até a posição em cfg.battle_slide_time;
 ## o ctrl só avança depois do deslize.
 func start_with(heroes: Array[HeroState], enemies: Array[EnemyDef], hero_pos: Array[Vector2],
-		enemy_pos: Array[Vector2], inventory: Inventory, from_pos: Vector2 = Vector2.INF) -> void:
+		enemy_pos: Array[Vector2], inventory: Inventory, from_pos: Vector2 = Vector2.INF,
+		initiative: Initiative.Kind = Initiative.Kind.NORMAL) -> void:
 	_clear()
 	_background.visible = mode == Mode.STANDALONE
 	_outcome_label.visible = mode == Mode.STANDALONE
@@ -141,6 +144,7 @@ func start_with(heroes: Array[HeroState], enemies: Array[EnemyDef], hero_pos: Ar
 		# enfraquece os inimigos para o roteiro chegar à vitória e às telas de nível.
 		for e: Combatant in enemy_cs:
 			e.hp = maxi(1, e.hp / 4)
+	b.apply_initiative(initiative)
 	ctrl = BattleController.new(b)
 	ctrl.speed_mult = settings.speed_mult() if settings != null else 1.0
 	ctrl.can_flee = can_flee and mode == Mode.MAP
@@ -155,6 +159,7 @@ func start_with(heroes: Array[HeroState], enemies: Array[EnemyDef], hero_pos: Ar
 		add_child(v)
 		v.bind(c, balance)
 		views[c.id] = v
+	_show_banner(initiative)
 	_slide_from = from_pos
 	_slide_left = 0.0
 	if from_pos.is_finite() and balance.battle_slide_time > 0.0:
@@ -171,6 +176,7 @@ func start_with(heroes: Array[HeroState], enemies: Array[EnemyDef], hero_pos: Ar
 func _process(delta: float) -> void:
 	if ctrl == null:
 		return
+	_tick_banner(delta)
 	if _slide_left > 0.0:
 		_advance_slide(delta)
 	else:
@@ -198,6 +204,16 @@ func _build_flee_ui() -> void:
 	var ui: Node = get_node_or_null(^"UI")
 	if ui == null:
 		return
+	_banner = Label.new()
+	_banner.position = Vector2(340, 60)
+	_banner.size = Vector2(600, 60)
+	_banner.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_banner.add_theme_font_size_override("font_size", 40)
+	_banner.add_theme_color_override("font_outline_color", Color.BLACK)
+	_banner.add_theme_constant_override("outline_size", 8)
+	_banner.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_banner.visible = false
+	ui.add_child(_banner)
 	_flee_bar = ProgressBar.new()
 	_flee_bar.min_value = 0.0
 	_flee_bar.max_value = 1.0
@@ -223,6 +239,33 @@ func _refresh_flee_ui() -> void:
 	_flee_label.visible = msg != ""
 	_flee_bar.value = ctrl.flee_gauge
 	_flee_bar.visible = ctrl.flee_gauge > 0.0
+
+## Texto da faixa de iniciativa ("" para NORMAL).
+static func banner_text(kind: Initiative.Kind) -> String:
+	match kind:
+		Initiative.Kind.PREEMPTIVE:
+			return "Ataque surpresa!"
+		Initiative.Kind.AMBUSH:
+			return "Emboscada!"
+	return ""
+
+func banner_visible() -> bool:
+	return _banner != null and _banner.visible
+
+func _show_banner(kind: Initiative.Kind) -> void:
+	if _banner == null:
+		return
+	var t: String = banner_text(kind)
+	_banner.text = t
+	_banner.visible = t != ""
+	_banner_left = balance.banner_time if t != "" else 0.0
+
+func _tick_banner(delta: float) -> void:
+	if _banner_left <= 0.0:
+		return
+	_banner_left = maxf(0.0, _banner_left - delta)
+	if _banner_left <= 0.0:
+		_banner.visible = false
 
 func _advance_slide(delta: float) -> void:
 	_slide_left = maxf(0.0, _slide_left - delta)
