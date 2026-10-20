@@ -11,10 +11,12 @@ var state: GameState
 
 @onready var player: Player = $Player
 @onready var camera: MapCamera = $MapCamera
-@onready var area_teste: Zone = $AreaTeste
 
 func _ready() -> void:
-	area_teste.entered.connect(_on_zone_entered)
+	for child: Node in get_children():
+		var zone: Zone = child as Zone
+		if zone != null:
+			zone.entered.connect(_on_zone_entered)
 
 ## Posiciona o jogador no marcador `spawn` (ou em `Start`, se não existir) e liga a câmera.
 func setup(game_state: GameState, spawn: StringName) -> void:

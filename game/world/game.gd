@@ -17,7 +17,11 @@ const DEMO_SAVE_DIR: String = "user://demo_saves/"
 const MAPS: Dictionary[StringName, PackedScene] = {
 	&"overworld": preload("res://world/overworld.tscn"),
 	&"area_teste": preload("res://world/local_map.tscn"),
+	&"dungeon_teste": preload("res://world/dungeon_teste.tscn"),
 }
+
+## Marcador do mapa-múndi onde o jogador reaparece ao sair de cada área.
+const EXIT_SPAWNS: Dictionary[StringName, StringName] = {&"area_teste": &"AreaTesteReturn", &"dungeon_teste": &"DungeonReturn"}
 
 @export var balance: BalanceConfig
 @export var party: Array[CharacterDef] = []
@@ -92,6 +96,8 @@ func _ready() -> void:
 		_add_demo(DemoM7.new(), "DemoM7")
 	if args.has("--demo-m8"):
 		_add_demo(DemoM8.new(), "DemoM8")
+	if args.has("--demo-m10"):
+		_add_demo(DemoM10.new(), "DemoM10")
 	if args.has("--demo-field-menu"):
 		_add_demo(DemoFieldMenu.new(), "DemoFieldMenu")
 
@@ -306,7 +312,7 @@ func _on_rest_closed() -> void:
 func _on_exit_requested() -> void:
 	if busy:
 		return
-	go_to(&"overworld", &"AreaTesteReturn")
+	go_to(&"overworld", EXIT_SPAWNS.get(current_map, &"Start"))
 
 func _on_game_over() -> void:
 	if busy or in_title or game_over_screen != null:

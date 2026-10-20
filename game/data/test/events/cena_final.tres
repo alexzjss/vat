@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="EventScript" format=3]
+
+[ext_resource type="Script" path="res://core/events/event_script.gd" id="1_es"]
+[ext_resource type="Script" path="res://core/events/event_step.gd" id="2_st"]
+[ext_resource type="Script" path="res://core/events/say_step.gd" id="3_say"]
+[ext_resource type="Script" path="res://core/events/move_actor_step.gd" id="4_mv"]
+[ext_resource type="Script" path="res://core/events/camera_to_step.gd" id="5_cam"]
+[ext_resource type="Script" path="res://core/events/wait_step.gd" id="6_wt"]
+
+[sub_resource type="Resource" id="s_say1"]
+script = ExtResource("3_say")
+speaker = "Vigia"
+text = "Texto de teste: esta é a sala final."
+
+[sub_resource type="Resource" id="s_move"]
+script = ExtResource("4_mv")
+actor = NodePath("NpcFinal")
+to_marker = NodePath("CenaMarker")
+
+[sub_resource type="Resource" id="s_say2"]
+script = ExtResource("3_say")
+speaker = "Vigia"
+text = "Texto de teste: um chefe poderá ficar ali, no futuro."
+
+[sub_resource type="Resource" id="s_cam"]
+script = ExtResource("5_cam")
+marker = NodePath("BossSpot")
+
+[sub_resource type="Resource" id="s_wait"]
+script = ExtResource("6_wt")
+seconds = 1.0
+
+[resource]
+script = ExtResource("1_es")
+steps = Array[ExtResource("2_st")]([SubResource("s_say1"), SubResource("s_move"), SubResource("s_say2"), SubResource("s_cam"), SubResource("s_wait")])

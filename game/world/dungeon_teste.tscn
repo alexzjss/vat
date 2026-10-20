@@ -1,0 +1,336 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://world/local_map.gd" id="map"]
+[ext_resource type="PackedScene" path="res://world/player.tscn" id="player"]
+[ext_resource type="Script" path="res://world/map_camera.gd" id="cam"]
+[ext_resource type="Script" path="res://world/zone.gd" id="zone"]
+[ext_resource type="Script" path="res://world/battle_arena.gd" id="arena"]
+[ext_resource type="Script" path="res://world/rest_point.gd" id="rest"]
+[ext_resource type="Script" path="res://world/party_followers.gd" id="fol"]
+[ext_resource type="Script" path="res://world/sign.gd" id="sign"]
+[ext_resource type="Script" path="res://world/npc.gd" id="npc"]
+[ext_resource type="Script" path="res://world/chest.gd" id="chest"]
+[ext_resource type="Script" path="res://world/door.gd" id="door"]
+[ext_resource type="Script" path="res://world/switch.gd" id="switch"]
+[ext_resource type="Script" path="res://world/flag_gate.gd" id="gate"]
+[ext_resource type="Script" path="res://world/trap.gd" id="trap"]
+[ext_resource type="Script" path="res://world/event_trigger.gd" id="trig"]
+[ext_resource type="Resource" path="res://data/test/events/npc_guia.tres" id="ev_guia"]
+[ext_resource type="Resource" path="res://data/test/events/cena_final.tres" id="ev_cena"]
+[ext_resource type="Resource" path="res://data/test/items/pocao.tres" id="pocao"]
+[ext_resource type="Resource" path="res://data/test/items/chave_teste.tres" id="chave"]
+[ext_resource type="Resource" path="res://data/test/encounters/encontro_x.tres" id="enc_x"]
+
+[sub_resource type="RectangleShape2D" id="sh_2400x20"]
+size = Vector2(2400, 20)
+
+[sub_resource type="RectangleShape2D" id="sh_20x720"]
+size = Vector2(20, 720)
+
+[sub_resource type="RectangleShape2D" id="sh_20x280"]
+size = Vector2(20, 280)
+
+[sub_resource type="RectangleShape2D" id="sh_exit"]
+size = Vector2(80, 160)
+
+[sub_resource type="RectangleShape2D" id="sh_rest"]
+size = Vector2(120, 80)
+
+[sub_resource type="RectangleShape2D" id="sh_door"]
+size = Vector2(96, 96)
+
+
+[node name="DungeonTeste" type="Node2D"]
+script = ExtResource("map")
+
+[node name="Background" type="ColorRect" parent="."]
+offset_right = 2400.0
+offset_bottom = 720.0
+mouse_filter = 2
+color = Color(0.08, 0.08, 0.12, 1)
+
+[node name="Floor1" type="ColorRect" parent="."]
+offset_left = 20
+offset_top = 20.0
+offset_right = 720
+offset_bottom = 700.0
+mouse_filter = 2
+color = Color(0.2, 0.2, 0.26, 1)
+
+[node name="Floor2" type="ColorRect" parent="."]
+offset_left = 740
+offset_top = 20.0
+offset_right = 1500
+offset_bottom = 700.0
+mouse_filter = 2
+color = Color(0.22, 0.2, 0.24, 1)
+
+[node name="Floor3" type="ColorRect" parent="."]
+offset_left = 1520
+offset_top = 20.0
+offset_right = 2380
+offset_bottom = 700.0
+mouse_filter = 2
+color = Color(0.2, 0.23, 0.24, 1)
+
+[node name="WallTop" type="StaticBody2D" parent="."]
+position = Vector2(1200, 10)
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WallTop"]
+shape = SubResource("sh_2400x20")
+
+[node name="ColorRect" type="ColorRect" parent="WallTop"]
+offset_left = -1200.0
+offset_top = -10.0
+offset_right = 1200.0
+offset_bottom = 10.0
+mouse_filter = 2
+color = Color(0.35, 0.3, 0.25, 1)
+
+[node name="WallBottom" type="StaticBody2D" parent="."]
+position = Vector2(1200, 710)
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WallBottom"]
+shape = SubResource("sh_2400x20")
+
+[node name="ColorRect" type="ColorRect" parent="WallBottom"]
+offset_left = -1200.0
+offset_top = -10.0
+offset_right = 1200.0
+offset_bottom = 10.0
+mouse_filter = 2
+color = Color(0.35, 0.3, 0.25, 1)
+
+[node name="WallLeft" type="StaticBody2D" parent="."]
+position = Vector2(10, 360)
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WallLeft"]
+shape = SubResource("sh_20x720")
+
+[node name="ColorRect" type="ColorRect" parent="WallLeft"]
+offset_left = -10.0
+offset_top = -360.0
+offset_right = 10.0
+offset_bottom = 360.0
+mouse_filter = 2
+color = Color(0.35, 0.3, 0.25, 1)
+
+[node name="WallRight" type="StaticBody2D" parent="."]
+position = Vector2(2390, 360)
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WallRight"]
+shape = SubResource("sh_20x720")
+
+[node name="ColorRect" type="ColorRect" parent="WallRight"]
+offset_left = -10.0
+offset_top = -360.0
+offset_right = 10.0
+offset_bottom = 360.0
+mouse_filter = 2
+color = Color(0.35, 0.3, 0.25, 1)
+
+[node name="Divider1Top" type="StaticBody2D" parent="."]
+position = Vector2(730, 160)
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Divider1Top"]
+shape = SubResource("sh_20x280")
+
+[node name="ColorRect" type="ColorRect" parent="Divider1Top"]
+offset_left = -10.0
+offset_top = -140.0
+offset_right = 10.0
+offset_bottom = 140.0
+mouse_filter = 2
+color = Color(0.35, 0.3, 0.25, 1)
+
+[node name="Divider1Bottom" type="StaticBody2D" parent="."]
+position = Vector2(730, 560)
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Divider1Bottom"]
+shape = SubResource("sh_20x280")
+
+[node name="ColorRect" type="ColorRect" parent="Divider1Bottom"]
+offset_left = -10.0
+offset_top = -140.0
+offset_right = 10.0
+offset_bottom = 140.0
+mouse_filter = 2
+color = Color(0.35, 0.3, 0.25, 1)
+
+[node name="Divider2Top" type="StaticBody2D" parent="."]
+position = Vector2(1510, 160)
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Divider2Top"]
+shape = SubResource("sh_20x280")
+
+[node name="ColorRect" type="ColorRect" parent="Divider2Top"]
+offset_left = -10.0
+offset_top = -140.0
+offset_right = 10.0
+offset_bottom = 140.0
+mouse_filter = 2
+color = Color(0.35, 0.3, 0.25, 1)
+
+[node name="Divider2Bottom" type="StaticBody2D" parent="."]
+position = Vector2(1510, 560)
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Divider2Bottom"]
+shape = SubResource("sh_20x280")
+
+[node name="ColorRect" type="ColorRect" parent="Divider2Bottom"]
+offset_left = -10.0
+offset_top = -140.0
+offset_right = 10.0
+offset_bottom = 140.0
+mouse_filter = 2
+color = Color(0.35, 0.3, 0.25, 1)
+
+[node name="Exit" type="Area2D" parent="."]
+position = Vector2(60, 360)
+script = ExtResource("zone")
+zone_id = &"exit"
+label_text = "Saída"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Exit"]
+shape = SubResource("sh_exit")
+
+[node name="Entry" type="Marker2D" parent="."]
+position = Vector2(180, 360)
+
+[node name="RestPoint" type="Area2D" parent="."]
+position = Vector2(150, 580)
+script = ExtResource("rest")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RestPoint"]
+shape = SubResource("sh_rest")
+
+[node name="RestSpawn" type="Marker2D" parent="."]
+position = Vector2(150, 520)
+
+[node name="Sign" type="Area2D" parent="."]
+position = Vector2(330, 290)
+script = ExtResource("sign")
+prompt = "Ler"
+text = "Dungeon de teste. Texto de teste: cuidado com o chão."
+
+[node name="NpcGuia" type="Area2D" parent="."]
+position = Vector2(520, 360)
+script = ExtResource("npc")
+prompt = "Falar"
+event = ExtResource("ev_guia")
+display_name = "Guia"
+
+[node name="ChestPocao" type="Area2D" parent="."]
+position = Vector2(620, 100)
+script = ExtResource("chest")
+item = ExtResource("pocao")
+count = 2
+opened_flag = &"bau_pocao"
+
+[node name="ChestChave" type="Area2D" parent="."]
+position = Vector2(620, 640)
+script = ExtResource("chest")
+item = ExtResource("chave")
+opened_flag = &"bau_chave"
+
+[node name="Door" type="Area2D" parent="."]
+position = Vector2(730, 360)
+script = ExtResource("door")
+key_item = ExtResource("chave")
+open_flag = &"porta_aberta"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Door"]
+shape = SubResource("sh_door")
+
+[node name="TrapDano" type="Area2D" parent="."]
+position = Vector2(1000, 360)
+script = ExtResource("trap")
+once_flag = &"trap_dano"
+size = Vector2(80, 80)
+
+[node name="Switch" type="Area2D" parent="."]
+position = Vector2(1250, 90)
+script = ExtResource("switch")
+flag = &"portao_aberto"
+
+[node name="Gate" type="StaticBody2D" parent="."]
+position = Vector2(1510, 360)
+script = ExtResource("gate")
+flag = &"portao_aberto"
+
+[node name="TrapBatalha" type="Area2D" parent="."]
+position = Vector2(1650, 360)
+script = ExtResource("trap")
+encounter = ExtResource("enc_x")
+once_flag = &"trap_batalha"
+message = "Uma emboscada!"
+size = Vector2(80, 80)
+
+[node name="CenaTrigger" type="Area2D" parent="."]
+position = Vector2(1850, 360)
+script = ExtResource("trig")
+event = ExtResource("ev_cena")
+once_flag = &"cena_final"
+size = Vector2(40, 640)
+
+[node name="NpcFinal" type="Area2D" parent="."]
+position = Vector2(2150, 160)
+script = ExtResource("npc")
+prompt = "Falar"
+display_name = "Vigia"
+
+[node name="CenaMarker" type="Marker2D" parent="."]
+position = Vector2(2150, 520)
+
+[node name="BossSpot" type="Marker2D" parent="."]
+position = Vector2(2280, 360)
+
+[node name="Arena" type="Node2D" parent="."]
+position = Vector2(1950, 360)
+script = ExtResource("arena")
+
+[node name="HeroSpot1" type="Marker2D" parent="Arena"]
+position = Vector2(-280, -225)
+
+[node name="HeroSpot2" type="Marker2D" parent="Arena"]
+position = Vector2(-340, -75)
+
+[node name="HeroSpot3" type="Marker2D" parent="Arena"]
+position = Vector2(-280, 75)
+
+[node name="HeroSpot4" type="Marker2D" parent="Arena"]
+position = Vector2(-340, 225)
+
+[node name="SupportSpot" type="Marker2D" parent="Arena"]
+position = Vector2(-460, 0)
+
+[node name="EnemySpot1" type="Marker2D" parent="Arena"]
+position = Vector2(180, -90)
+
+[node name="EnemySpot2" type="Marker2D" parent="Arena"]
+position = Vector2(180, 90)
+
+[node name="EnemySpot3" type="Marker2D" parent="Arena"]
+position = Vector2(260, -180)
+
+[node name="EnemySpot4" type="Marker2D" parent="Arena"]
+position = Vector2(260, 180)
+
+[node name="Followers" type="Node2D" parent="."]
+script = ExtResource("fol")
+
+[node name="Player" parent="." instance=ExtResource("player")]
+position = Vector2(180, 360)
+
+[node name="MapCamera" type="Camera2D" parent="."]
+position = Vector2(180, 360)
+script = ExtResource("cam")
+

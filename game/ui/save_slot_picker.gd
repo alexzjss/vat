@@ -9,7 +9,7 @@ signal cancelled
 
 enum Mode { SAVE, LOAD }
 
-const MAP_NAMES: Dictionary[String, String] = {"overworld": "Mapa-múndi", "area_teste": "Área de teste"}
+const MAP_NAMES: Dictionary[String, String] = {"overworld": "Mapa-múndi", "area_teste": "Área de teste", "dungeon_teste": "Dungeon de teste"}
 const TEXT_COLOR: Color = Color(1.0, 1.0, 1.0)
 const DISABLED_COLOR: Color = Color(0.45, 0.45, 0.5)
 const CURSOR_COLOR: Color = Color(1.0, 0.85, 0.3)

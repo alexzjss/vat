@@ -1,0 +1,87 @@
+[gd_resource type="Resource" script_class="EventScript" format=3]
+
+[ext_resource type="Script" path="res://core/events/event_script.gd" id="1_es"]
+[ext_resource type="Script" path="res://core/events/event_step.gd" id="2_st"]
+[ext_resource type="Script" path="res://core/events/say_step.gd" id="3_say"]
+[ext_resource type="Script" path="res://core/events/choice_step.gd" id="4_ch"]
+[ext_resource type="Script" path="res://core/events/if_flag_step.gd" id="5_if"]
+[ext_resource type="Script" path="res://core/events/goto_step.gd" id="6_go"]
+[ext_resource type="Script" path="res://core/events/label_step.gd" id="7_lb"]
+[ext_resource type="Script" path="res://core/events/teach_step.gd" id="8_te"]
+[ext_resource type="Script" path="res://core/events/grant_xp_step.gd" id="9_xp"]
+[ext_resource type="Script" path="res://core/events/set_flag_step.gd" id="10_sf"]
+
+[sub_resource type="Resource" id="s_if_ja"]
+script = ExtResource("5_if")
+flag = &"guia_ensinou"
+value = 0
+else_label = &"ja"
+
+[sub_resource type="Resource" id="s_intro"]
+script = ExtResource("3_say")
+speaker = "Guia"
+text = "Texto de teste: posso ensinar uma técnica ao Teste A."
+
+[sub_resource type="Resource" id="s_choice"]
+script = ExtResource("4_ch")
+prompt = "Aprender a técnica?"
+options = PackedStringArray("Sim", "Não")
+flag = &"guia_escolha"
+
+[sub_resource type="Resource" id="s_if_nao"]
+script = ExtResource("5_if")
+flag = &"guia_escolha"
+value = 0
+else_label = &"nao"
+
+[sub_resource type="Resource" id="s_teach"]
+script = ExtResource("8_te")
+hero_id = &"teste_a"
+ability_id = &"rajada"
+
+[sub_resource type="Resource" id="s_xp"]
+script = ExtResource("9_xp")
+amount = 60
+
+[sub_resource type="Resource" id="s_set"]
+script = ExtResource("10_sf")
+flag = &"guia_ensinou"
+
+[sub_resource type="Resource" id="s_done"]
+script = ExtResource("3_say")
+speaker = "Guia"
+text = "Pronto. Texto de teste."
+
+[sub_resource type="Resource" id="s_goto1"]
+script = ExtResource("6_go")
+label = &"fim"
+
+[sub_resource type="Resource" id="s_l_nao"]
+script = ExtResource("7_lb")
+label_name = &"nao"
+
+[sub_resource type="Resource" id="s_say_nao"]
+script = ExtResource("3_say")
+speaker = "Guia"
+text = "Tudo bem. Volte quando quiser."
+
+[sub_resource type="Resource" id="s_goto2"]
+script = ExtResource("6_go")
+label = &"fim"
+
+[sub_resource type="Resource" id="s_l_ja"]
+script = ExtResource("7_lb")
+label_name = &"ja"
+
+[sub_resource type="Resource" id="s_say_ja"]
+script = ExtResource("3_say")
+speaker = "Guia"
+text = "Você já aprendeu comigo."
+
+[sub_resource type="Resource" id="s_l_fim"]
+script = ExtResource("7_lb")
+label_name = &"fim"
+
+[resource]
+script = ExtResource("1_es")
+steps = Array[ExtResource("2_st")]([SubResource("s_if_ja"), SubResource("s_intro"), SubResource("s_choice"), SubResource("s_if_nao"), SubResource("s_teach"), SubResource("s_xp"), SubResource("s_set"), SubResource("s_done"), SubResource("s_goto1"), SubResource("s_l_nao"), SubResource("s_say_nao"), SubResource("s_goto2"), SubResource("s_l_ja"), SubResource("s_say_ja"), SubResource("s_l_fim")])
