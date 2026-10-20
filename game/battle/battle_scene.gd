@@ -249,6 +249,9 @@ static func banner_text(kind: Initiative.Kind) -> String:
 			return "Emboscada!"
 	return ""
 
+func banner_text_shown() -> String:
+	return _banner.text if banner_visible() else ""
+
 func banner_visible() -> bool:
 	return _banner != null and _banner.visible
 

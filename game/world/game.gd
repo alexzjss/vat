@@ -7,7 +7,7 @@ extends Node
 ## o mapa atual fica congelado (process_mode DISABLED, o mesmo mecanismo do fade). Ao fechar, o marcador do
 ## jogador passa a mostrar o líder atual.
 ## Debug: `-- --demo-field-menu` (DemoFieldMenu) percorre as páginas do menu; `-- --demo-m2` (DemoM2) e
-## `-- --demo-m3` (DemoM3) / `-- --demo-m4` (DemoM4) / `-- --demo-m6` (DemoM6, descanso e save) percorrem os ciclos dos marcos sozinhos (verificação com --write-movie).
+## `-- --demo-m3` (DemoM3) / `-- --demo-m4` (DemoM4) / `-- --demo-m6` (DemoM6, descanso e save) / `-- --demo-m7` (DemoM7, corrida, iniciativa, fuga e chefe) percorrem os ciclos dos marcos sozinhos (verificação com --write-movie).
 
 ## Saves das demos (`--demo-*`) vão para cá, nunca para os slots reais.
 const DEMO_SAVE_DIR: String = "user://demo_saves/"
@@ -82,6 +82,8 @@ func _ready() -> void:
 		_add_demo(DemoM4.new(), "DemoM4")
 	if args.has("--demo-m6"):
 		_add_demo(DemoM6.new(), "DemoM6")
+	if args.has("--demo-m7"):
+		_add_demo(DemoM7.new(), "DemoM7")
 	if args.has("--demo-field-menu"):
 		_add_demo(DemoFieldMenu.new(), "DemoFieldMenu")
 

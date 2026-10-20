@@ -38,6 +38,13 @@ enum DurationMode { A, B }
 @export var flee_cooldown: float = 3.0 # valor de teste (M7: segundos sem toque do inimigo apos a fuga)
 @export var backstab_angle: float = 120.0 # valor de teste (M7: graus; acima disso o toque e pelas costas)
 @export var banner_time: float = 1.2 # valor de teste (M7: segundos da faixa Ataque surpresa/Emboscada)
+@export var patrol_wait: float = 0.6 # valor de teste (M7: pausa em cada ponto da patrulha, s)
+@export var vision_range: float = 220.0 # valor de teste (M7: alcance do cone de visao, px)
+@export var vision_angle: float = 70.0 # valor de teste (M7: abertura TOTAL do cone, graus)
+@export var chase_speed: float = 150.0 # valor de teste (M7: velocidade perseguindo, px/s)
+@export var chase_give_up: float = 380.0 # valor de teste (M7: distancia em que o perseguidor desiste, px)
+@export var ambush_reveal_dist: float = 90.0 # valor de teste (M7: distancia em que o escondido aparece, px)
+@export var group_join_dist: float = 200.0 # valor de teste (M7: raio em que o grupo se junta a batalha, px)
 @export var wander_speed: float = 80.0
 @export var wander_wait_min: float = 0.5
 @export var wander_wait_max: float = 1.5

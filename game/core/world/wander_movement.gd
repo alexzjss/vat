@@ -19,7 +19,7 @@ func _init(region: Rect2, cfg: BalanceConfig, dice: Dice) -> void:
 	_dice = dice
 	_start_wait()
 
-func step(pos: Vector2, delta: float) -> Vector2:
+func step(pos: Vector2, delta: float, _player_pos: Vector2) -> Vector2:
 	if _mode == Mode.WAIT:
 		_wait_left -= delta
 		if _wait_left <= 0.0:

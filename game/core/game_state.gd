@@ -21,6 +21,9 @@ var save_map: StringName
 var save_spawn: StringName
 ## Posição exata do jogador no mapa-múndi ao salvar (NO_POS = usar só o marcador `save_spawn`).
 var save_pos: Vector2 = NO_POS
+## Ids de encontros únicos (chefes) já vencidos; o mapa não os instancia de novo.
+var defeated: Array[StringName] = []
+var _saved_defeated: Array[StringName] = []
 var _saved_heroes: Array[Dictionary] = []
 var _saved_active_ids: Array[StringName] = []
 var _saved_reserve_ids: Array[StringName] = []
@@ -142,6 +145,11 @@ func to_dict() -> Dictionary:
 	}
 	if has_save_pos():
 		out["save_pos"] = [save_pos.x, save_pos.y]
+	if not defeated.is_empty():
+		var ids: Array = []
+		for id: StringName in defeated:
+			ids.append(String(id))
+		out["defeated"] = ids
 	return out
 
 ## Reconstroi o estado e grava o ponto de salvamento em memoria. Null se o formato for invalido
@@ -171,6 +179,11 @@ static func from_dict(d: Dictionary, registry: DefRegistry, p_cfg: BalanceConfig
 		var a: Array = sp
 		if (a[0] is float or a[0] is int) and (a[1] is float or a[1] is int):
 			pos = Vector2(float(a[0]), float(a[1]))
+	var dv: Variant = d.get("defeated")
+	if dv is Array:
+		for e: Variant in (dv as Array):
+			if e is String and not (e as String).is_empty() and not g.is_defeated(StringName(e as String)):
+				g.defeated.append(StringName(e as String))
 	g.save(StringName(str(d.get("save_map", ""))), StringName(str(d.get("save_spawn", ""))), pos)
 	return g
 
@@ -183,6 +196,13 @@ static func _load_heroes(src: Variant, registry: DefRegistry, out: Array[HeroSta
 			return false
 		out.append(h)
 	return true
+
+func is_defeated(id: StringName) -> bool:
+	return id != &"" and defeated.has(id)
+
+func mark_defeated(id: StringName) -> void:
+	if id != &"" and not defeated.has(id):
+		defeated.append(id)
 
 func has_save_pos() -> bool:
 	return save_pos != NO_POS
@@ -201,6 +221,7 @@ func save(map: StringName, spawn: StringName, pos: Vector2 = NO_POS) -> void:
 	for h: HeroState in reserve:
 		_saved_heroes.append(h.snapshot())
 		_saved_reserve_ids.append(h.def.id)
+	_saved_defeated = defeated.duplicate()
 	_saved_inventory = inventory.copy()
 	_saved_bag = bag.copy()
 
@@ -219,5 +240,6 @@ func restore_save() -> void:
 	var saved: Array[HeroState] = roster()
 	for i: int in saved.size():
 		saved[i].restore(_saved_heroes[i])
+	defeated = _saved_defeated.duplicate()
 	inventory = _saved_inventory.copy()
 	bag = _saved_bag.copy()

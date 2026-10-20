@@ -19,6 +19,10 @@ func enemy_positions(n: int) -> Array[Vector2]:
 			result.append(all[mini(i, all.size() - 1)])
 	return result
 
+## Quantas posições de inimigo a arena tem.
+func enemy_count() -> int:
+	return _spots("EnemySpot").size()
+
 func center() -> Vector2:
 	return global_position
 

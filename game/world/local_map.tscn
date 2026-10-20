@@ -9,6 +9,9 @@
 [ext_resource type="Resource" path="res://data/test/encounters/encontro_xy.tres" id="7"]
 [ext_resource type="Script" path="res://world/rest_point.gd" id="8"]
 [ext_resource type="Script" path="res://world/party_followers.gd" id="9"]
+[ext_resource type="Resource" path="res://data/test/encounters/encontro_x.tres" id="10"]
+[ext_resource type="Resource" path="res://data/test/encounters/encontro_y.tres" id="11"]
+[ext_resource type="Resource" path="res://data/test/encounters/chefe_teste.tres" id="12"]
 
 [sub_resource type="RectangleShape2D" id="shape_WallTop"]
 size = Vector2(2400, 20)
@@ -217,6 +220,46 @@ position = Vector2(180, 90)
 position = Vector2(1850, 360)
 encounter = ExtResource("7")
 region = Rect2(1780, 260, 220, 200)
+arena_path = NodePath("../Arena")
+
+[node name="Patroller" parent="." instance=ExtResource("3")]
+position = Vector2(1300, 100)
+encounter = ExtResource("10")
+behavior = 1
+patrol_points = PackedVector2Array(1300, 100, 1500, 100)
+arena_path = NodePath("../Arena")
+
+[node name="Chaser" parent="." instance=ExtResource("3")]
+position = Vector2(1400, 640)
+encounter = ExtResource("11")
+region = Rect2(1300, 600, 200, 80)
+chases = true
+arena_path = NodePath("../Arena")
+
+[node name="Lurker" parent="." instance=ExtResource("3")]
+position = Vector2(650, 640)
+encounter = ExtResource("10")
+lurking = true
+arena_path = NodePath("../Arena")
+
+[node name="GroupA" parent="." instance=ExtResource("3")]
+position = Vector2(900, 640)
+encounter = ExtResource("10")
+region = Rect2(880, 610, 120, 60)
+group = &"dupla"
+arena_path = NodePath("../Arena")
+
+[node name="GroupB" parent="." instance=ExtResource("3")]
+position = Vector2(960, 640)
+encounter = ExtResource("11")
+region = Rect2(880, 610, 120, 60)
+group = &"dupla"
+arena_path = NodePath("../Arena")
+
+[node name="Boss" parent="." instance=ExtResource("3")]
+position = Vector2(2250, 150)
+encounter = ExtResource("12")
+region = Rect2(2220, 120, 60, 60)
 arena_path = NodePath("../Arena")
 
 [node name="Followers" type="Node2D" parent="."]

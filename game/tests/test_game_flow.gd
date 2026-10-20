@@ -34,7 +34,8 @@ func _enter_area() -> LocalMap:
 	return game.current as LocalMap
 
 func _map_enemies(map: LocalMap) -> int:
-	return map.enemies().size()
+	# Só o inimigo comum "Enemy": o mapa de teste tem também os do M7 (patrulheiro, chefe etc.).
+	return map.enemies().filter(func(e: MapEnemy) -> bool: return e.name == &"Enemy").size()
 
 func _weak_encounter() -> EncounterDef:
 	var e := EncounterDef.new()
