@@ -180,6 +180,8 @@ func start_with(heroes: Array[HeroState], enemies: Array[EnemyDef], hero_pos: Ar
 			v.position = from_pos
 	ctrl.hero_turn.connect(_on_hero_turn)
 	ctrl.session_cancelled.connect(_on_session_cancelled)
+	ctrl.session_reset.connect(_on_session_reset)
+	ctrl.confused_act.connect(_on_confused_act)
 	ctrl.action_started.connect(_on_action_started)
 	ctrl.action_finished.connect(_on_action_finished)
 	ctrl.action_impact.connect(_on_action_impact)
@@ -316,6 +318,15 @@ func _on_session_cancelled(_s: SelectionSession) -> void:
 	_menu.close()
 	_set_highlight_off()
 
+## Silêncio no meio da escolha (modo Ativo): o menu volta ao comando raiz, com "Habilidade" desabilitado.
+func _on_session_reset(_s: SelectionSession) -> void:
+	_menu.reset_to_root()
+
+## Confusão: o combatente age sozinho; sem menu e sem IA.
+func _on_confused_act(c: Combatant) -> void:
+	if views.has(c.id):
+		views[c.id].float_text("Confuso", Color(0.95, 0.6, 0.9))
+
 func _on_menu_submitted(_a: PendingAction) -> void:
 	_set_highlight_off()
 
@@ -362,6 +373,8 @@ func _on_action_impact(_a: PendingAction, r: ActionResult) -> void:
 func _on_status_tick(c: Combatant, out: StatusSystem.AtbFullOutcome) -> void:
 	if out.poison_damage > 0 and views.has(c.id):
 		views[c.id].float_text("-%d" % out.poison_damage, Color(0.7, 0.3, 0.9))
+	if out.regen_heal > 0 and views.has(c.id):
+		views[c.id].float_text("+%d" % out.regen_heal, Color(0.4, 1.0, 0.5))
 
 func _on_turn_lost(c: Combatant) -> void:
 	if views.has(c.id):

@@ -90,6 +90,12 @@ func close() -> void:
 	if preview != null:
 		preview.hide_preview()
 
+## Silêncio no meio da escolha: volta à raiz (a sessão já desfez a técnica) e reavalia as entradas.
+func reset_to_root() -> void:
+	if session == null or mode == Mode.CLOSED:
+		return
+	_show_root(0)
+
 func actor_name() -> String:
 	return session.actor.display_name if session != null else ""
 
@@ -207,7 +213,7 @@ func _root_enabled(at: int) -> bool:
 		0:
 			return session.actor.basic_attack != null
 		1:
-			return not session.actor.abilities.is_empty()
+			return session.techniques_available()
 		2:
 			return _has_items()
 		3:
@@ -222,7 +228,7 @@ func _show_root(at: int) -> void:
 		_entries.append(Entry.new("Limite", true, Kind.LIMIT))
 	else:
 		_entries.append(Entry.new("Atacar", session.actor.basic_attack != null, Kind.ATTACK))
-	_entries.append(Entry.new("Habilidade", not session.actor.abilities.is_empty(), Kind.ABILITIES))
+	_entries.append(Entry.new("Habilidade", session.techniques_available(), Kind.ABILITIES))
 	_entries.append(Entry.new("Item", _has_items(), Kind.ITEMS))
 	_entries.append(Entry.new("Suporte", session.can_support(), Kind.SUPPORT))
 	cursor = at

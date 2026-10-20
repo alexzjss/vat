@@ -62,6 +62,8 @@ func build_text(b: BattleState, ctrl: BattleController) -> String:
 			var p: String = "%s (%d) ← %s" % [s.def.id, s.remaining, s.source_id]
 			if s.def.kind == StatusDef.Kind.BARRIER:
 				p += " [%d]" % s.barrier_left
+			elif s.def.kind == StatusDef.Kind.STOP:
+				p = "%s (%.1fs) ← %s" % [s.def.id, s.time_left, s.source_id]
 			parts.append(p)
 		lines.append("  %s: %s" % [c.id, ", ".join(parts)])
 	if not any_status:

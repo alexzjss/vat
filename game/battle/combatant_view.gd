@@ -20,6 +20,18 @@ const STATUS_LABELS: Dictionary[StatusDef.Kind, String] = {
 	StatusDef.Kind.SLOW: "LENTO",
 	StatusDef.Kind.BARRIER: "BAR",
 	StatusDef.Kind.ATTR_MOD: "ATR+",
+	StatusDef.Kind.STOP: "PARE",
+	StatusDef.Kind.CONFUSION: "CNF",
+	StatusDef.Kind.SILENCE: "SIL",
+	StatusDef.Kind.BLIND: "CEG",
+	StatusDef.Kind.REGEN: "REG",
+}
+## Buff/debuff: abreviação do atributo + sinal da potência (FOR+, VEL-...).
+const ATTR_LABELS: Dictionary[StringName, String] = {
+	&"strength": "FOR",
+	&"vitality": "VIT",
+	&"speed": "VEL",
+	&"aura": "AUR",
 }
 
 var combatant: Combatant
@@ -81,13 +93,21 @@ func _bar(origin: Vector2, ratio: float, color: Color) -> void:
 func status_text() -> String:
 	var parts: PackedStringArray = []
 	for s: ActiveStatus in combatant.statuses:
-		parts.append(STATUS_LABELS.get(s.def.kind, String(s.def.id)))
+		parts.append(status_label(s))
 	return " ".join(parts)
+
+static func status_label(s: ActiveStatus) -> String:
+	if s.def.kind == StatusDef.Kind.ATTR_MOD and ATTR_LABELS.has(s.def.attr):
+		return ATTR_LABELS[s.def.attr] + ("-" if s.def.potency < 0 else "+")
+	return STATUS_LABELS.get(s.def.kind, String(s.def.id))
 
 ## Mostra o resultado de um hit de ActionResult sobre este combatente.
 func show_hit(hit: Dictionary) -> void:
 	var kind: EffectDef.Kind = hit["kind"]
 	var amount: int = hit["amount"]
+	if hit.get("missed", false):
+		float_text("Errou", Color.WHITE)
+		return
 	if hit["dodged"]:
 		float_text("Esquiva", Color.WHITE)
 		return

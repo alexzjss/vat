@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="AbilityDef" format=3]
+
+[ext_resource type="Resource" path="res://data/test/statuses/stop.tres" id="1_r"]
+[ext_resource type="Script" path="res://core/defs/effect_def.gd" id="2_r"]
+[ext_resource type="Script" path="res://core/defs/ability_def.gd" id="3_r"]
+
+[sub_resource type="Resource" id="effect_def_1"]
+script = ExtResource("2_r")
+kind = 4
+scale = 2
+potency = 0.0
+status = ExtResource("1_r")
+chance = 0.7
+dodgeable = false
+
+[resource]
+script = ExtResource("3_r")
+id = &"pare"
+display_name = "Pare"
+ap_cost = 5
+shape = 0
+side = 0
+radius = 0.0
+width = 0.0
+cast_time = 1.2
+impact_time = 0.7
+effects = Array[ExtResource("2_r")]([SubResource("effect_def_1")])
