@@ -253,3 +253,26 @@ func test_enemy_appliers_exist() -> void:
 		assert_not_null(ab, file)
 		assert_eq(ab.effects[0].kind, EffectDef.Kind.APPLY_STATUS)
 		assert_eq(ab.effects[0].status.id, StringName(pairs[file]), file)
+
+# --- Fim da batalha: HP gravado nunca passa do maximo real ---
+
+func test_battle_end_clamps_hero_hp_after_vitality_debuff() -> void:
+	var packed: PackedScene = load(SCENE) as PackedScene
+	var s: BattleScene = packed.instantiate() as BattleScene
+	s.balance = Fixtures.cfg()
+	add_child_autofree(s)
+	s.set_process(false)
+	var heroes: Array[HeroState] = []
+	for id: String in ["teste_a", "teste_b", "teste_c"]:
+		heroes.append(HeroState.create(load("res://data/test/heroes/%s.tres" % id) as CharacterDef, s.balance))
+	s.start(heroes)
+	var real_max: int = StatCalculator.hp_max(Combatant.from_hero(heroes[0], Vector2.ZERO), s.balance)
+	var debuff: StatusDef = _status(StatusDef.Kind.ATTR_MOD, &"vit_down", &"vitality", -5)
+	debuff.duration = 99
+	var hero: Combatant = s.ctrl.b.heroes[0]
+	s.ctrl.b.statuses.apply_forced(hero, debuff)
+	assert_lt(StatCalculator.hp_max(hero, s.balance), real_max, "debuff baixou o maximo na batalha")
+	hero.hp = real_max + 50
+	s.ctrl.outcome = BattleController.Outcome.FLED
+	s._on_battle_ended(BattleController.Outcome.FLED)
+	assert_lte(heroes[0].hp, real_max, "HP gravado no HeroState respeita o maximo real")

@@ -439,6 +439,8 @@ func _on_battle_ended(outcome: BattleController.Outcome) -> void:
 	# (só as ações "Descansar..." da tela de resultado recuperam).
 	for c: Combatant in b.heroes:
 		c.hero_state.hp = c.hp
+		# Debuff de Vitalidade pode deixar o HP acima do maximo real: o estado do heroi nunca passa dele.
+		c.hero_state.clamp_to_max(b.cfg)
 		c.hero_state.ap = c.ap
 		c.hero_state.limit = c.limit
 	if outcome == BattleController.Outcome.VICTORY:
