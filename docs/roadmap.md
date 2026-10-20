@@ -104,9 +104,10 @@ Entregue: corrida e grupo em fila (Shift/X), fuga segurando Q (barra, sem XP, ch
 **M10 — Eventos, diálogo e dungeon** · **Concluído** (2026-10-20) · plano [`m10-eventos-dungeon`](superpowers/plans/2026-10-19-m10-eventos-dungeon.md)
 - Entregue: sistema de eventos com **flags** (no save e no restore), caixa de diálogo com nome e escolhas, NPCs e placas, cenas roteirizadas que movem atores, **XP narrativa**, objetos de dungeon (**baús**, **portas e chaves**, **interruptores** e portões, **armadilhas** de dano e de batalha) e a dungeon de teste ligada ao mapa-múndi (`--demo-m10`). Os textos são de teste.
 
-**M11 — IA, chefes e estados**
-- Chefe de teste com **fases por HP**, **ataques anunciados** (telegraph) e **contra-ataque**, alvo por posição.
-- Catálogo de estados ampliado (Paralisia em uso, buffs/debuffs de Velocidade e Vitalidade, Pare) e resistências por inimigo.
+**M11 — IA, chefes e estados** · **Concluído** (2026-10-20) · plano [`m11-chefes-estados`](superpowers/plans/2026-10-20-m11-chefes-estados.md)
+- Entregue: catálogo de estados completo (Pare, Confusão, buffs e debuffs de Força, Vitalidade e Velocidade, Silêncio, Cegueira, Regeneração e Barreira) com abreviações no HUD; itens Remédio e Panaceia (só na batalha); chefe de teste na dungeon com **fases por HP**, **ataque anunciado**, **contra-ataque**, núcleo e partes (o Guardião e os Braços); alvos por posição (`NEAREST`, `FARTHEST` e `CLUSTER` em `AiRule`, usados pelos Braços no `NEAREST`); cenário de relatório do chefe (seção "Chefe (M11)") e `--demo-m11`.
+- Resistências por inimigo não mudaram nesta rodada. Os números são valores de teste.
+- **Base de mecânicas concluída (M5b–M11)**: combate, movimento, menu e grupo estão fechados. O próximo passo é a fatia vertical (cidade, dungeon e chefe) juntando tudo.
 
 **Depois — Fatia vertical**: cidade, dungeon e chefe usando tudo acima.
 

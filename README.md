@@ -2,7 +2,7 @@
 
 Prototipo de um RPG com combate em tempo real por barra de ATB, feito em Godot 4 com GDScript tipado e placeholders geometricos. Nao ha conteudo narrativo; personagens, inimigos e lugares sao genericos.
 
-O marco atual e o M10, que acrescenta ao M9 o sistema de eventos (caixa de diálogo com nome e escolhas, flags de história, NPCs e placas, cenas roteirizadas e XP narrativa), os objetos de dungeon (baús, portas e chaves, interruptores e armadilhas) e uma dungeon de teste ligada ao mapa-mundi. Antes disso, o M9 acrescentou as técnicas por personagem, mantendo a barra de Limite (M8), o Suporte da reserva (M8.5), fuga, iniciativa por contato, corrida e inimigos com comportamento no mapa: o jogo abre numa tela de título (Novo jogo / Continuar), de onde se chega a um mapa-mundi de teste com áreas locais e inimigos de mapa; tocar um inimigo inicia a batalha no próprio mapa. Há save em disco com 3 slots, gravado só em pontos de descanso e no mapa-mundi, e a página Config do menu de campo. Na derrota (Game Over), o jogo volta ao título e o progresso desde o último save em disco se perde.
+O marco atual e o M11, que acrescenta ao M10 o catálogo completo de estados (Pare, Confusão, buffs e debuffs, Silêncio, Cegueira, Regeneração e Barreira), os itens Remédio e Panaceia e um chefe de teste na dungeon de teste (fases por HP, ataque anunciado, contra-ataque e partes). Antes disso, o M10 acrescentou ao M9 o sistema de eventos (caixa de diálogo com nome e escolhas, flags de história, NPCs e placas, cenas roteirizadas e XP narrativa), os objetos de dungeon (baús, portas e chaves, interruptores e armadilhas) e uma dungeon de teste ligada ao mapa-mundi. Antes disso, o M9 acrescentou as técnicas por personagem, mantendo a barra de Limite (M8), o Suporte da reserva (M8.5), fuga, iniciativa por contato, corrida e inimigos com comportamento no mapa: o jogo abre numa tela de título (Novo jogo / Continuar), de onde se chega a um mapa-mundi de teste com áreas locais e inimigos de mapa; tocar um inimigo inicia a batalha no próprio mapa. Há save em disco com 3 slots, gravado só em pontos de descanso e no mapa-mundi, e a página Config do menu de campo. Na derrota (Game Over), o jogo volta ao título e o progresso desde o último save em disco se perde.
 
 A batalha do M1 continua disponivel como cena isolada: ATB com modo Wait, fila de prontos, pontos de Aura, itens, estados, areas de efeito, contribuicao e XP.
 
@@ -129,6 +129,33 @@ Na batalha isolada (M1, `--scene res://battle/battle_scene.tscn`):
 
 **Dungeon de teste (M10).** Entra-se nela pela zona **Dungeon de teste** no mapa-mundi, e a saída leva de volta ao mapa-mundi. Ela tem uma placa na entrada; um NPC guia que oferece ensinar a técnica `rajada` ao Teste A (a escolha "Sim" ensina a técnica e dá XP narrativa; depois, ele só repete a fala); dois baús (Poção e Chave de Teste); uma porta trancada pela chave; um interruptor que abre um portão; uma armadilha de dano e uma de batalha; e, na sala final, uma cena em que um NPC anda até um ponto, fala duas linhas e a câmera vai a outro ponto. Os textos são de teste.
 
+**Estados de batalha (M11).** Valores de teste, em `game/data/test/statuses/`. Na batalha, a HUD mostra a abreviação dos estados sob o nome de cada combatente; buffs e debuffs mostram o atributo e o sinal (FOR+, VEL-...).
+
+| Estado | Abreviação | Regra |
+|--------|------------|-------|
+| Pare | PARE | O ATB não enche e o afetado não age. Esquiva 0 e não sai com dano. Dura 4 segundos de batalha (não conta turnos). Quem estava na fila sai dela e volta quando o Pare acaba; a sessão aberta de um herói é cancelada, e uma ação enfileirada no modo Ativo é reembolsada. |
+| Confusão | CNF | Quando o afetado age, a ação vira um ataque básico num alvo sorteado entre os combatentes vivos (menos ele mesmo). Herói confuso não abre menu; inimigo confuso ignora a IA. Sai com dano de HP. Dura 3 turnos. |
+| Força+ / Força- | FOR+ / FOR- | Buff e debuff de Força: soma ±4 à Força (valor de teste). Estados do mesmo atributo se somam, e o atributo efetivo não cai abaixo de 1. Dura 3 turnos. |
+| Vitalidade+ / Vitalidade- | VIT+ / VIT- | Buff e debuff de Vitalidade: soma ±4 à Vitalidade (valor de teste), com as mesmas regras de soma e mínimo. Dura 3 turnos. |
+| Velocidade+ / Velocidade- | VEL+ / VEL- | Buff e debuff de Velocidade: soma ±4 à Velocidade (valor de teste), com as mesmas regras de soma e mínimo. Dura 3 turnos. |
+| Silêncio | SIL | O afetado não usa Habilidades (técnicas): o comando fica desabilitado no menu de batalha, e a IA inimiga cai no ataque básico. Ataque básico, Limite e itens continuam liberados. Dura 3 turnos. |
+| Cegueira | CEG | Os golpes de dano que escalam com Força do afetado erram com 50% extra de chance (valor de teste), sorteada antes da esquiva; a batalha mostra "Errou". Dura 3 turnos. |
+| Regeneração | REG | Cura 5% do HP máximo (mínimo 1, valor de teste) a cada ATB cheio, depois do Veneno. Não revive. Dura 4 turnos. |
+| Barreira | BAR | Absorve dano até a potência (20, valor de teste). Já existia; entrou agora no catálogo e nos testes de interface. |
+
+**Remédio e Panaceia (M11).** Itens que funcionam só na batalha, pelo comando **Item**; não estão no inventário inicial do jogo.
+
+- **Remédio**: remove Confusão, Silêncio e Cegueira de um aliado.
+- **Panaceia**: remove todos os estados negativos de um aliado (Veneno, Sono, Paralisia, Lentidão, Pare, Confusão, Silêncio, Cegueira e os debuffs).
+
+**Chefe de teste da dungeon (M11).** Aparece na dungeon de teste depois da cena final, no ponto do chefe, e é formado pelo **Guardião (teste)**, núcleo, e por dois **Braços (teste)**, partes. Os números são valores de teste.
+
+- **Fases por HP**: acima de 66% do HP, o chefe usa só os ataques normais. Abaixo de 66%, entra a "Fase 2 (teste)", com Silêncio, Cegueira ou Confusão num herói (cada uma com 35% de chance) e a chance de reerguer um Braço caído (70%). Abaixo de 33%, entra a "Fase 3 (teste)", com Pare num herói (35%) e o Golpe Sísmico. A troca de fase mostra um banner.
+- **Ataque anunciado**: o Golpe Sísmico (atinge todos os heróis, dano alto) é anunciado com "Guardião (teste) prepara Golpe Sísmico!". O chefe gasta o turno preparando e a ação sai no próximo ATB cheio, com o alvo revalidado. O AP é gasto na execução. Pare, Sono ou Paralisia só adiam a ação, e a morte do chefe a cancela.
+- **Contra-ataque**: quando um herói causa dano de HP ao Guardião com o ataque básico, o Guardião contra-ataque com 50% de chance. A ação sai logo depois da do herói, sem gastar AP e sem zerar o ATB. Não dispara se o Guardião estiver caído, parado, dormindo, paralisado ou preparando, e um contra-ataque não gera outro.
+- **Núcleo e Braços**: vencer é derrotar o Guardião, e os Braços caem junto. Enquanto algum Braço estiver de pé, o Guardião aparece como **Protegido** no HUD e recebe 25% do dano (valor de teste). Um Braço caído pode voltar pela regra de reerguer da fase 2. Os Braços que caem junto com o núcleo também dão XP, pela contribuição dele.
+- **Sem fuga e sem volta**: o encontro não permite fuga, e o chefe não reaparece depois de derrotado, mesmo após salvar e carregar.
+
 **Inimigos de teste no mapa (M7)**, na área `area_teste`:
 
 - **Vagante**: o inimigo de sempre, anda ao acaso.
@@ -166,6 +193,7 @@ Passadas depois de `--` (argumentos de usuario), roteirizam entradas para verifi
 & "<Godot_v4.x-stable_win64_console.exe>" --path game -- --demo-field-menu   # abre o menu de campo e percorre as paginas
 & "<Godot_v4.x-stable_win64_console.exe>" --path game -- --demo-m8   # herói sofre dano até encher a barra, usa Limite, enche de novo e chama o Suporte
 & "<Godot_v4.x-stable_win64_console.exe>" --path game -- --demo-m10  # dungeon de teste: lê a placa, fala com o guia (Sim), abre os baús e a porta, aciona o interruptor, pisa nas armadilhas e assiste à cena final
+& "<Godot_v4.x-stable_win64_console.exe>" --path game -- --demo-m11  # chefe de teste da dungeon: começa direto na batalha, com o grupo forte e auto_battle; mostra a troca de fase, o anúncio, o contra-ataque, a parte revivida e os estados no HUD (--seed=N troca a semente)
 ```
 
 O `--demo-m2` roda no jogo principal (sem `--scene`) e leva cerca de 40 s de jogo. Ele anda com o jogador por pontos fixos dos mapas de teste, liga o `auto_battle`, deixa os inimigos do encontro com 2 de HP (so no demo) e aceita as telas de resultado e de nivel. Para gravar quadros:

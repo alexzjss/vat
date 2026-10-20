@@ -28,3 +28,35 @@ Eventos (M10), em `events/` (roteiros de teste, lidos pelo `EventRunner`):
 
 - `events/npc_guia.tres`: roteiro do Guia da dungeon de teste. Pergunta "Aprender a técnica?" com as opções "Sim" e "Não". Em "Sim", ensina `rajada` ao Teste A, dá 60 de XP narrativa e grava a flag `guia_ensinou`; depois de ensinada, a fala muda e não ensina de novo.
 - `events/cena_final.tres`: cena da sala final, disparada ao entrar. O Vigia (`NpcFinal`) anda até o `CenaMarker`, fala duas linhas, a câmera vai ao `BossSpot` e espera um instante.
+
+Estados (M11), em `statuses/`. Valores de teste:
+
+- `statuses/stop.tres`: Pare (`STOP`). Dura 4 segundos de batalha (`seconds`), não turnos. Negativo.
+- `statuses/confusion.tres`: Confusão (`CONFUSION`), 3 turnos. Negativo.
+- `statuses/silence.tres`: Silêncio (`SILENCE`), 3 turnos. Negativo.
+- `statuses/blind.tres`: Cegueira (`BLIND`), 3 turnos. Negativo.
+- `statuses/regen.tres`: Regeneração (`REGEN`), 4 turnos. Positivo.
+- `statuses/str_down.tres`, `statuses/vit_down.tres`, `statuses/spd_down.tres`: debuffs de Força, Vitalidade e Velocidade (`ATTR_MOD`, potência -4, 3 turnos). Negativos.
+- `statuses/vit_up.tres`, `statuses/spd_up.tres`: buffs de Vitalidade e Velocidade (`ATTR_MOD`, potência +4, 3 turnos). O buff de Força é `statuses/str_up.tres`, que já existia.
+
+Habilidades que aplicam estados (M11), em `abilities/`. Quem é alvo: os adversários, exceto Regeneração, que vai a aliados:
+
+- `abilities/pare.tres`, `abilities/confusao.tres`, `abilities/silencio.tres`, `abilities/cegueira.tres`: aplicam, cada uma, o estado de mesmo nome, com 70% de chance.
+- `abilities/fraqueza.tres`, `abilities/fragilidade.tres`, `abilities/atraso.tres`: aplicam os debuffs de Força, Vitalidade e Velocidade, com 80% de chance.
+- `abilities/regeneracao.tres`: aplica Regeneração a aliados.
+- Fraqueza, Fragilidade, Atraso e Regeneração não estão em nenhum inimigo nem herói de teste; `tests/test_status_ui.gd` confere que cada uma aplica o estado certo.
+
+Itens de estado (M11), em `items/`. Só funcionam na batalha; não entram no inventário inicial de teste (o simulador os usa no cenário do chefe):
+
+- `items/remedio.tres`: Remédio. Remove Confusão, Silêncio e Cegueira de um aliado (lista em `EffectDef.statuses`).
+- `items/panaceia.tres`: Panaceia. Remove todos os estados negativos de um aliado (`EffectDef` com lista vazia e `status` nulo).
+
+Chefe de teste (M11), em `enemies/` e `encounters/`. Valores de teste:
+
+- `enemies/guardiao_teste.tres`: Guardião (teste), núcleo (`CORE`), nível 9. Fases em 66% ("Fase 2 (teste)") e 33% ("Fase 3 (teste)"). Contra-ataque `abilities/contra_ataque.tres` com 50% de chance, só para ataque básico (`counter_only_basic`).
+- `enemies/braco_teste.tres`: Braço (teste), parte (`PART`), nível 6, com `shields_core = true`. Ataca o herói mais próximo (`NEAREST`).
+- `abilities/golpe_sismico.tres`: Golpe Sísmico, atinge todos os heróis (`ALL`), custo 6 AP. É a habilidade anunciada na fase 3.
+- `abilities/reerguer.tres`: reviver um aliado caído (`REVIVE`), custo 4 AP. Usada pelo Guardião na fase 2, quando um Braço cai.
+- `encounters/chefe_dungeon.tres`: Guardião com dois Braços. `can_flee = false` (não permite fuga) e `unique_id = chefe_dungeon` (não reaparece depois de vencido). Fica no `BossSpot` da dungeon de teste, que só aparece depois da flag `cena_final`.
+
+Os learnsets dos heróis não mudam em M11: nenhum herói aprende os estados novos nem os itens de estado.
