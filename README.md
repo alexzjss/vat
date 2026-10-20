@@ -2,7 +2,7 @@
 
 Prototipo de um RPG com combate em tempo real por barra de ATB, feito em Godot 4 com GDScript tipado e placeholders geometricos. Nao ha conteudo narrativo; personagens, inimigos e lugares sao genericos.
 
-O marco atual e o M7, que acrescenta ao M6 fuga, iniciativa por contato, corrida e inimigos com comportamento no mapa: o jogo abre numa tela de título (Novo jogo / Continuar), de onde se chega a um mapa-mundi de teste com áreas locais e inimigos de mapa; tocar um inimigo inicia a batalha no próprio mapa. Há save em disco com 3 slots, gravado só em pontos de descanso e no mapa-mundi, e a página Config do menu de campo. Na derrota (Game Over), o jogo volta ao título e o progresso desde o último save em disco se perde.
+O marco atual e o M8.5, que acrescenta ao M7 a barra de Limite (M8) e o Suporte da reserva (M8.5), mantendo fuga, iniciativa por contato, corrida e inimigos com comportamento no mapa: o jogo abre numa tela de título (Novo jogo / Continuar), de onde se chega a um mapa-mundi de teste com áreas locais e inimigos de mapa; tocar um inimigo inicia a batalha no próprio mapa. Há save em disco com 3 slots, gravado só em pontos de descanso e no mapa-mundi, e a página Config do menu de campo. Na derrota (Game Over), o jogo volta ao título e o progresso desde o último save em disco se perde.
 
 A batalha do M1 continua disponivel como cena isolada: ATB com modo Wait, fila de prontos, pontos de Aura, itens, estados, areas de efeito, contribuicao e XP.
 
@@ -104,6 +104,10 @@ Na batalha isolada (M1, `--scene res://battle/battle_scene.tscn`):
 
 **Iniciativa por contato (M7).** Quem toca primeiro define o começo da batalha. Encostar num inimigo pelas costas mostra **Ataque surpresa!** e os heróis começam com a barra ATB cheia. Ser tocado por um inimigo que estava perseguindo, ou um escondido, mostra **Emboscada!** e são os inimigos que começam com a barra cheia. Nos demais casos, a batalha começa como antes.
 
+**Limite (M8).** Cada herói tem uma barra de Limite (estilo FF7). Ela enche com o dano que o herói sofre, proporcional ao HP máximo (veneno também conta); herói caído não enche, mas mantém a barra. A barra persiste entre as lutas e vai no save. Com a barra cheia, o comando **Limite** substitui **Atacar** no menu do herói e usa o golpe próprio dele, sem custo de AP; usar zera a barra. Se a ação for perdida por falta de alvo, a barra volta. A barra aparece sob o ATB de cada herói na batalha, no painel do grupo do menu de campo, e a página Status mostra a porcentagem. Inimigos não têm barra.
+
+**Suporte (M8.5).** Com pelo menos 50% da barra de Limite, o comando **Suporte** (depois de Itens) chama um herói da reserva para uma ação dele: o ataque básico ou uma habilidade que gasta o AP do próprio reserva. Quem chama perde 50% de Limite. O reserva não entra no grupo, não vira alvo e não ganha XP; a contribuição da ação conta para quem chamou. O comando fica desabilitado se a barra estiver abaixo de 50% ou se a reserva estiver vazia ou caída.
+
 **Inimigos de teste no mapa (M7)**, na área `area_teste`:
 
 - **Vagante**: o inimigo de sempre, anda ao acaso.
@@ -139,6 +143,7 @@ Passadas depois de `--` (argumentos de usuario), roteirizam entradas para verifi
 & "<Godot_v4.x-stable_win64_console.exe>" --path game -- --demo-m6   # ponto de descanso: descansa, salva, reinicia os atributos com o Cristal e mostra a pagina Salvar
 & "<Godot_v4.x-stable_win64_console.exe>" --path game -- --demo-m7   # corre com o grupo em fila, toca um inimigo pelas costas (Ataque surpresa), foge segurando Q e depois toca o chefe ("Não dá para fugir!")
 & "<Godot_v4.x-stable_win64_console.exe>" --path game -- --demo-field-menu   # abre o menu de campo e percorre as paginas
+& "<Godot_v4.x-stable_win64_console.exe>" --path game -- --demo-m8   # herói sofre dano até encher a barra, usa Limite, enche de novo e chama o Suporte
 ```
 
 O `--demo-m2` roda no jogo principal (sem `--scene`) e leva cerca de 40 s de jogo. Ele anda com o jogador por pontos fixos dos mapas de teste, liga o `auto_battle`, deixa os inimigos do encontro com 2 de HP (so no demo) e aceita as telas de resultado e de nivel. Para gravar quadros:

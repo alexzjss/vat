@@ -91,8 +91,11 @@ Entregue: corrida e grupo em fila (Shift/X), fuga segurando Q (barra, sem XP, ch
 - **Iniciativa por contato** (CT): encostar pelas costas = ATB do grupo começa cheio; inimigo que encosta primeiro = emboscada (ATB dos inimigos começa cheio).
 - Comportamentos novos: **rota fixa**, **perseguir ao ver** (cone de visão), **grupo que se junta** (encostar em um puxa os vizinhos); chefes que não reaparecem.
 
-**M8 — Suporte**
-- A reserva vira **suporte** (spec): comando "Suporte" na batalha chama um herói da reserva para uma ação (ataque ou habilidade dele), sem entrar no grupo; **usos por batalha** limitados; não recebe XP (confirmado).
+**M8 — Limite** · **Concluído** (2026-10-19) · plano [`m8-limite-suporte`](superpowers/plans/2026-10-19-m8-limite-suporte.md)
+- Barra de Limite por herói (estilo FF7): enche só com dano sofrido, persiste entre lutas e vai no save; com a barra cheia, o comando "Limite" substitui "Atacar" e usa um golpe próprio, sem custo de AP.
+
+**M8.5 — Suporte** · **Concluído** (2026-10-19) · plano [`m8-limite-suporte`](superpowers/plans/2026-10-19-m8-limite-suporte.md)
+- A reserva vira **suporte** (spec): comando "Suporte" chama um herói da reserva para uma ação dele (ataque ou habilidade que gasta o AP dele), custando 50% do Limite de quem chama; sem limite de usos por luta; não recebe XP (confirmado).
 
 **M9 — Habilidades por progressão**
 - Cada personagem tem uma **lista de habilidades por nível** (FF) e algumas liberadas por eventos (CT); aviso "Aprendeu X!" na tela de resultado.
