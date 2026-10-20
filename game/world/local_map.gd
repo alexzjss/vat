@@ -30,6 +30,8 @@ var dice_seed: int = -1
 var locked: bool = false
 ## Um evento está em andamento: jogador e inimigos parados, sem saída, interação nem novos encontros.
 var event_active: bool = false
+## Quem executa os eventos diz se aceita um agora (Game: sem transição, menu nem Game Over); vazio = aceita.
+var event_gate: Callable
 
 var state: GameState
 var _battle_enemy: MapEnemy
@@ -153,6 +155,8 @@ func try_interact() -> bool:
 ## Pede ao Game que execute `event`. False se o mapa está ocupado (batalha, evento, travado).
 func run_event(event: EventScript) -> bool:
 	if event == null or battle != null or locked or event_active or state == null:
+		return false
+	if event_gate.is_valid() and not bool(event_gate.call()):
 		return false
 	event_requested.emit(event)
 	return true

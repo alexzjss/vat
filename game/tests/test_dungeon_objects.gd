@@ -262,6 +262,48 @@ func test_trap_ignored_while_an_event_runs() -> void:
 	assert_false(t.trigger(), "evento em andamento")
 	game.event_player.cancel()
 
+func test_trap_refused_while_game_is_busy_changes_nothing() -> void:
+	await _enter_area()
+	var t: Trap = _trap(&"busy_trap")
+	var h: HeroState = game.state.heroes[0]
+	var full: int = h.hp
+	game.busy = true
+	assert_false(t.trigger(), "Game ocupado recusa")
+	assert_eq(game.state.get_flag(&"busy_trap"), 0, "flag intacta")
+	assert_eq(h.hp, full, "sem dano")
+	game.busy = false
+	assert_true(t.trigger(), "livre: dispara")
+	assert_eq(game.state.get_flag(&"busy_trap"), 1)
+	game.event_player.cancel()
+
+func test_trap_refused_while_busy_fires_when_game_frees_up() -> void:
+	await _enter_area()
+	game.busy = true
+	var t: Trap = _trap(&"late_trap")
+	for i: int in 6:
+		await get_tree().physics_frame
+	assert_eq(game.state.get_flag(&"late_trap"), 0, "ocupado: nada aconteceu")
+	game.busy = false
+	var guard: int = 0
+	while game.state.get_flag(&"late_trap") == 0 and guard < 30:
+		guard += 1
+		await get_tree().process_frame
+	assert_eq(game.state.get_flag(&"late_trap"), 1, "disparou ao liberar, com o jogador ainda dentro")
+	assert_true(game.event_player.active)
+	game.event_player.cancel()
+
+func test_event_trigger_refused_while_busy_keeps_its_flag() -> void:
+	await _enter_area()
+	var t: EventTrigger = _trigger_with_flag(&"trig_busy")
+	game.busy = true
+	assert_false(t.trigger())
+	assert_eq(game.state.get_flag(&"trig_busy"), 0)
+	assert_eq(game.state.get_flag(&"ran"), 0)
+	game.busy = false
+	assert_true(t.trigger())
+	assert_eq(game.state.get_flag(&"trig_busy"), 1)
+	game.event_player.cancel()
+
 func test_battle_trap_starts_the_encounter() -> void:
 	await _enter_area()
 	var t: Trap = _trap(&"trap_bat")

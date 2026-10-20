@@ -278,6 +278,7 @@ func _connect_and_setup(node: Node2D, spawn: StringName) -> void:
 		local.game_over.connect(_on_game_over)
 		local.rest_requested.connect(_on_rest_requested)
 		local.event_requested.connect(play_event)
+		local.event_gate = can_play_event
 		local.setup(state, spawn)
 		return
 	push_error("Game: cena de mapa sem tipo conhecido '%s'" % node.name)
@@ -290,12 +291,16 @@ func _on_location_entered(zone_id: StringName) -> void:
 		return
 	go_to(zone_id, &"Entry")
 
+## O Game aceita um evento agora? (mapa local, sem transição, título, menu, Game Over nem outro evento)
+func can_play_event() -> bool:
+	return current is LocalMap and not (busy or in_title or menu.is_open or rest_menu.is_open or game_over_screen != null or event_player.active)
+
 ## Executa `event` no mapa atual (pedido por NPCs, placas e demais objetos). Ignorado se já houver evento,
 ## transição, menu ou Game Over.
 func play_event(event: EventScript) -> void:
-	var local: LocalMap = current as LocalMap
-	if local == null or busy or in_title or menu.is_open or rest_menu.is_open or game_over_screen != null or event_player.active:
+	if not can_play_event():
 		return
+	var local: LocalMap = current as LocalMap
 	await event_player.play(event, local, state)
 
 func _on_rest_requested() -> void:

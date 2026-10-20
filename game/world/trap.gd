@@ -13,6 +13,8 @@ extends Area2D
 @export var message: String = "Uma armadilha disparou!"
 
 var _time: float = 0.0
+## O disparo foi recusado (mapa ocupado) com o jogador na área: tenta de novo enquanto ele ficar.
+var _pending: bool = false
 
 func _init() -> void:
 	collision_layer = 0
@@ -31,6 +33,20 @@ func _process(delta: float) -> void:
 	_time += delta
 	modulate.a = (0.5 + 0.5 * sin(_time * 6.0)) * 0.6 + 0.4 if armed() else 0.25
 	queue_redraw()
+	if _pending:
+		_retry_pending()
+
+func _retry_pending() -> void:
+	if not armed() or not _player_inside():
+		_pending = false
+	elif trigger():
+		_pending = false
+
+func _player_inside() -> bool:
+	for b: Node2D in get_overlapping_bodies():
+		if b is Player:
+			return true
+	return false
 
 ## Ainda dispara? (desarmada depois do primeiro disparo, se tem once_flag)
 func armed() -> bool:
@@ -38,8 +54,8 @@ func armed() -> bool:
 	return s == null or once_flag == &"" or s.get_flag(once_flag) == 0
 
 func _on_body_entered(body: Node2D) -> void:
-	if body is Player:
-		trigger()
+	if body is Player and not trigger():
+		_pending = true
 
 ## Dispara agora (também chamado pelos testes). False se desarmada ou se o mapa está ocupado.
 func trigger() -> bool:
