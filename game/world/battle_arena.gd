@@ -23,6 +23,12 @@ func enemy_positions(n: int) -> Array[Vector2]:
 func enemy_count() -> int:
 	return _spots("EnemySpot").size()
 
+## Onde o heroi da reserva aparece no Suporte (marcador SupportSpot, opcional); nao finito = sem marcador.
+func support_position() -> Vector2:
+	if has_node("SupportSpot"):
+		return (get_node("SupportSpot") as Node2D).global_position
+	return Vector2.INF
+
 func center() -> Vector2:
 	return global_position
 

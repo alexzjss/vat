@@ -10,9 +10,10 @@ static func apply(a: PendingAction, b: BattleState) -> ActionResult:
 		r.fizzled = true
 		return r
 	r.targets = Targeting.area(a.shape(), a.side(), effects, a.radius(), a.width(), a.actor, center, b)
+	var credit: StringName = a.turn_owner().id
 	for t: Combatant in r.targets:
 		for e: EffectDef in effects:
-			_apply_effect(e, a.actor, t, b, r)
+			_apply_effect(e, a.actor, t, b, r, credit)
 	return r
 
 static func _hit(r: ActionResult, t: Combatant, kind: EffectDef.Kind, amount: int, dodged: bool, status_result: int) -> void:
@@ -23,7 +24,8 @@ static func _scaled(e: EffectDef, actor: Combatant, attr: StringName, cfg: Balan
 		return EffectMath.heal_amount(e, 0)
 	return EffectMath.heal_amount(e, StatCalculator.effective(actor, attr, cfg))
 
-static func _apply_effect(e: EffectDef, actor: Combatant, t: Combatant, b: BattleState, r: ActionResult) -> void:
+## `credit` e quem recebe a contribuicao (o chamador, no Suporte; senao o ator).
+static func _apply_effect(e: EffectDef, actor: Combatant, t: Combatant, b: BattleState, r: ActionResult, credit: StringName) -> void:
 	var enemies_alive: Array[Combatant] = b.living(b.enemies)
 	match e.kind:
 		EffectDef.Kind.DAMAGE:
@@ -38,7 +40,7 @@ static func _apply_effect(e: EffectDef, actor: Combatant, t: Combatant, b: Battl
 			var eff: int = mini(dmg, t.hp)
 			t.hp -= eff
 			if actor.team == Combatant.Team.HERO and t.team == Combatant.Team.ENEMY:
-				b.ledger.add(actor.id, t.id, float(eff))
+				b.ledger.add(credit, t.id, float(eff))
 			elif t.team == Combatant.Team.HERO and actor.team == Combatant.Team.ENEMY:
 				t.damage_taken_from[actor.id] = int(t.damage_taken_from.get(actor.id, 0)) + eff
 			if eff > 0:
@@ -55,7 +57,7 @@ static func _apply_effect(e: EffectDef, actor: Combatant, t: Combatant, b: Battl
 			if t.is_down():
 				return
 			var restored: int = _restore(_scaled(e, actor, &"aura", b.cfg), t, b)
-			_credit_heal(actor, t, restored, b, enemies_alive)
+			_credit_heal(actor, credit, t, restored, b, enemies_alive)
 			_hit(r, t, e.kind, restored, false, -1)
 		EffectDef.Kind.REVIVE:
 			if not t.is_down():
@@ -63,7 +65,7 @@ static func _apply_effect(e: EffectDef, actor: Combatant, t: Combatant, b: Battl
 			var hpm: int = StatCalculator.hp_max(t, b.cfg)
 			t.hp = EffectMath.revive_hp(e, hpm, b.cfg)
 			t.atb = 0.0
-			_credit_heal(actor, t, t.hp, b, enemies_alive)
+			_credit_heal(actor, credit, t, t.hp, b, enemies_alive)
 			_hit(r, t, e.kind, t.hp, false, -1)
 		EffectDef.Kind.RESTORE_AP:
 			# Sem contribuição ([P-plano] 16): Éter não gera XP.
@@ -88,6 +90,6 @@ static func _restore(amount: int, t: Combatant, b: BattleState) -> int:
 	t.hp += restored
 	return restored
 
-static func _credit_heal(actor: Combatant, t: Combatant, amount: int, b: BattleState, enemies_alive: Array[Combatant]) -> void:
+static func _credit_heal(actor: Combatant, credit: StringName, t: Combatant, amount: int, b: BattleState, enemies_alive: Array[Combatant]) -> void:
 	if actor.team == Combatant.Team.HERO and t.team == Combatant.Team.HERO:
-		b.ledger.add_ally_benefit(actor.id, t, float(amount), enemies_alive)
+		b.ledger.add_ally_benefit(credit, t, float(amount), enemies_alive)

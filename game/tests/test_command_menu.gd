@@ -77,7 +77,7 @@ func test_opens_on_hero_turn_with_root_entries() -> void:
 	assert_true(menu.visible)
 	assert_eq(menu.mode, CommandMenu.Mode.ROOT)
 	assert_eq(menu.actor_name(), "Teste A")
-	assert_eq(menu.entry_labels(), PackedStringArray(["Atacar", "Habilidade", "Item"]))
+	assert_eq(menu.entry_labels(), PackedStringArray(["Atacar", "Habilidade", "Item", "Suporte"]))
 	assert_true(menu.entry_enabled(2), "Item habilitado com Poção x3")
 	assert_false(preview.visible, "previa oculta fora da etapa de alvo")
 

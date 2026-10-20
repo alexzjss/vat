@@ -11,6 +11,13 @@ var elapsed: float = 0.0
 var impacted: bool = false
 ## Golpe de Limite (M8): a barra de `actor` zera quando a acao comeca.
 var is_limit: bool = false
+## Suporte (M8.5): `actor` e o heroi da reserva (Combatant temporario, fora de b.heroes) e `caller` quem o chamou.
+## O ATB zerado no fim e o Limite gasto sao de `caller`; o credito de contribuicao tambem.
+var caller: Combatant
+
+## Quem gasta o turno: o chamador no Suporte, senao o proprio ator.
+func turn_owner() -> Combatant:
+	return caller if caller != null else actor
 
 func shape() -> AbilityDef.Shape:
 	return item.shape if item != null else ability.shape

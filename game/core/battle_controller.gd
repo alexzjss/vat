@@ -131,7 +131,7 @@ func _advance_execution(delta: float) -> void:
 		a.impacted = true
 		action_impact.emit(a, r)
 	if a.elapsed >= a.cast_time(b.cfg):
-		a.actor.atb = 0.0
+		a.turn_owner().atb = 0.0
 		executing = null
 		action_finished.emit(a)
 
@@ -172,6 +172,8 @@ func _begin(a: PendingAction) -> void:
 	a.impacted = false
 	if a.is_limit:
 		a.actor.limit = 0.0
+	elif a.caller != null:
+		a.caller.limit = maxf(0.0, a.caller.limit - b.cfg.support_cost)
 	executing = a
 	action_started.emit(a)
 
@@ -186,7 +188,7 @@ func _pop_next_enemy() -> Combatant:
 func _begin_queued() -> void:
 	var a: PendingAction = _queued
 	_queued = null
-	if a.actor.is_down():
+	if a.turn_owner().is_down():
 		_refund(a)
 		return
 	_begin(a)
@@ -213,8 +215,8 @@ func _retarget(a: PendingAction) -> bool:
 ## Ação sem alvo: perdida sem gastar AP nem item; o turno termina.
 func _lose(a: PendingAction) -> void:
 	_refund(a)
-	a.actor.atb = 0.0
-	turn_lost.emit(a.actor)
+	a.turn_owner().atb = 0.0
+	turn_lost.emit(a.turn_owner())
 
 func _refund(a: PendingAction) -> void:
 	if a.is_limit:
@@ -223,6 +225,10 @@ func _refund(a: PendingAction) -> void:
 		b.inventory.refund(a.item.id)
 	elif a.ability != null:
 		a.actor.ap += a.ability.ap_cost
+		if a.caller != null:
+			# Suporte: o AP e do heroi da reserva e ja foi gravado no HeroState ao escolher. O Limite do
+			# chamador so e gasto em _begin, entao uma acao que nunca comecou nao tem o que devolver.
+			a.actor.hero_state.ap = a.actor.ap
 
 func _cancel_session_if_down() -> void:
 	if session != null and session.actor.is_down():

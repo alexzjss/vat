@@ -31,7 +31,7 @@ func _setup(limit: float) -> void:
 
 func test_menu_shows_limit_instead_of_attack_when_full() -> void:
 	_setup(1.0)
-	assert_eq(menu.entry_labels(), PackedStringArray(["Limite", "Habilidade", "Item"]))
+	assert_eq(menu.entry_labels(), PackedStringArray(["Limite", "Habilidade", "Item", "Suporte"]))
 	assert_true(menu.entry_enabled(0))
 
 func test_menu_keeps_attack_below_full() -> void:

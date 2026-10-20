@@ -38,7 +38,7 @@ func area() -> Array[Combatant]:
 func _draw() -> void:
 	if session == null or session.center == null:
 		return
-	var actor_pos: Vector2 = session.actor.position
+	var actor_pos: Vector2 = session.user().position
 	var center_pos: Vector2 = session.center.position
 	match session.shape():
 		AbilityDef.Shape.CIRCLE_TARGET:

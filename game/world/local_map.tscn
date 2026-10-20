@@ -210,6 +210,9 @@ position = Vector2(-280, 75)
 [node name="HeroSpot4" type="Marker2D" parent="Arena"]
 position = Vector2(-340, 225)
 
+[node name="SupportSpot" type="Marker2D" parent="Arena"]
+position = Vector2(-460, 0)
+
 [node name="EnemySpot1" type="Marker2D" parent="Arena"]
 position = Vector2(180, -90)
 

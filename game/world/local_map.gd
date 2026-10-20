@@ -147,7 +147,7 @@ func _on_enemy_touched(enemy: MapEnemy) -> void:
 	add_child(battle)
 	# Síncrono logo após add_child: o _auto_start adiado da cena só é pulado se ctrl já existir.
 	battle.start_with(state.heroes, defs, arena.hero_positions().slice(0, state.heroes.size()), arena.enemy_positions(defs.size()),
-			state.inventory, from_pos, kind)
+			state.inventory, from_pos, kind, state.reserve, arena.support_position())
 
 ## Quem entra na batalha: o tocado e, se tem grupo, os do mesmo grupo a até group_join_dist dele,
 ## na ordem da cena, enquanto couberem inimigos nas posições da arena (os que não cabem ficam no mapa).

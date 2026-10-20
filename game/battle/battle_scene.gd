@@ -48,6 +48,11 @@ const ACTION_REST_RETRY: int = 1
 
 var phase: Phase = Phase.BATTLE
 var _snapshots: Array[Dictionary] = []
+## Reserva da batalha atual (Suporte, M8.5): os HeroState e seus snapshots (o AP gasto volta no retry).
+var reserve_states: Array[HeroState] = []
+var _reserve_snapshots: Array[Dictionary] = []
+## View do reserva enquanto o Suporte executa (fora de `views`: nao e um combatente da batalha).
+var _support_view: CombatantView
 var _level_queue: Array[HeroState] = []
 ## Só debug (`--demo-result`, `--demo-m2`): inimigos com 1/4 do HP e roteiro das telas de resultado/nível.
 var demo_result: bool = false
@@ -97,7 +102,7 @@ func _auto_start() -> void:
 	start(heroes)
 
 ## Standalone (M1): posições dos marcadores, inimigos de enemy_defs e inventário novo de start_items.
-func start(heroes: Array[HeroState]) -> void:
+func start(heroes: Array[HeroState], reserve: Array[HeroState] = []) -> void:
 	var hero_pos: Array[Vector2] = []
 	for i: int in heroes.size():
 		hero_pos.append(_spot("HeroSpot%d" % (i + 1)))
@@ -107,14 +112,15 @@ func start(heroes: Array[HeroState]) -> void:
 	var inv := Inventory.new()
 	for i: int in start_items.size():
 		inv.add(start_items[i], start_item_counts[i])
-	start_with(heroes, enemy_defs, hero_pos, enemy_pos, inv)
+	start_with(heroes, enemy_defs, hero_pos, enemy_pos, inv, Vector2.INF, Initiative.Kind.NORMAL, reserve, _spot("SupportSpot") if has_node("SupportSpot") else Vector2.INF)
 
 ## Monta a batalha com essas posições e esse objeto de inventário (não copia).
 ## from_pos finito: as views começam lá e deslizam até a posição em cfg.battle_slide_time;
 ## o ctrl só avança depois do deslize.
 func start_with(heroes: Array[HeroState], enemies: Array[EnemyDef], hero_pos: Array[Vector2],
 		enemy_pos: Array[Vector2], inventory: Inventory, from_pos: Vector2 = Vector2.INF,
-		initiative: Initiative.Kind = Initiative.Kind.NORMAL) -> void:
+		initiative: Initiative.Kind = Initiative.Kind.NORMAL, reserve: Array[HeroState] = [],
+		support_pos: Vector2 = Vector2.INF) -> void:
 	_clear()
 	_background.visible = mode == Mode.STANDALONE
 	_outcome_label.visible = mode == Mode.STANDALONE
@@ -122,6 +128,10 @@ func start_with(heroes: Array[HeroState], enemies: Array[EnemyDef], hero_pos: Ar
 	_snapshots = []
 	for h: HeroState in heroes:
 		_snapshots.append(h.snapshot())
+	reserve_states = reserve
+	_reserve_snapshots = []
+	for h: HeroState in reserve:
+		_reserve_snapshots.append(h.snapshot())
 	last_xp = {}
 	_level_queue = []
 	phase = Phase.BATTLE
@@ -139,6 +149,8 @@ func start_with(heroes: Array[HeroState], enemies: Array[EnemyDef], hero_pos: Ar
 		enemy_cs.append(Combatant.from_enemy(d, id, enemy_pos[i], balance))
 	var b: BattleState = BattleState.create(balance, Dice.new(dice_seed), hero_cs, enemy_cs)
 	b.inventory = inventory
+	b.reserve = reserve
+	b.support_pos = support_pos
 	if demo_result:
 		# Só debug: o auto_battle (ataque básico no primeiro alvo) perde com o conteúdo de teste;
 		# enfraquece os inimigos para o roteiro chegar à vitória e às telas de nível.
@@ -168,6 +180,8 @@ func start_with(heroes: Array[HeroState], enemies: Array[EnemyDef], hero_pos: Ar
 			v.position = from_pos
 	ctrl.hero_turn.connect(_on_hero_turn)
 	ctrl.session_cancelled.connect(_on_session_cancelled)
+	ctrl.action_started.connect(_on_action_started)
+	ctrl.action_finished.connect(_on_action_finished)
 	ctrl.action_impact.connect(_on_action_impact)
 	ctrl.status_tick.connect(_on_status_tick)
 	ctrl.turn_lost.connect(_on_turn_lost)
@@ -283,6 +297,7 @@ func _clear() -> void:
 	for v: CombatantView in views.values():
 		v.queue_free()
 	views.clear()
+	_remove_support_view()
 	if _outcome_label != null:
 		_outcome_label.text = ""
 
@@ -313,6 +328,30 @@ func _auto_confirm(session: SelectionSession) -> void:
 func _set_highlight_off() -> void:
 	for v: CombatantView in views.values():
 		v.highlighted = false
+
+## Suporte: o reserva aparece (fade-in) na posicao dele enquanto a acao executa.
+func _on_action_started(a: PendingAction) -> void:
+	if a.caller == null:
+		return
+	_remove_support_view()
+	_support_view = VIEW_SCENE.instantiate() as CombatantView
+	add_child(_support_view)
+	_support_view.bind(a.actor, balance)
+	_support_view.modulate.a = 0.0
+	_support_view.create_tween().tween_property(_support_view, "modulate:a", 1.0, balance.support_fade_time)
+
+func _on_action_finished(a: PendingAction) -> void:
+	if a.caller != null:
+		_remove_support_view()
+
+func _remove_support_view() -> void:
+	if _support_view != null:
+		_support_view.queue_free()
+		_support_view = null
+
+## True enquanto o reserva do Suporte esta na tela.
+func support_view_visible() -> bool:
+	return _support_view != null
 
 func _on_action_impact(_a: PendingAction, r: ActionResult) -> void:
 	for hit: Dictionary in r.hits:
@@ -420,16 +459,18 @@ func _on_level_up_closed(_h: HeroState) -> void:
 func fight_again(rest: bool = false) -> void:
 	if rest:
 		_rest_all(hero_states)
-	start(hero_states)
+	start(hero_states, reserve_states)
 
 ## Restaura o estado do início da batalha perdida e recomeça; rest = true descansa depois do snapshot.
 func retry(rest: bool = false) -> void:
 	var heroes: Array[HeroState] = hero_states
 	for i: int in heroes.size():
 		heroes[i].restore(_snapshots[i])
+	for i: int in reserve_states.size():
+		reserve_states[i].restore(_reserve_snapshots[i])
 	if rest:
 		_rest_all(heroes)
-	start(heroes)
+	start(heroes, reserve_states)
 
 func _rest_all(heroes: Array[HeroState]) -> void:
 	for h: HeroState in heroes:

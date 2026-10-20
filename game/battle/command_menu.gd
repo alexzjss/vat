@@ -1,14 +1,14 @@
 class_name CommandMenu
 extends PanelContainer
 
-## Menu de comandos do herói: raiz (Atacar/Habilidade/Item), submenus e etapa de alvo.
+## Menu de comandos do herói: raiz (Atacar/Habilidade/Item/Suporte), submenus e etapa de alvo.
 ## Toda decisão passa por SelectionSession; o menu só apresenta e encaminha.
 ## O teclado (_unhandled_input) chama move/accept/cancel, que também servem aos testes.
 
 signal submitted(a: PendingAction)
 
-enum Mode { CLOSED, ROOT, ABILITIES, ITEMS, TARGET }
-enum Kind { ATTACK, ABILITIES, ITEMS, ABILITY, ITEM, LIMIT }
+enum Mode { CLOSED, ROOT, ABILITIES, ITEMS, SUPPORT_HEROES, SUPPORT_ACTIONS, TARGET }
+enum Kind { ATTACK, ABILITIES, ITEMS, ABILITY, ITEM, LIMIT, SUPPORT, SUPPORT_HERO }
 
 const ENABLED_COLOR: Color = Color(1.0, 1.0, 1.0)
 const DISABLED_COLOR: Color = Color(0.45, 0.45, 0.5)
@@ -21,6 +21,7 @@ class Entry:
 	var kind: CommandMenu.Kind
 	var ability: AbilityDef
 	var item: ItemDef
+	var hero: HeroState
 
 	func _init(p_label: String, p_enabled: bool, p_kind: CommandMenu.Kind) -> void:
 		label = p_label
@@ -132,7 +133,7 @@ func move(delta: int) -> void:
 				return
 			target_index = posmod(target_index + delta, _candidates.size())
 			_aim()
-		Mode.ROOT, Mode.ABILITIES, Mode.ITEMS:
+		Mode.ROOT, Mode.ABILITIES, Mode.ITEMS, Mode.SUPPORT_HEROES, Mode.SUPPORT_ACTIONS:
 			if _entries.is_empty():
 				return
 			cursor = posmod(cursor + delta, _entries.size())
@@ -142,7 +143,7 @@ func accept() -> void:
 	match mode:
 		Mode.TARGET:
 			_confirm()
-		Mode.ROOT, Mode.ABILITIES, Mode.ITEMS:
+		Mode.ROOT, Mode.ABILITIES, Mode.ITEMS, Mode.SUPPORT_HEROES, Mode.SUPPORT_ACTIONS:
 			if not entry_enabled(cursor):
 				return
 			_pick(_entries[cursor])
@@ -156,6 +157,11 @@ func cancel() -> void:
 			_show_root(1)
 		Mode.ITEMS:
 			_show_root(2)
+		Mode.SUPPORT_HEROES:
+			_show_root(3)
+		Mode.SUPPORT_ACTIONS:
+			session.cancel_support()
+			_show_support_heroes()
 
 func _pick(e: Entry) -> void:
 	_origin_mode = mode
@@ -173,6 +179,11 @@ func _pick(e: Entry) -> void:
 			_show_abilities()
 		Kind.ITEMS:
 			_show_items()
+		Kind.SUPPORT:
+			_show_support_heroes()
+		Kind.SUPPORT_HERO:
+			if session.choose_support(e.hero):
+				_show_support_actions()
 		Kind.ABILITY:
 			if session.choose_ability(e.ability):
 				_enter_target()
@@ -199,6 +210,8 @@ func _root_enabled(at: int) -> bool:
 			return not session.actor.abilities.is_empty()
 		2:
 			return _has_items()
+		3:
+			return session.can_support()
 	return false
 
 func _show_root(at: int) -> void:
@@ -211,6 +224,7 @@ func _show_root(at: int) -> void:
 		_entries.append(Entry.new("Atacar", session.actor.basic_attack != null, Kind.ATTACK))
 	_entries.append(Entry.new("Habilidade", not session.actor.abilities.is_empty(), Kind.ABILITIES))
 	_entries.append(Entry.new("Item", _has_items(), Kind.ITEMS))
+	_entries.append(Entry.new("Suporte", session.can_support(), Kind.SUPPORT))
 	cursor = at
 	if preview != null:
 		preview.hide_preview()
@@ -227,6 +241,29 @@ func _show_abilities(at: int = 0) -> void:
 	_entries = []
 	for ab: AbilityDef in session.actor.abilities:
 		var e := Entry.new("%s — %d AP" % [ab.display_name, ab.ap_cost], session.can_use(ab), Kind.ABILITY)
+		e.ability = ab
+		_entries.append(e)
+	cursor = at
+	_render()
+
+## Suporte, passo 1: o reserva a chamar.
+func _show_support_heroes(at: int = 0) -> void:
+	mode = Mode.SUPPORT_HEROES
+	_entries = []
+	for h: HeroState in session.support_candidates():
+		var e := Entry.new("%s — AP %d" % [h.def.display_name, h.ap], true, Kind.SUPPORT_HERO)
+		e.hero = h
+		_entries.append(e)
+	cursor = at
+	_render()
+
+## Suporte, passo 2: ataque basico e habilidades do reserva (pagas com o AP dele).
+func _show_support_actions(at: int = 0) -> void:
+	mode = Mode.SUPPORT_ACTIONS
+	_entries = []
+	for ab: AbilityDef in session.support_abilities():
+		var label: String = "Atacar" if ab == session.support.basic_attack else "%s — %d AP" % [ab.display_name, ab.ap_cost]
+		var e := Entry.new(label, session.can_use(ab), Kind.ABILITY)
 		e.ability = ab
 		_entries.append(e)
 	cursor = at
@@ -254,6 +291,8 @@ func _return_to_origin() -> void:
 			_show_abilities(_origin_cursor)
 		Mode.ITEMS:
 			_show_items(_origin_cursor)
+		Mode.SUPPORT_ACTIONS:
+			_show_support_actions(_origin_cursor)
 		_:
 			_show_root(_origin_cursor)
 
@@ -295,7 +334,7 @@ func _confirm() -> void:
 func _command_name() -> String:
 	if session.item != null:
 		return session.item.display_name
-	if session.ability == session.actor.basic_attack:
+	if session.ability == session.user().basic_attack:
 		return "Atacar"
 	return session.ability.display_name
 
@@ -303,6 +342,8 @@ func _render() -> void:
 	if session == null:
 		return
 	_title.text = "%s   AP %d" % [session.actor.display_name, session.actor.ap]
+	if session.support != null:
+		_title.text = "%s   AP %d" % [session.support.display_name, session.support.ap]
 	for child: Node in _list.get_children():
 		_list.remove_child(child)
 		child.free()
@@ -315,6 +356,12 @@ func _render() -> void:
 			_hint.text = "Enter: escolher   Esc: voltar"
 		Mode.ITEMS:
 			_header.text = "Item"
+			_hint.text = "Enter: escolher   Esc: voltar"
+		Mode.SUPPORT_HEROES:
+			_header.text = "Suporte — chamar"
+			_hint.text = "Enter: escolher   Esc: voltar"
+		Mode.SUPPORT_ACTIONS:
+			_header.text = "Suporte — ação"
 			_hint.text = "Enter: escolher   Esc: voltar"
 		Mode.TARGET:
 			_header.text = _command_name()

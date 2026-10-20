@@ -11,6 +11,10 @@ var statuses: StatusSystem
 var queue: ReadyQueue
 var inventory: Inventory
 var tick: int = 0
+## Herois da reserva (M8.5): so podem ser chamados como Suporte; nao entram em heroes, fila nem alvos.
+var reserve: Array[HeroState] = []
+## Onde o reserva aparece (SupportSpot da arena); nao finito = ao lado de quem o chamou.
+var support_pos: Vector2 = Vector2.INF
 
 static func create(p_cfg: BalanceConfig, p_dice: Dice, p_heroes: Array[Combatant], p_enemies: Array[Combatant]) -> BattleState:
 	var s := BattleState.new()
