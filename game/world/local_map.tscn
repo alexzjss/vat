@@ -216,6 +216,12 @@ position = Vector2(180, -90)
 [node name="EnemySpot2" type="Marker2D" parent="Arena"]
 position = Vector2(180, 90)
 
+[node name="EnemySpot3" type="Marker2D" parent="Arena"]
+position = Vector2(260, -180)
+
+[node name="EnemySpot4" type="Marker2D" parent="Arena"]
+position = Vector2(260, 180)
+
 [node name="Enemy" parent="." instance=ExtResource("3")]
 position = Vector2(1850, 360)
 encounter = ExtResource("7")

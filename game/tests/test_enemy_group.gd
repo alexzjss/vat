@@ -107,6 +107,10 @@ func test_group_is_limited_to_arena_spots_in_stable_order() -> void:
 	c.setup(state.cfg, state.dice)
 	b.global_position = a.global_position + Vector2(40, 0)
 	c.global_position = a.global_position + Vector2(80, 0)
+	for extra: String in ["EnemySpot3", "EnemySpot4"]:
+		var n: Node = map.get_node("Arena/" + extra)
+		n.get_parent().remove_child(n)
+		n.free()
 	var spots: int = (map.get_node("Arena") as BattleArena).enemy_count()
 	assert_eq(spots, 2)
 	var s := _touch(a)
@@ -117,6 +121,7 @@ func test_group_is_limited_to_arena_spots_in_stable_order() -> void:
 	_run_to_end(s)
 	_accept_all(s)
 	assert_false(c.is_queued_for_deletion())
+	assert_true(c.in_cooldown(), "o que nao coube nao toca de novo na hora")
 
 func test_group_with_unfleeable_member_cannot_flee() -> void:
 	_only_group()

@@ -29,6 +29,8 @@ var state: GameState
 var _battle_enemy: MapEnemy
 ## Todos os inimigos de mapa na batalha atual (o tocado primeiro, depois o grupo).
 var _battle_group: Array[MapEnemy] = []
+## Membros do grupo perto o bastante que não couberam na arena (ficam no mapa; levam cooldown ao fim da batalha).
+var _battle_left_out: Array[MapEnemy] = []
 ## Posição do jogador ao tocar o inimigo (para onde ele volta se fugir).
 var _battle_from: Vector2 = Vector2.ZERO
 
@@ -105,6 +107,11 @@ func _on_enemy_touched(enemy: MapEnemy) -> void:
 	var arena: BattleArena = _arena_for(enemy)
 	var group: Array[MapEnemy] = group_for(enemy, arena)
 	_battle_group = group
+	_battle_left_out = []
+	if enemy.group != &"":
+		for e: MapEnemy in enemies():
+			if e != enemy and not group.has(e) and e.group == enemy.group and not e.lurking and e.encounter != null 					and e.global_position.distance_to(enemy.global_position) <= state.cfg.group_join_dist:
+				_battle_left_out.append(e)
 	player.enabled = false
 	for e: MapEnemy in enemies():
 		e.frozen = true
@@ -165,6 +172,10 @@ func _on_battle_finished(outcome: BattleController.Outcome) -> void:
 	var arena: BattleArena = _arena_for(_battle_enemy) if is_instance_valid(_battle_enemy) else default_arena
 	battle.queue_free()
 	battle = null
+	for e: MapEnemy in _battle_left_out:
+		if is_instance_valid(e):
+			e.begin_cooldown(state.cfg.flee_cooldown)
+	_battle_left_out = []
 	if outcome == BattleController.Outcome.FLED:
 		_after_flee()
 		return
