@@ -101,9 +101,8 @@ Entregue: corrida e grupo em fila (Shift/X), fuga segurando Q (barra, sem XP, ch
 - Cada personagem tem uma **lista de habilidades por nível** (FF) e algumas liberadas por eventos (CT); aviso "Aprendeu X!" na tela de resultado.
 - Entregue: `LearnEntry` e learnset fixo por personagem, técnicas aprendidas por nível e por evento (`HeroState.learn`, aceita só ids do próprio learnset), `learned` no save (com derivação para saves antigos), aviso de aprendizado na tela de resultado e página Técnicas no menu de campo.
 
-**M10 — Eventos, diálogo e dungeon**
-- Caixas de diálogo com nome, escolhas simples, **flags** de história e **XP narrativa** (regra já confirmada) — só o sistema e textos de teste.
-- Objetos de dungeon: **baús**, **portas e chaves**, **interruptores**, **armadilhas** simples; eventos roteirizados que movem personagens.
+**M10 — Eventos, diálogo e dungeon** · **Concluído** (2026-10-20) · plano [`m10-eventos-dungeon`](superpowers/plans/2026-10-19-m10-eventos-dungeon.md)
+- Entregue: sistema de eventos com **flags** (no save e no restore), caixa de diálogo com nome e escolhas, NPCs e placas, cenas roteirizadas que movem atores, **XP narrativa**, objetos de dungeon (**baús**, **portas e chaves**, **interruptores** e portões, **armadilhas** de dano e de batalha) e a dungeon de teste ligada ao mapa-múndi (`--demo-m10`). Os textos são de teste.
 
 **M11 — IA, chefes e estados**
 - Chefe de teste com **fases por HP**, **ataques anunciados** (telegraph) e **contra-ataque**, alvo por posição.

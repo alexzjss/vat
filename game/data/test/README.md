@@ -1,6 +1,7 @@
 Conteúdo genérico de teste (Teste A/B/C, Inimigo X/Y/Z): VALORES DE TESTE — NÃO CANÔNICOS (spec v4.0 §8).
 
 - `items/cristal_reinicio.tres`: Cristal de Reinício (item-chave). Usado no ponto de descanso para reiniciar a alocação de atributos de um herói; gasta 1 unidade. O inventário inicial do jogo traz 1 para teste.
+- `items/chave_teste.tres`: Chave de Teste (item-chave, `key_item = true`). Abre a porta trancada da dungeon de teste e não é gasta. Fica num dos baús da dungeon.
 - `encounters/encontro_x.tres`: encontro com o Inimigo X. Usado pelo patrulheiro, pelo escondido (`lurking`) e por um dos inimigos da dupla de grupo.
 - `encounters/encontro_y.tres`: encontro com o Inimigo Y. Usado pelo perseguidor e pelo outro inimigo da dupla de grupo.
 - `encounters/chefe_teste.tres`: chefe de teste com o Inimigo Z sozinho. `can_flee = false` (não permite fuga) e `unique_id = chefe_teste` (não reaparece depois de vencido).
@@ -22,3 +23,8 @@ Learnsets (M9): cada herói aprende a técnica ao alcançar o nível indicado. N
 - `heroes/teste_e.tres` (Teste E): `pulso` (nv 1), `veneno` (nv 3), `raio` (nv 6), `tempestade` (nv 10), `cura` (nv 15), `lentidao` (evento).
 
 Habilidades placeholder novas (M9), com efeitos já existentes e potências coerentes com o custo: `golpe_pesado`, `lamina`, `raio`, `tempestade` e `cura_maior`.
+
+Eventos (M10), em `events/` (roteiros de teste, lidos pelo `EventRunner`):
+
+- `events/npc_guia.tres`: roteiro do Guia da dungeon de teste. Pergunta "Aprender a técnica?" com as opções "Sim" e "Não". Em "Sim", ensina `rajada` ao Teste A, dá 60 de XP narrativa e grava a flag `guia_ensinou`; depois de ensinada, a fala muda e não ensina de novo.
+- `events/cena_final.tres`: cena da sala final, disparada ao entrar. O Vigia (`NpcFinal`) anda até o `CenaMarker`, fala duas linhas, a câmera vai ao `BossSpot` e espera um instante.

@@ -2,7 +2,7 @@
 
 Prototipo de um RPG com combate em tempo real por barra de ATB, feito em Godot 4 com GDScript tipado e placeholders geometricos. Nao ha conteudo narrativo; personagens, inimigos e lugares sao genericos.
 
-O marco atual e o M9, que acrescenta ao M8.5 as técnicas por personagem, mantendo a barra de Limite (M8), o Suporte da reserva (M8.5), fuga, iniciativa por contato, corrida e inimigos com comportamento no mapa: o jogo abre numa tela de título (Novo jogo / Continuar), de onde se chega a um mapa-mundi de teste com áreas locais e inimigos de mapa; tocar um inimigo inicia a batalha no próprio mapa. Há save em disco com 3 slots, gravado só em pontos de descanso e no mapa-mundi, e a página Config do menu de campo. Na derrota (Game Over), o jogo volta ao título e o progresso desde o último save em disco se perde.
+O marco atual e o M10, que acrescenta ao M9 o sistema de eventos (caixa de diálogo com nome e escolhas, flags de história, NPCs e placas, cenas roteirizadas e XP narrativa), os objetos de dungeon (baús, portas e chaves, interruptores e armadilhas) e uma dungeon de teste ligada ao mapa-mundi. Antes disso, o M9 acrescentou as técnicas por personagem, mantendo a barra de Limite (M8), o Suporte da reserva (M8.5), fuga, iniciativa por contato, corrida e inimigos com comportamento no mapa: o jogo abre numa tela de título (Novo jogo / Continuar), de onde se chega a um mapa-mundi de teste com áreas locais e inimigos de mapa; tocar um inimigo inicia a batalha no próprio mapa. Há save em disco com 3 slots, gravado só em pontos de descanso e no mapa-mundi, e a página Config do menu de campo. Na derrota (Game Over), o jogo volta ao título e o progresso desde o último save em disco se perde.
 
 A batalha do M1 continua disponivel como cena isolada: ATB com modo Wait, fila de prontos, pontos de Aura, itens, estados, areas de efeito, contribuicao e XP.
 
@@ -53,7 +53,7 @@ Fora desses dois lugares, o comando Salvar fica desabilitado.
 - **ATB**: **Espera** (padrão) pausa o tempo enquanto o menu de um herói está aberto. **Ativo** deixa o tempo correr com o menu aberto, como no FF7: inimigos e ações em andamento seguem; um comando confirmado enquanto outra ação executa fica guardado e começa quando ela termina. Se o alvo cair, a ação é redirecionada ao alvo válido do mesmo lado; se não houver nenhum, a ação se perde sem gastar AP.
 - **Velocidade da batalha**: de 1 a 5, padrão 3 (×1,0). Os níveis são ×0,6, ×0,8, ×1,0, ×1,25 e ×1,5 e alteram só o ritmo do ATB, não as animações.
 - **Memória do cursor**: quando ligada (padrão), o menu de comandos da batalha lembra o último comando de cada herói.
-- **Velocidade do texto**: de 1 a 3, guardada para o sistema de diálogo (ainda sem efeito).
+- **Velocidade do texto**: de 1 a 3, guardada para o sistema de diálogo: a fala aparece a 30, 60 ou 120 caracteres por segundo (valores de teste).
 - **Volume**: de 0 a 10, padrão 10, aplicado ao áudio geral (ainda não há som no jogo).
 
 ## Controles
@@ -66,6 +66,13 @@ No mapa:
 | Shift / X (segurar) | Correr; o grupo segue o líder em fila |
 | Tab / Esc | Abrir o menu de campo (fora de batalha e de transicao) |
 | Enter / Espaço / Z | Interagir (ex.: abrir o menu do ponto de descanso) |
+
+Na caixa de diálogo (M10):
+
+| Tecla | Acao |
+|-------|------|
+| Enter / Espaço / Z | Completar o texto ou avançar para a fala seguinte; confirmar a opção escolhida |
+| Cima / Baixo | Escolher a opção (nas escolhas) |
 
 No menu de campo (paginas Itens, Tecnicas, Equipar, Status, Atributos, Formacao, Salvar, Config e Fechar; o mapa fica congelado enquanto ele esta aberto):
 
@@ -110,6 +117,18 @@ Na batalha isolada (M1, `--scene res://battle/battle_scene.tscn`):
 
 **Técnicas (M9).** Cada herói tem uma lista fixa de técnicas, como em Chrono Trigger. Todo herói começa com a técnica de nível 1 e aprende as demais ao alcançar o nível indicado no seu learnset (entre os níveis 3 e 20, conforme o herói). Algumas técnicas não entram por nível: são liberadas só por evento, e o sistema de eventos do M10 vai ligá-las à história e à dungeon. Ao ganhar XP, quando um herói aprende uma técnica, a tela de resultado mostra "<Herói> aprendeu <Técnica>!" entre a XP e a tela de nível. A página Técnicas do menu de campo lista as técnicas aprendidas e mostra, em cinza, a próxima com o nível em que chega. Os learnsets de teste estão em [`game/data/test/README.md`](game/data/test/README.md).
 
+**Diálogo (M10).** Interagir com um NPC ou uma placa (tecla de interação, a mesma do ponto de descanso) abre a caixa de diálogo, com o nome de quem fala e o texto, que aparece aos poucos. A tecla de interação completa o texto se ele ainda estiver aparecendo; com o texto completo, avança para a fala seguinte. Em uma escolha, cima e baixo mudam a opção e a tecla de interação confirma. Enquanto a caixa está aberta, o mapa fica congelado, o menu de campo não abre e a tecla não chega ao jogador. Alguns NPCs gravam flags de história conforme a escolha; uma escolha pode também dar técnicas ou XP narrativa.
+
+**Objetos de dungeon (M10).** Todo estado desses objetos fica em flags, então eles continuam como foram deixados ao sair do mapa, ao salvar e ao carregar.
+
+- **Baús**: interagir abre o baú e mostra "Encontrou X!". Depois de aberto, fica vazio e não se abre de novo.
+- **Portas**: uma porta trancada mostra "Está trancada." Com a chave no inventário, ela abre e fica aberta. A chave (item-chave) não é gasta.
+- **Interruptores e portões**: interagir com o interruptor liga ou desliga uma flag; o portão bloqueia a passagem enquanto a flag não estiver no valor de abertura.
+- **Armadilhas**: ao pisar, a armadilha de dano tira 10% do HP máximo dos heróis ativos (valor de teste; nunca mata, o mínimo é 1), e a armadilha de batalha inicia um encontro. Nas armadilhas de uso único, depois de disparar elas não se repetem; enquanto estão armadas, piscam.
+- **Gatilhos de cena**: uma área que roda um roteiro ao ser atravessada, uma única vez.
+
+**Dungeon de teste (M10).** Entra-se nela pela zona **Dungeon de teste** no mapa-mundi, e a saída leva de volta ao mapa-mundi. Ela tem uma placa na entrada; um NPC guia que oferece ensinar a técnica `rajada` ao Teste A (a escolha "Sim" ensina a técnica e dá XP narrativa; depois, ele só repete a fala); dois baús (Poção e Chave de Teste); uma porta trancada pela chave; um interruptor que abre um portão; uma armadilha de dano e uma de batalha; e, na sala final, uma cena em que um NPC anda até um ponto, fala duas linhas e a câmera vai a outro ponto. Os textos são de teste.
+
 **Inimigos de teste no mapa (M7)**, na área `area_teste`:
 
 - **Vagante**: o inimigo de sempre, anda ao acaso.
@@ -146,6 +165,7 @@ Passadas depois de `--` (argumentos de usuario), roteirizam entradas para verifi
 & "<Godot_v4.x-stable_win64_console.exe>" --path game -- --demo-m7   # corre com o grupo em fila, toca um inimigo pelas costas (Ataque surpresa), foge segurando Q e depois toca o chefe ("Não dá para fugir!")
 & "<Godot_v4.x-stable_win64_console.exe>" --path game -- --demo-field-menu   # abre o menu de campo e percorre as paginas
 & "<Godot_v4.x-stable_win64_console.exe>" --path game -- --demo-m8   # herói sofre dano até encher a barra, usa Limite, enche de novo e chama o Suporte
+& "<Godot_v4.x-stable_win64_console.exe>" --path game -- --demo-m10  # dungeon de teste: lê a placa, fala com o guia (Sim), abre os baús e a porta, aciona o interruptor, pisa nas armadilhas e assiste à cena final
 ```
 
 O `--demo-m2` roda no jogo principal (sem `--scene`) e leva cerca de 40 s de jogo. Ele anda com o jogador por pontos fixos dos mapas de teste, liga o `auto_battle`, deixa os inimigos do encontro com 2 de HP (so no demo) e aceita as telas de resultado e de nivel. Para gravar quadros:
