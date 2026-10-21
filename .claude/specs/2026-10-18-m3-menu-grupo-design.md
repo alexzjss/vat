@@ -1,7 +1,7 @@
 # M3 — Menu de campo e grupo de 4: design
 
 > **Data:** 2026-10-18
-> **Base:** spec do jogo v4.0, M1 (batalha) e M2 (mapa) na `main`; escolha do usuário no [roadmap](../../roadmap.md).
+> **Base:** spec do jogo v4.0, M1 (batalha) e M2 (mapa) na `main`; escolha do usuário no [roadmap](../../docs/roadmap.md).
 > **Legenda:** **[U]** decidido pelo usuário · **[C]** confirmado na spec do jogo · **[E]** escolha do designer (Claude), inspirada em Chrono Trigger (CT) e Final Fantasy (FF), a revisar.
 > O usuário pediu para construir "baseado em inspirações de Chrono Trigger e Final Fantasy" sem nova rodada de perguntas **[U]**.
 

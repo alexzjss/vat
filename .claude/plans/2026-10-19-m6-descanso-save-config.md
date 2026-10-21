@@ -1,6 +1,6 @@
 # M6 — Descanso, save em disco, título e Config: plano de implementação
 
-> Execução: subagentes em sequência (Sonnet implementa, Haiku documenta), uma revisão final do Sonnet, merge ff local. Decisões do usuário em [`roadmap.md`](../../roadmap.md) "rodada 3" [U]; o resto é decisão do designer [I].
+> Execução: subagentes em sequência (Sonnet implementa, Haiku documenta), uma revisão final do Sonnet, merge ff local. Decisões do usuário em [`roadmap.md`](../../docs/roadmap.md) "rodada 3" [U]; o resto é decisão do designer [I].
 
 **Goal:** O jogo abre numa tela de título (Novo jogo / Continuar), salva em 3 slots no disco só em pontos de descanso e no mapa-múndi, Game Over leva ao título, e o menu de campo ganha a página Config (ATB Espera/Ativo, velocidade da batalha, memória do cursor, velocidade do texto, volume).
 

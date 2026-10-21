@@ -1,7 +1,7 @@
 ﻿# Design do RPG — versão 4.0
 
 > **Data:** 2026-10-18
-> **Base:** guia de continuidade v3.7 (preservado em [`docs/historico/guia_continuidade_v3.7.md`](../../historico/guia_continuidade_v3.7.md)).
+> **Base:** guia de continuidade v3.7 (preservado em [`docs/historico/guia_continuidade_v3.7.md`](../../docs/historico/guia_continuidade_v3.7.md)).
 > **Regra de leitura:** toda regra da v3.7 continua válida, salvo indicação explícita aqui. Esta versão **acrescenta** decisões; não reescreve as anteriores.
 >
 > Legenda usada em todo o documento:
@@ -409,7 +409,7 @@ O catálogo de fórmulas pendentes da v3.7 (seção 11 do guia) continua integra
 
 ## 12. Decisões de implementação do M1 [P-plano]
 
-Decisões tomadas no plano de implementação do M1 ([`docs/superpowers/plans/2026-10-18-m1-batalha-isolada.md`](../plans/2026-10-18-m1-batalha-isolada.md)) que a spec não cobria. Todas são **[P-plano]**: propostas de implementação, **a revisar pelo usuário**.
+Decisões tomadas no plano de implementação do M1 ([`.claude/plans/2026-10-18-m1-batalha-isolada.md`](../plans/2026-10-18-m1-batalha-isolada.md)) que a spec não cobria. Todas são **[P-plano]**: propostas de implementação, **a revisar pelo usuário**.
 
 1. **Ordem da fila [P-plano]:** Velocidade efetiva decrescente → `entry_tick` crescente (quem ficou pronto antes) → `tie_key` crescente (sorteado uma vez na entrada). Empates "juntos" = mesmo `entry_tick`.
 2. **Incapacitação [P-plano]:** ao chegar a 0 HP, o combatente perde todos os estados, tem o ATB zerado e sai da fila. Ao ser revivido, o ATB começa em 0.

@@ -1,7 +1,7 @@
 # M7: fuga, iniciativa, IA no mapa, corrida e seguidores (plano de implementação)
 
 > **Execução:** subagentes em sequência (Sonnet implementa, Haiku documenta), uma revisão final do Sonnet, merge ff local.
-> **Decisões:** as do usuário estão em [`roadmap.md`](../../roadmap.md), "rodada 3" [U]. O resto é decisão do designer [I].
+> **Decisões:** as do usuário estão em [`roadmap.md`](../../docs/roadmap.md), "rodada 3" [U]. O resto é decisão do designer [I].
 
 **Goal:** encontros no mapa viram decisão tática, como em Chrono Trigger.
 - Correr e grupo em fila.

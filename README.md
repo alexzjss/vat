@@ -206,7 +206,7 @@ O `--demo-m3` leva cerca de 50 s (use `--quit-after 950` com `--fixed-fps 10`). 
 
 ## Fórmulas e balanceamento
 
-As fórmulas do jogo foram escolhidas no M5 (ver [decisões do M5b](docs/superpowers/specs/2026-10-19-m5-formulas-design.md#decisões-do-m5b)). Os relatórios do simulador de batalhas ficam em [docs/balance/](docs/balance/):
+As fórmulas do jogo foram escolhidas no M5 (ver [decisões do M5b](.claude/specs/2026-10-19-m5-formulas-design.md#decisões-do-m5b)). Os relatórios do simulador de batalhas ficam em [docs/balance/](docs/balance/):
 
 - [Relatório final](docs/balance/2026-10-19-relatorio-final.md): padrão escolhido, com as metas de vitória e duração.
 - [Relatório de opções](docs/balance/2026-10-19-relatorio-opcoes.md): as opções A/B/C de cada fórmula lado a lado (M5a).
@@ -221,9 +221,9 @@ Para gerar os relatórios de novo, na raiz do repositório:
 ## Estrutura
 
 - `docs/` - spec, plano e historico
-  - `docs/superpowers/specs/2026-10-18-rpg-design.md` - [spec v4.0](docs/superpowers/specs/2026-10-18-rpg-design.md)
-  - `docs/superpowers/plans/2026-10-18-m1-batalha-isolada.md` - [plano do M1](docs/superpowers/plans/2026-10-18-m1-batalha-isolada.md)
-  - `docs/superpowers/plans/2026-10-18-m2-mapa.md` - [plano do M2](docs/superpowers/plans/2026-10-18-m2-mapa.md)
+  - `.claude/specs/2026-10-18-rpg-design.md` - [spec v4.0](.claude/specs/2026-10-18-rpg-design.md)
+  - `.claude/plans/2026-10-18-m1-batalha-isolada.md` - [plano do M1](.claude/plans/2026-10-18-m1-batalha-isolada.md)
+  - `.claude/plans/2026-10-18-m2-mapa.md` - [plano do M2](.claude/plans/2026-10-18-m2-mapa.md)
   - `docs/historico/` - guia de continuidade v3.7
 - `game/core/` - regras de combate (sem nos, cenas ou Input; aleatoriedade via `Dice` injetado)
 - `game/battle/` - apresentacao da batalha (cena, menus, painel de debug, telas de resultado)

@@ -8,7 +8,7 @@
 
 **Tech Stack:** Godot 4.7, GDScript tipado, GUT 9.7.1, `./run_tests.ps1`.
 
-**Spec:** [`docs/superpowers/specs/2026-10-19-m4-equipamento-design.md`](../specs/2026-10-19-m4-equipamento-design.md) (inclui §4.1 com as respostas para quem constrói); regras gerais em [`2026-10-18-rpg-design.md`](../specs/2026-10-18-rpg-design.md) §5.3; menu de campo em [`2026-10-18-m3-menu-grupo-design.md`](../specs/2026-10-18-m3-menu-grupo-design.md) §6 (decisões do M3).
+**Spec:** [`.claude/specs/2026-10-19-m4-equipamento-design.md`](../specs/2026-10-19-m4-equipamento-design.md) (inclui §4.1 com as respostas para quem constrói); regras gerais em [`2026-10-18-rpg-design.md`](../specs/2026-10-18-rpg-design.md) §5.3; menu de campo em [`2026-10-18-m3-menu-grupo-design.md`](../specs/2026-10-18-m3-menu-grupo-design.md) §6 (decisões do M3).
 
 ## Global Constraints
 
@@ -194,7 +194,7 @@ func test_status_shows_equipment_and_passives() -> void
 ### Task 5: Integração, demonstração e fechamento
 
 **Files:**
-- Modify: `game/world/game.gd`, `game/world/game.tscn` (exports `start_equipment: Array[EquipmentDef]`, `start_equipment_counts: Array[int]` com a mochila de teste), `README.md`, `docs/superpowers/specs/2026-10-19-m4-equipamento-design.md` (seção "Decisões de implementação do M4", cada item [I])
+- Modify: `game/world/game.gd`, `game/world/game.tscn` (exports `start_equipment: Array[EquipmentDef]`, `start_equipment_counts: Array[int]` com a mochila de teste), `README.md`, `.claude/specs/2026-10-19-m4-equipamento-design.md` (seção "Decisões de implementação do M4", cada item [I])
 - Create: `game/world/demo_m4.gd`, `game/tests/test_equip_game.gd`
 
 **Interfaces:**

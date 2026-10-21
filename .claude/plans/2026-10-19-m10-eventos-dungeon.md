@@ -1,6 +1,6 @@
 # M10 — Eventos, diálogo e dungeon: plano de implementação
 
-> Execução: subagentes em sequência (Sonnet implementa, Haiku documenta), uma revisão final do Sonnet e merge ff local. As decisões do usuário estão em [`roadmap.md`](../../roadmap.md), "rodada 3" [U], e a XP narrativa na spec §5.6 [P]. O resto é decisão do designer [I]. Os textos são de teste: nenhum conteúdo narrativo é inventado como canônico.
+> Execução: subagentes em sequência (Sonnet implementa, Haiku documenta), uma revisão final do Sonnet e merge ff local. As decisões do usuário estão em [`roadmap.md`](../../docs/roadmap.md), "rodada 3" [U], e a XP narrativa na spec §5.6 [P]. O resto é decisão do designer [I]. Os textos são de teste: nenhum conteúdo narrativo é inventado como canônico.
 
 **Goal:** sistema de eventos roteirizados, que só leem e gravam flags:
 - caixa de diálogo com nome e escolhas;

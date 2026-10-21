@@ -65,46 +65,46 @@
 
 O usuário pediu para construir com base em CT e FF sem nova rodada de perguntas. Cada parte abaixo é o escopo proposto; o **plano detalhado de cada uma é escrito no começo dela**, em cima do código real que as anteriores deixaram (planos escritos cedo demais apontam para arquivos e interfaces que ainda vão mudar). Tudo aqui é escolha do designer (Claude), a revisar.
 
-**M3 — Menu de campo e grupo de 4** · design [`m3-menu-grupo-design`](superpowers/specs/2026-10-18-m3-menu-grupo-design.md) · plano [`m3-menu-grupo`](superpowers/plans/2026-10-18-m3-menu-grupo.md)
+**M3 — Menu de campo e grupo de 4** · design [`m3-menu-grupo-design`](../.claude/specs/2026-10-18-m3-menu-grupo-design.md) · plano [`m3-menu-grupo`](../.claude/plans/2026-10-18-m3-menu-grupo.md)
 Menu estilo FF (Itens, Técnicas, Status, Atributos, Formação) com painel do grupo estilo CT; 4 ativos + reserva; líder anda no mapa.
 
-**M4 — Equipamento** · design [`m4-equipamento-design`](superpowers/specs/2026-10-19-m4-equipamento-design.md) · plano [`m4-equipamento`](superpowers/plans/2026-10-19-m4-equipamento.md)
+**M4 — Equipamento** · design [`m4-equipamento-design`](../.claude/specs/2026-10-19-m4-equipamento-design.md) · plano [`m4-equipamento`](../.claude/plans/2026-10-19-m4-equipamento.md)
 - Slots: **Arma**, **Armadura**, **Capacete**, **Acessório** (como CT); cada personagem tem uma lista de tipos de arma permitidos (restrição por personagem, como FF/CT).
 - Página "Equipar" no menu de campo com prévia antes/depois dos atributos (FF).
 - Modificadores positivos e negativos e passivos simples (ex.: "+10% Aura máxima", "imune a Sono") — passivos ligados aos sistemas que já existem.
 - Equipamento inicial e alguns itens de teste no inventário.
 
-**M5 — Fórmulas e balanceamento** · design [`m5-formulas-design`](superpowers/specs/2026-10-19-m5-formulas-design.md) · plano M5a [`m5a-simulador`](superpowers/plans/2026-10-19-m5a-simulador.md)
-- **Concluído** (M5b, 2026-10-19): fórmulas escolhidas pelo usuário e aplicadas; ver [decisões do M5b](superpowers/specs/2026-10-19-m5-formulas-design.md#decisões-do-m5b) e o [relatório final](balance/2026-10-19-relatorio-final.md).
+**M5 — Fórmulas e balanceamento** · design [`m5-formulas-design`](../.claude/specs/2026-10-19-m5-formulas-design.md) · plano M5a [`m5a-simulador`](../.claude/plans/2026-10-19-m5a-simulador.md)
+- **Concluído** (M5b, 2026-10-19): fórmulas escolhidas pelo usuário e aplicadas; ver [decisões do M5b](../.claude/specs/2026-10-19-m5-formulas-design.md#decisões-do-m5b) e o [relatório final](balance/2026-10-19-relatorio-final.md).
 - Trocar valores de teste por fórmulas propostas (HP/Aura máximos, ATB, esquiva, dano e defesa, curva de XP) para o usuário aprovar, uma de cada vez.
 - **Simulador de batalhas em lote** (headless) que mede taxa de vitória, duração e dano por turno de cada encontro de teste; relatório para decidir números.
 
-**M6 — Descanso e save/load** · **Concluído** (2026-10-19) · plano [`m6-descanso-save-config`](superpowers/plans/2026-10-19-m6-descanso-save-config.md)
+**M6 — Descanso e save/load** · **Concluído** (2026-10-19) · plano [`m6-descanso-save-config`](../.claude/plans/2026-10-19-m6-descanso-save-config.md)
 Entregue: tela de título (Novo jogo / Continuar), save em disco com 3 slots, pontos de descanso com reinício de atributos (Cristal de Reinício), Game Over para o título, página Config e modo ATB Ativo. O descanso provisório do M1 segue só na batalha isolada.
 - **Pontos de descanso** no mapa (como os "save points" de CT/FF): recuperam HP/Aura, salvam e permitem o **reinício de atributos** com o item raro (spec).
 - Save em disco com **3 slots**, tela de título "Novo jogo / Continuar", carregar volta ao ponto de descanso.
 - Remove o "descanso provisório" do M1 e o save só na memória do M2.
 
-**M7 — Fuga, iniciativa e inimigos no mapa** · **Concluído** (2026-10-19) · plano [`m7-fuga-iniciativa-mapa`](superpowers/plans/2026-10-19-m7-fuga-iniciativa-mapa.md)
+**M7 — Fuga, iniciativa e inimigos no mapa** · **Concluído** (2026-10-19) · plano [`m7-fuga-iniciativa-mapa`](../.claude/plans/2026-10-19-m7-fuga-iniciativa-mapa.md)
 Entregue: corrida e grupo em fila (Shift/X), fuga segurando Q (barra, sem XP, chefes não fogem), iniciativa por contato (Ataque surpresa / Emboscada), patrulha, perseguição em cone, inimigo escondido, grupo que se junta e chefe que não reaparece.
 - Comando **Fugir** (chance por Velocidade do grupo vs inimigos; tentativa consome o turno; sem XP, regra já confirmada).
 - **Iniciativa por contato** (CT): encostar pelas costas = ATB do grupo começa cheio; inimigo que encosta primeiro = emboscada (ATB dos inimigos começa cheio).
 - Comportamentos novos: **rota fixa**, **perseguir ao ver** (cone de visão), **grupo que se junta** (encostar em um puxa os vizinhos); chefes que não reaparecem.
 
-**M8 — Limite** · **Concluído** (2026-10-19) · plano [`m8-limite-suporte`](superpowers/plans/2026-10-19-m8-limite-suporte.md)
+**M8 — Limite** · **Concluído** (2026-10-19) · plano [`m8-limite-suporte`](../.claude/plans/2026-10-19-m8-limite-suporte.md)
 - Barra de Limite por herói (estilo FF7): enche só com dano sofrido, persiste entre lutas e vai no save; com a barra cheia, o comando "Limite" substitui "Atacar" e usa um golpe próprio, sem custo de AP.
 
-**M8.5 — Suporte** · **Concluído** (2026-10-19) · plano [`m8-limite-suporte`](superpowers/plans/2026-10-19-m8-limite-suporte.md)
+**M8.5 — Suporte** · **Concluído** (2026-10-19) · plano [`m8-limite-suporte`](../.claude/plans/2026-10-19-m8-limite-suporte.md)
 - A reserva vira **suporte** (spec): comando "Suporte" chama um herói da reserva para uma ação dele (ataque ou habilidade que gasta o AP dele), custando 50% do Limite de quem chama; sem limite de usos por luta; não recebe XP (confirmado).
 
-**M9 — Habilidades por progressão** · **Concluído** (2026-10-19) · plano [`m9-tecnicas`](superpowers/plans/2026-10-19-m9-tecnicas.md)
+**M9 — Habilidades por progressão** · **Concluído** (2026-10-19) · plano [`m9-tecnicas`](../.claude/plans/2026-10-19-m9-tecnicas.md)
 - Cada personagem tem uma **lista de habilidades por nível** (FF) e algumas liberadas por eventos (CT); aviso "Aprendeu X!" na tela de resultado.
 - Entregue: `LearnEntry` e learnset fixo por personagem, técnicas aprendidas por nível e por evento (`HeroState.learn`, aceita só ids do próprio learnset), `learned` no save (com derivação para saves antigos), aviso de aprendizado na tela de resultado e página Técnicas no menu de campo.
 
-**M10 — Eventos, diálogo e dungeon** · **Concluído** (2026-10-20) · plano [`m10-eventos-dungeon`](superpowers/plans/2026-10-19-m10-eventos-dungeon.md)
+**M10 — Eventos, diálogo e dungeon** · **Concluído** (2026-10-20) · plano [`m10-eventos-dungeon`](../.claude/plans/2026-10-19-m10-eventos-dungeon.md)
 - Entregue: sistema de eventos com **flags** (no save e no restore), caixa de diálogo com nome e escolhas, NPCs e placas, cenas roteirizadas que movem atores, **XP narrativa**, objetos de dungeon (**baús**, **portas e chaves**, **interruptores** e portões, **armadilhas** de dano e de batalha) e a dungeon de teste ligada ao mapa-múndi (`--demo-m10`). Os textos são de teste.
 
-**M11 — IA, chefes e estados** · **Concluído** (2026-10-20) · plano [`m11-chefes-estados`](superpowers/plans/2026-10-20-m11-chefes-estados.md)
+**M11 — IA, chefes e estados** · **Concluído** (2026-10-20) · plano [`m11-chefes-estados`](../.claude/plans/2026-10-20-m11-chefes-estados.md)
 - Entregue: catálogo de estados completo (Pare, Confusão, buffs e debuffs de Força, Vitalidade e Velocidade, Silêncio, Cegueira, Regeneração e Barreira) com abreviações no HUD; itens Remédio e Panaceia (só na batalha); chefe de teste na dungeon com **fases por HP**, **ataque anunciado**, **contra-ataque**, núcleo e partes (o Guardião e os Braços); alvos por posição (`NEAREST`, `FARTHEST` e `CLUSTER` em `AiRule`, usados pelos Braços no `NEAREST`); cenário de relatório do chefe (seção "Chefe (M11)") e `--demo-m11`.
 - Resistências por inimigo não mudaram nesta rodada. Os números são valores de teste.
 - **Base de mecânicas concluída (M5b–M11)**: combate, movimento, menu e grupo estão fechados. O próximo passo é a fatia vertical (cidade, dungeon e chefe) juntando tudo.

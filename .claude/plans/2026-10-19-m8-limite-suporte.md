@@ -1,6 +1,6 @@
 # M8 Limite + M8.5 Suporte — plano de implementação
 
-> Execução: subagentes em sequência (Sonnet implementa, Haiku documenta), uma revisão final do Sonnet, merge ff local. Os dois marcos vão juntos num branch porque o Suporte gasta a barra de Limite. Decisões do usuário em [`roadmap.md`](../../roadmap.md) "rodada 3" [U]; o resto é decisão do designer [I].
+> Execução: subagentes em sequência (Sonnet implementa, Haiku documenta), uma revisão final do Sonnet, merge ff local. Os dois marcos vão juntos num branch porque o Suporte gasta a barra de Limite. Decisões do usuário em [`roadmap.md`](../../docs/roadmap.md) "rodada 3" [U]; o resto é decisão do designer [I].
 
 **Goal:** Cada herói tem uma barra de Limite (FF7) que enche com dano sofrido e libera um golpe próprio. Gastar metade da barra chama um herói da reserva para uma ação de suporte.
 

@@ -8,7 +8,7 @@
 
 **Tech Stack:** Godot 4 (≥ 4.4, estável mais recente), GDScript com tipagem estática, GUT 9.x para testes, PowerShell para o script de testes.
 
-**Spec:** [`docs/superpowers/specs/2026-10-18-rpg-design.md`](../specs/2026-10-18-rpg-design.md) (v4.0), que referencia [`docs/historico/guia_continuidade_v3.7.md`](../../historico/guia_continuidade_v3.7.md). Leia as seções 4–8 e 10 da spec antes de começar.
+**Spec:** [`.claude/specs/2026-10-18-rpg-design.md`](../specs/2026-10-18-rpg-design.md) (v4.0), que referencia [`docs/historico/guia_continuidade_v3.7.md`](../../docs/historico/guia_continuidade_v3.7.md). Leia as seções 4–8 e 10 da spec antes de começar.
 
 ## Global Constraints
 
@@ -852,7 +852,7 @@ Conteúdo genérico (`.tres`) — nomes "Teste A/B/C" e "Inimigo X/Y/Z":
 ### Task 16: Fechamento do M1
 
 **Files:**
-- Modify: `docs/superpowers/specs/2026-10-18-rpg-design.md` (nova seção "12. Decisões de implementação do M1 [P-plano]" listando as 9 decisões deste plano, para revisão do usuário)
+- Modify: `.claude/specs/2026-10-18-rpg-design.md` (nova seção "12. Decisões de implementação do M1 [P-plano]" listando as 9 decisões deste plano, para revisão do usuário)
 - Create: `README.md` (como instalar Godot, rodar o jogo e os testes)
 
 - [ ] **Step 1:** `./run_tests.ps1` → todos PASS; anotar a contagem.

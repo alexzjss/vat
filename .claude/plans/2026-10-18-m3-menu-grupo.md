@@ -8,7 +8,7 @@
 
 **Tech Stack:** Godot 4.7, GDScript tipado, GUT 9.7.1, `./run_tests.ps1`.
 
-**Spec:** [`docs/superpowers/specs/2026-10-18-m3-menu-grupo-design.md`](../specs/2026-10-18-m3-menu-grupo-design.md); regras de batalha em [`2026-10-18-rpg-design.md`](../specs/2026-10-18-rpg-design.md); mapa em [`2026-10-18-m2-mapa-design.md`](../specs/2026-10-18-m2-mapa-design.md) (seção 8 tem as decisões de implementação do M2 que este plano respeita).
+**Spec:** [`.claude/specs/2026-10-18-m3-menu-grupo-design.md`](../specs/2026-10-18-m3-menu-grupo-design.md); regras de batalha em [`2026-10-18-rpg-design.md`](../specs/2026-10-18-rpg-design.md); mapa em [`2026-10-18-m2-mapa-design.md`](../specs/2026-10-18-m2-mapa-design.md) (seção 8 tem as decisões de implementação do M2 que este plano respeita).
 
 ## Global Constraints
 
@@ -265,7 +265,7 @@ func test_formation_leader_marked() -> void
 ### Task 6: Integração com o jogo, demonstração e fechamento
 
 **Files:**
-- Modify: `game/world/game.gd`, `game/world/game.tscn` (instância do `FieldMenu`), `game/world/local_map.gd`, `game/world/overworld.gd`, `game/world/player.gd` (líder), `README.md`, `docs/superpowers/specs/2026-10-18-m3-menu-grupo-design.md` (seção "Decisões de implementação do M3")
+- Modify: `game/world/game.gd`, `game/world/game.tscn` (instância do `FieldMenu`), `game/world/local_map.gd`, `game/world/overworld.gd`, `game/world/player.gd` (líder), `README.md`, `.claude/specs/2026-10-18-m3-menu-grupo-design.md` (seção "Decisões de implementação do M3")
 - Create: `game/world/demo_m3.gd`, `game/tests/test_field_menu_game.gd`
 
 **Interfaces:**

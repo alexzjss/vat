@@ -1,6 +1,6 @@
 # M11 — Chefes e estados: plano de implementação
 
-> Execução: Sonnet implementa, Haiku documenta, uma revisão final do Sonnet e merge ff local. As decisões do usuário estão em [`roadmap.md`](../../roadmap.md), "rodada 3" [U]. A spec é citada como §. O resto é decisão do designer [I], quase sempre inspirada em CT/FF7. Os números são "valor de teste" no `BalanceConfig`, e os nomes são placeholders.
+> Execução: Sonnet implementa, Haiku documenta, uma revisão final do Sonnet e merge ff local. As decisões do usuário estão em [`roadmap.md`](../../docs/roadmap.md), "rodada 3" [U]. A spec é citada como §. O resto é decisão do designer [I], quase sempre inspirada em CT/FF7. Os números são "valor de teste" no `BalanceConfig`, e os nomes são placeholders.
 
 **Goal:** completar o catálogo de estados e ter um chefe de teste de verdade na dungeon do M10:
 - estados: Pare, Confusão, buffs e debuffs de Força, Vitalidade e Velocidade, Silêncio, Cegueira, Regeneração e Barreira;

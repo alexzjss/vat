@@ -1,6 +1,6 @@
 # M12 — Fatia vertical: plano de implementação
 
-> Execução: Sonnet implementa, Haiku documenta, uma revisão final do Sonnet e merge ff local. Decisões do usuário [U] (rodada de 2026-10-20) estão resumidas abaixo e vão para o `roadmap.md` na Task 7. Spec §: `docs/superpowers/specs/2026-10-18-rpg-design.md` (marco "Fatia vertical": cidade, dungeon, chefe, descanso/save, loja, diálogo, XP narrativa, subida de nível, ~15 min com save/load). O resto é decisão do designer [I]. **Todo texto, nome e número é placeholder / "valor de teste"**; nenhuma narrativa é inventada como canônica.
+> Execução: Sonnet implementa, Haiku documenta, uma revisão final do Sonnet e merge ff local. Decisões do usuário [U] (rodada de 2026-10-20) estão resumidas abaixo e vão para o `roadmap.md` na Task 7. Spec §: `.claude/specs/2026-10-18-rpg-design.md` (marco "Fatia vertical": cidade, dungeon, chefe, descanso/save, loja, diálogo, XP narrativa, subida de nível, ~15 min com save/load). O resto é decisão do designer [I]. **Todo texto, nome e número é placeholder / "valor de teste"**; nenhuma narrativa é inventada como canônica.
 
 **Goal:** um Novo jogo jogável de ponta a ponta em ~15 min:
 **título → cidade → mapa-múndi → dungeon (2 andares) → chefe → tela "Fim da demo" → título**, com o save funcionando em todo o percurso.

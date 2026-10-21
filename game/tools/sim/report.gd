@@ -46,7 +46,7 @@ const METAS: String = """- Batalha comum: 30-60 s de duracao com a politica `sma
 - Politica `basic`: vitoria entre 40% e 70% (pressao real sem ser impossivel).
 - Chefe de teste: 2-4 min (ainda sem cenario: nao ha chefe de teste; fica para o M11).
 - Cenario "difícil" (opt-in, `-hard F`): nivel 1, X+Y+Z com atributos dos inimigos multiplicados por F; desligado por padrao desde o M5b.
-- Fonte: spec M5 (`docs/superpowers/specs/2026-10-19-m5-formulas-design.md`, §4).
+- Fonte: spec M5 (`.claude/specs/2026-10-19-m5-formulas-design.md`, §4).
 - Cada formula varia apenas ela mesma sobre o padrao (tudo A); a opcao A das tabelas e o padrao."""
 
 const NOTES: String = """- A familia "difícil" (fator unico sobre os inimigos) foi desligada no M5b: o conteudo foi reajustado para as formulas escolhidas e os cenarios-meta ja exercem `basic` entre ~50% e 100% de vitoria; o fator antigo (x1,125) era uma aresta de faca calibrada para os atributos antigos.

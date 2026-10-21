@@ -8,7 +8,7 @@
 
 **Tech Stack:** Godot 4.7 (GDScript tipado), GUT 9.7.1, `./run_tests.ps1`.
 
-**Spec:** [`docs/superpowers/specs/2026-10-19-m5-formulas-design.md`](../specs/2026-10-19-m5-formulas-design.md).
+**Spec:** [`.claude/specs/2026-10-19-m5-formulas-design.md`](../specs/2026-10-19-m5-formulas-design.md).
 
 ## Global Constraints
 

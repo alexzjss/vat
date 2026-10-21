@@ -8,7 +8,7 @@ Gerado por `run_sim.ps1` (30 execucoes por cenario normal e 20 por cenario difí
 - Politica `basic`: vitoria entre 40% e 70% (pressao real sem ser impossivel).
 - Chefe de teste: 2-4 min (ainda sem cenario: nao ha chefe de teste; fica para o M11).
 - Cenario "difícil": nivel 1, X+Y+Z com atributos dos inimigos multiplicados por um fator (ver abaixo), para medir a pressao com `basic` (meta 40-70%) e dar efeito a Reviver, Veneno e duracoes.
-- Fonte: spec M5 (`docs/superpowers/specs/2026-10-19-m5-formulas-design.md`, §4).
+- Fonte: spec M5 (`.claude/specs/2026-10-19-m5-formulas-design.md`, §4).
 - Cada formula varia apenas ela mesma sobre o padrao (tudo A); a opcao A das tabelas e o padrao.
 
 ## Observacoes

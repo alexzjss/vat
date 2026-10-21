@@ -1,7 +1,7 @@
 # M5 — Fórmulas e balanceamento: design
 
 > **Data:** 2026-10-19
-> **Base:** spec do jogo v4.0 (§5 atributos, §8 valores de teste, catálogo de fórmulas pendentes do guia v3.7 §11), M1–M4 na `main`, [roadmap](../../roadmap.md).
+> **Base:** spec do jogo v4.0 (§5 atributos, §8 valores de teste, catálogo de fórmulas pendentes do guia v3.7 §11), M1–M4 na `main`, [roadmap](../../docs/roadmap.md).
 > **Legenda:** **[U]** usuário · **[C]** confirmado na spec · **[E]** escolha do designer (Claude), inspirada em Chrono Trigger (CT) / Final Fantasy (FF), a revisar.
 
 ## 1. Intenção e regra de ouro
@@ -73,7 +73,7 @@ Testes: cada opção de fórmula com casos numéricos; padrão A idêntico ao at
 
 > **Estado:** decisões aprovadas pelo usuário e aplicadas no código (M5b, 2026-10-19). Os coeficientes abaixo são **valores de teste**, ajustáveis no `BalanceConfig`, não canônicos. Marcador adicional: **[I]** inferência do Claude a partir da decisão, a revisar.
 >
-> Relatórios: [relatório final](../../balance/2026-10-19-relatorio-final.md) (padrão escolhido, metas do M5b) · [relatório de opções](../../balance/2026-10-19-relatorio-opcoes.md) (M5a, tudo A; defasado, gerado antes do reajuste do conteúdo).
+> Relatórios: [relatório final](../../docs/balance/2026-10-19-relatorio-final.md) (padrão escolhido, metas do M5b) · [relatório de opções](../../docs/balance/2026-10-19-relatorio-opcoes.md) (M5a, tudo A; defasado, gerado antes do reajuste do conteúdo).
 
 ### Escolhas do usuário
 
@@ -114,4 +114,4 @@ Legenda: `Vit`, `Aura`, `Vel` são os atributos efetivos (base + alocado + equip
 - **F11 — Veneno:** `máx(1; ⌊6% × HP máx.⌋)` de dano a cada ATB cheio do afetado (`poison_pct` = 0,06 no teste e no padrão).
 - **F12 — Durações de estado:** `StatusDef.duration` de cada estado (conteúdo de teste). A `duration_table` do `BalanceConfig` continua existindo, mas não é usada.
 
-Métricas e metas de aceitação estão no [relatório final](../../balance/2026-10-19-relatorio-final.md).
+Métricas e metas de aceitação estão no [relatório final](../../docs/balance/2026-10-19-relatorio-final.md).

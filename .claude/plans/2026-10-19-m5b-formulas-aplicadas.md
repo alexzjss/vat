@@ -8,7 +8,7 @@
 
 **Architecture:** Os enums de modo do M5a **continuam no código** (o simulador segue podendo comparar opções em rebalanceamentos futuros). Muda o **padrão**: `BalanceConfig` passa a ter as escolhas como valores iniciais, e o `game/data/test/balance.tres` também. Os testes de unidade de mecânica continuam usando a fórmula A explicitamente via `Fixtures.cfg()` (eles testam regras, não balanceamento).
 
-**Spec:** [`docs/superpowers/specs/2026-10-19-m5-formulas-design.md`](../specs/2026-10-19-m5-formulas-design.md) §4–§5; relatório [`docs/balance/2026-10-19-relatorio-opcoes.md`](../../balance/2026-10-19-relatorio-opcoes.md).
+**Spec:** [`.claude/specs/2026-10-19-m5-formulas-design.md`](../specs/2026-10-19-m5-formulas-design.md) §4–§5; relatório [`docs/balance/2026-10-19-relatorio-opcoes.md`](../../docs/balance/2026-10-19-relatorio-opcoes.md).
 
 ## Global Constraints
 
@@ -48,7 +48,7 @@
 
 ### Task 3: Documentação das fórmulas (Haiku)
 
-**Files:** `docs/superpowers/specs/2026-10-19-m5-formulas-design.md` (seção "Decisões do M5b": escolhas [U], fórmulas finais escritas por extenso com os coeficientes, decisão de manter os enums [I]), `docs/superpowers/specs/2026-10-18-rpg-design.md` (marcar no catálogo de fórmulas pendentes quais foram decididas no M5, com link), `docs/roadmap.md` (M5 concluído), `README.md` (seção curta "Fórmulas e balanceamento" com link para os relatórios e `run_sim.ps1`).
+**Files:** `.claude/specs/2026-10-19-m5-formulas-design.md` (seção "Decisões do M5b": escolhas [U], fórmulas finais escritas por extenso com os coeficientes, decisão de manter os enums [I]), `.claude/specs/2026-10-18-rpg-design.md` (marcar no catálogo de fórmulas pendentes quais foram decididas no M5, com link), `docs/roadmap.md` (M5 concluído), `README.md` (seção curta "Fórmulas e balanceamento" com link para os relatórios e `run_sim.ps1`).
 
 - [ ] Escrever; conferir cada fórmula contra o código (`stat_calculator.gd`, `effect_math.gd`, `xp_calculator.gd`, `status_system.gd`) e os valores contra `balance.tres`.
 - [ ] Commit `docs: registra formulas do M5`.

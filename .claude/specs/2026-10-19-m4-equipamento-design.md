@@ -1,7 +1,7 @@
 # M4 — Equipamento: design
 
 > **Data:** 2026-10-19
-> **Base:** spec do jogo v4.0 (§5.3 Equipamento [C]), M1–M3 na `main`, [roadmap](../../roadmap.md).
+> **Base:** spec do jogo v4.0 (§5.3 Equipamento [C]), M1–M3 na `main`, [roadmap](../../docs/roadmap.md).
 > **Legenda:** **[U]** decidido pelo usuário · **[C]** confirmado na spec do jogo · **[E]** escolha do designer (Claude), inspirada em Chrono Trigger (CT) e Final Fantasy (FF), a revisar.
 > O usuário pediu para seguir com escolhas inspiradas em CT/FF sem nova rodada de perguntas **[U]**.
 
