@@ -34,6 +34,7 @@ Com as fraquezas, o `smart` ficou rápido demais (comuns abaixo do piso de 10 s 
 | Inimigo F2: Vitalidade | 5 | 9 | `smart` caiu de 11,6 para ~7 s |
 | Inimigo F3: Vitalidade | 12 | 13 | margem sobre o piso de 10 s (N4 `smart` 10,8 s) |
 | Inimigo F4: Vitalidade | 5 | 12 | `smart` N4 caiu de 12,3 para 6,7 s |
+| Inimigo F2: Força (correção do demo, ver abaixo) | 20 | 16 | armadilha do andar 1 (`enc_f12`) derrubava o grupo Nv 1-2 do demo |
 | Guardião: Vitalidade | 4 (M12: 3) | 6 | centrar o chefe `smart` em 15-20 s com a fraqueza |
 | Moeda, drops, preços, XP, Braços | - | sem mudança | rota típica continua no Nv 5 |
 
@@ -41,18 +42,35 @@ Com as fraquezas, o `smart` ficou rápido demais (comuns abaixo do piso de 10 s 
 
 | Meta | Resultado | Situação |
 |---|---|---|
-| Comuns: `smart` vitória >= 95% e 10-60 s | 100%, 10,3-40,1 s (8 casos) | ok |
+| Comuns: `smart` vitória >= 95% e 10-60 s | 100%, 10,2-38,9 s (8 casos) | ok |
 | Comuns: `basic` vitória >= 75% | 100% (8 casos) | ok |
-| Chefe N5 `smart`: 15-20 s e vitória >= 90% | 100%, 17,8 s | ok |
-| Chefe N4 / N6 `smart` (sensibilidade) | 18,8 s / 17,4 s | ok |
-| Chefe N3 `smart` (sensibilidade) | 20,6 s | FORA por 0,6 s (já estava fora no M12: 21,6 s) |
-| Nível no chefe, rota típica: 4-6 | 5,02 (mín. 3,08; completo 5,89) | ok |
-| Chefe pela rota (vitórias, dur. s) | mínimo 30/30, 17,9; típico 30/30, 17,2; completo 30/30, 16,7 | ok |
+| Chefe N5 `smart`: 15-20 s e vitória >= 90% | 100%, 17,5 s | ok |
+| Chefe N4 / N6 `smart` (sensibilidade) | 18,1 s / 17,1 s | ok |
+| Chefe N3 `smart` (sensibilidade) | 20,0 s | ok (no limite; no M12: 21,6 s) |
+| Nível no chefe, rota típica: 4-6 | 5,03 (mín. 3,04; completo 5,95) | ok |
+| Chefe pela rota (vitórias, dur. s) | mínimo 30/30, 17,4; típico 30/30, 17,0; completo 30/30, 16,6 | ok |
 
-Chefe N5 `basic`: 100%, 25,3 s (relatado, sem meta). Lutas de 2 inimigos no Nv 3 (`enc_f12`) ficam com `smart` em 40,1 s e 50% de HP final: dentro das metas, mas mais apertadas que no M12 (38,1 s, 61%).
+Chefe N5 `basic`: 100%, 25,3 s (relatado, sem meta). Lutas de 2 inimigos no Nv 3 (`enc_f12`) ficam com `smart` em 38,9 s e 77% de HP final (Nv 2: 25,3 s, 73%): dentro das metas.
 
 ## Notas
 
 - O `smart` só usa a técnica elemental quando há fraqueza, e o ataque básico segue a arma (a `Lâmina de Aço` de Kagutsuchi só aparece depois da 2ª visita à cidade).
 - Sangue e Radioativo só aparecem nos dois inimigos comuns; a `Emanação` ignora a afinidade dos heróis, e o `Capacete Leve` só protege da `Mordida`.
 - Convenções (TTK, colunas do detalhe): ver `docs/balance/2026-10-19-relatorio-final.md`.
+
+## Correção da revisão final: armadilha do andar 1 no demo
+
+O `--demo-fatia --seed=1` falhava em "armadilha de batalha vencida" (quadro 1504): a armadilha do andar 1 é o `enc_f12` (F1 + F2) e o demo a enfrenta com o grupo Nv 1-2 em auto-batalha, sem a política `smart`. O rebalanceamento do M13 (feito para o `smart`) subiu a Vitalidade de F1/F2 e o grupo inicial não aguentava. Correção só em dado: a Força do Inimigo F2 caiu de 20 para 16 (-20% de dano), o que não mexe na duração das lutas do simulador (o piso de 10 s do `smart` depende da Vitalidade), só na pressão sobre um grupo fraco. O demo não foi alterado (o descanso antes da armadilha continua o mesmo).
+
+Demo (`--headless --path game --fixed-fps 60 --quit-after 6000 -- --demo-fatia --seed=N`), todos terminam em `roteiro concluído` (12 lutas):
+
+| Semente | Antes | Depois (quadro final) |
+|---|---|---|
+| 1 | FALHA no quadro 1504 | 3849 |
+| 2 | 3927 | 3927 |
+| 3 | 3878 | 3878 |
+| 4 | - | 3803 |
+| 5 | - | 3879 |
+| padrão | 3806 | 3842 |
+
+Meta, comuns e cenário elemental depois da correção (`-Fatia -Quick`): chefe `smart` N4/N5/N6 em 18,1/17,5/17,1 s com 100% de vitória; elemental Nv 3: `smart` x `fraco` 21,7 s contra 34,1 s do `basic`.
