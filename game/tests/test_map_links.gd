@@ -227,7 +227,7 @@ func test_end_screen_returns_to_title() -> void:
 	assert_not_null(game.title)
 	assert_null(game.current, "o mapa saiu")
 
-func test_end_demo_autosaves_flag_into_last_used_slot() -> void:
+func test_end_demo_flags_the_stored_save_of_the_last_used_slot() -> void:
 	await _enter(&"area_teste", &"Entry")
 	var rp: RestPoint = game.current.get_node("RestPoint") as RestPoint
 	_player().global_position = rp.global_position
@@ -238,7 +238,7 @@ func test_end_demo_autosaves_flag_into_last_used_slot() -> void:
 	var loaded: GameState = game.store.read(2, Dice.new(1))
 	assert_not_null(loaded)
 	assert_eq(loaded.get_flag(&"fatia_concluida"), 1)
-	assert_eq(loaded.money, 7, "o clear save guarda o estado final")
+	assert_eq(loaded.money, 0, "o clear save não leva o estado vivo: só a flag entra no que estava gravado")
 	assert_eq(game.store.summary(1)["status"], SaveStore.Status.EMPTY, "outros slots intactos")
 
 func test_end_demo_without_used_slot_writes_nothing() -> void:
@@ -283,7 +283,7 @@ func test_every_map_link_exit_and_zone_points_to_an_existing_spawn() -> void:
 				_assert_target(map_id, "MapLink %s" % link.name, link.target_map, link.target_spawn)
 			var zone: Zone = n as Zone
 			if zone != null and scene is Overworld:
-				_assert_target(map_id, "Zone %s" % zone.name, zone.zone_id, &"Entry")
+				_assert_target(map_id, "Zone %s" % zone.name, zone.zone_id, zone.spawn)
 		var local: LocalMap = scene as LocalMap
 		if local != null and local.get_node_or_null(^"Exit") != null:
 			_assert_target(map_id, "saída", &"overworld", Game.EXIT_SPAWNS.get(map_id, &"Start"))

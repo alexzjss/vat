@@ -3,7 +3,7 @@ extends Node2D
 
 ## Mapa-múndi de teste: o jogador anda livre e entra em zonas de local (sem inimigos).
 
-signal location_entered(zone_id: StringName)
+signal location_entered(zone_id: StringName, spawn: StringName)
 
 const MAP_RECT: Rect2 = Rect2(0, 0, 2560, 1440)
 
@@ -16,7 +16,7 @@ func _ready() -> void:
 	for child: Node in get_children():
 		var zone: Zone = child as Zone
 		if zone != null:
-			zone.entered.connect(_on_zone_entered)
+			zone.entered.connect(_on_zone_entered.bind(zone.spawn))
 
 ## Posiciona o jogador no marcador `spawn` (ou em `Start`, se não existir) e liga a câmera.
 func setup(game_state: GameState, spawn: StringName) -> void:
@@ -38,5 +38,5 @@ func place_player(pos: Vector2) -> void:
 	camera.global_position = pos
 	camera.reset_smoothing()
 
-func _on_zone_entered(zone_id: StringName) -> void:
-	location_entered.emit(zone_id)
+func _on_zone_entered(zone_id: StringName, spawn: StringName) -> void:
+	location_entered.emit(zone_id, spawn)

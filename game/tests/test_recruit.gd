@@ -244,7 +244,7 @@ func test_event_player_emits_end_demo_requested() -> void:
 	while game.busy and guard < 600:
 		await get_tree().process_frame
 		guard += 1
-	(game.current as Overworld).location_entered.emit(&"area_teste")
+	(game.current as Overworld).location_entered.emit(&"area_teste", &"Entry")
 	guard = 0
 	await get_tree().process_frame
 	while game.busy and guard < 600:

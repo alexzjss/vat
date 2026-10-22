@@ -33,7 +33,7 @@ func _wait_idle() -> void:
 		guard += 1
 
 func _enter_area() -> void:
-	(game.current as Overworld).location_entered.emit(&"area_teste")
+	(game.current as Overworld).location_entered.emit(&"area_teste", &"Entry")
 	await _wait_idle()
 	map = game.current as LocalMap
 

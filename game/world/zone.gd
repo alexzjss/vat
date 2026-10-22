@@ -5,6 +5,8 @@ signal entered(zone_id: StringName)
 
 @export var zone_id: StringName = &""
 @export var label_text: String = ""
+## Marcador do mapa de destino onde o jogador aparece (várias zonas podem levar ao mesmo mapa por lados diferentes).
+@export var spawn: StringName = &"Entry"
 
 var armed: bool = true
 

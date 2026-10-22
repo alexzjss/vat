@@ -23,7 +23,7 @@ func _wait_idle() -> void:
 	assert_false(game.busy, "transição terminou")
 
 func _enter_area() -> LocalMap:
-	(game.current as Overworld).location_entered.emit(&"area_teste")
+	(game.current as Overworld).location_entered.emit(&"area_teste", &"Entry")
 	await _wait_idle()
 	return game.current as LocalMap
 
@@ -68,7 +68,7 @@ func test_open_menu_action_toggles_without_double_handling() -> void:
 
 func test_menu_blocked_during_battle_and_transition() -> void:
 	await _wait_idle()
-	(game.current as Overworld).location_entered.emit(&"area_teste")
+	(game.current as Overworld).location_entered.emit(&"area_teste", &"Entry")
 	assert_true(game.busy)
 	assert_false(game.can_open_menu(), "não abre durante a transição")
 	assert_false(game.open_menu())

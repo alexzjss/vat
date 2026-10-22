@@ -23,7 +23,7 @@ func _wait_idle() -> void:
 	assert_false(game.busy, "transição terminou")
 
 func _enter_area() -> LocalMap:
-	(game.current as Overworld).location_entered.emit(&"area_teste")
+	(game.current as Overworld).location_entered.emit(&"area_teste", &"Entry")
 	await _wait_idle()
 	return game.current as LocalMap
 

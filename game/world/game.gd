@@ -341,13 +341,13 @@ func _connect_and_setup(node: Node2D, spawn: StringName) -> void:
 		return
 	push_error("Game: cena de mapa sem tipo conhecido '%s'" % node.name)
 
-func _on_location_entered(zone_id: StringName) -> void:
+func _on_location_entered(zone_id: StringName, spawn: StringName) -> void:
 	if busy:
 		return
 	if not maps.has(zone_id):
 		push_error("Game: local desconhecido '%s'" % zone_id)
 		return
-	go_to(zone_id, &"Entry")
+	go_to(zone_id, spawn)
 
 ## O Game aceita um evento agora? (mapa local, sem transição, título, menu, Game Over nem outro evento)
 func can_play_event() -> bool:

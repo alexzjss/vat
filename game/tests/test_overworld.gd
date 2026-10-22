@@ -42,7 +42,7 @@ func test_entering_zone_emits_location_entered() -> void:
 	watch_signals(world)
 	_zone().entered.emit(&"area_teste")
 	assert_signal_emit_count(world, "location_entered", 1)
-	assert_signal_emitted_with_parameters(world, "location_entered", [&"area_teste"])
+	assert_signal_emitted_with_parameters(world, "location_entered", [&"area_teste", &"Entry"])
 
 func test_walking_into_zone_emits_location_entered() -> void:
 	world.setup(state, &"AreaTesteReturn")

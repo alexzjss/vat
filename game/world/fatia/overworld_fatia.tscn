@@ -29,8 +29,8 @@ size = Vector2(200, 240)
 [sub_resource type="RectangleShape2D" id="sh_200x160"]
 size = Vector2(200, 160)
 
-[sub_resource type="RectangleShape2D" id="sh_260x240"]
-size = Vector2(260, 240)
+[sub_resource type="RectangleShape2D" id="sh_130x240"]
+size = Vector2(130, 240)
 
 [node name="OverworldFatia" type="Node2D"]
 script = ExtResource("e1")
@@ -211,13 +211,23 @@ label_text = "Cidade Teste"
 shape = SubResource("sh_200x160")
 
 [node name="Estrada" type="Area2D" parent="."]
-position = Vector2(1280, 720)
+position = Vector2(1215, 720)
 script = ExtResource("e2")
 zone_id = &"estrada"
 label_text = "Estrada"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Estrada"]
-shape = SubResource("sh_260x240")
+shape = SubResource("sh_130x240")
+
+[node name="EstradaVolta" type="Area2D" parent="."]
+position = Vector2(1345, 720)
+script = ExtResource("e2")
+zone_id = &"estrada"
+spawn = &"EntryLeste"
+label_text = "Estrada"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="EstradaVolta"]
+shape = SubResource("sh_130x240")
 
 [node name="Dungeon" type="Area2D" parent="."]
 position = Vector2(2100, 720)

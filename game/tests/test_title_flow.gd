@@ -111,7 +111,7 @@ func test_game_over_goes_back_to_title() -> void:
 	assert_not_null(game.title)
 
 func _enter_area() -> LocalMap:
-	(game.current as Overworld).location_entered.emit(&"area_teste")
+	(game.current as Overworld).location_entered.emit(&"area_teste", &"Entry")
 	await _wait_idle()
 	return game.current as LocalMap
 

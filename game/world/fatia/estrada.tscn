@@ -156,6 +156,9 @@ color = Color(0.45, 0.42, 0.4, 1)
 [node name="Entry" type="Marker2D" parent="."]
 position = Vector2(170, 360)
 
+[node name="EntryLeste" type="Marker2D" parent="."]
+position = Vector2(2230, 360)
+
 [node name="LinkOeste" type="Area2D" parent="."]
 position = Vector2(50, 360)
 script = ExtResource("e2")

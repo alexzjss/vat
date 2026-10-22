@@ -208,7 +208,7 @@ func test_route_town_to_dungeon_floor_two_and_back() -> void:
 	assert_eq(game.current_map, &"overworld_fatia")
 	var world: Overworld = game.current as Overworld
 	assert_eq(world.player.global_position, world.get_node("CidadeReturn").global_position)
-	world.location_entered.emit(&"estrada")
+	world.location_entered.emit(&"estrada", &"Entry")
 	await _wait_idle()
 	assert_eq(game.current_map, &"estrada")
 	var road: LocalMap = game.current as LocalMap
@@ -217,7 +217,7 @@ func test_route_town_to_dungeon_floor_two_and_back() -> void:
 	east.activated.emit(east.target_map, east.target_spawn)
 	await _wait_idle()
 	assert_eq(game.current_map, &"overworld_fatia")
-	(game.current as Overworld).location_entered.emit(&"dungeon_1")
+	(game.current as Overworld).location_entered.emit(&"dungeon_1", &"Entry")
 	await _wait_idle()
 	assert_eq(game.current_map, &"dungeon_1")
 	var d1: LocalMap = game.current as LocalMap
@@ -240,6 +240,37 @@ func test_overworld_pass_is_blocked_except_through_the_road() -> void:
 	for id: StringName in [&"cidade", &"estrada", &"dungeon_1"]:
 		assert_true(ids.has(id), "zona %s" % id)
 	world.free()
+
+func test_coming_back_from_the_dungeon_enters_the_road_by_its_east_end() -> void:
+	await _start_game()
+	game.go_to(&"overworld_fatia", &"DungeonReturn", false)
+	await _wait_idle()
+	var world: Overworld = game.current as Overworld
+	var player: Player = world.player
+	player.override_dir = Vector2.LEFT
+	var guard: int = 0
+	while game.current_map == &"overworld_fatia" and guard < 900:
+		await get_tree().physics_frame
+		guard += 1
+	await _wait_idle()
+	assert_eq(game.current_map, &"estrada", "andando para oeste a partir do retorno da dungeon")
+	var road: LocalMap = game.current as LocalMap
+	assert_eq(road.player.global_position, road.get_node("EntryLeste").global_position, "chega pelo lado leste da estrada")
+
+func test_going_out_from_the_town_still_enters_the_road_by_its_west_end() -> void:
+	await _start_game()
+	game.go_to(&"overworld_fatia", &"CidadeReturn", false)
+	await _wait_idle()
+	var world: Overworld = game.current as Overworld
+	world.player.override_dir = Vector2.RIGHT
+	var guard: int = 0
+	while game.current_map == &"overworld_fatia" and guard < 900:
+		await get_tree().physics_frame
+		guard += 1
+	await _wait_idle()
+	assert_eq(game.current_map, &"estrada")
+	var road: LocalMap = game.current as LocalMap
+	assert_eq(road.player.global_position, road.get_node("Entry").global_position)
 
 # --- missão secundária ----------------------------------------------------------------
 

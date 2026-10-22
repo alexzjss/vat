@@ -29,7 +29,7 @@ func _marker(name: String) -> Marker2D:
 	return game.current.get_node(name) as Marker2D
 
 func _enter_area() -> LocalMap:
-	(game.current as Overworld).location_entered.emit(&"area_teste")
+	(game.current as Overworld).location_entered.emit(&"area_teste", &"Entry")
 	await _wait_idle()
 	return game.current as LocalMap
 
@@ -171,10 +171,10 @@ func test_signals_ignored_while_busy() -> void:
 	_added_maps = 0
 	game.child_entered_tree.connect(_on_child_added)
 	var world: Overworld = game.current as Overworld
-	world.location_entered.emit(&"area_teste")
+	world.location_entered.emit(&"area_teste", &"Entry")
 	assert_true(game.busy, "transição em andamento")
-	world.location_entered.emit(&"area_teste")
-	world.location_entered.emit(&"area_teste")
+	world.location_entered.emit(&"area_teste", &"Entry")
+	world.location_entered.emit(&"area_teste", &"Entry")
 	await _wait_idle()
 	var map: LocalMap = game.current as LocalMap
 	assert_not_null(map)
@@ -195,7 +195,7 @@ func test_signals_ignored_while_busy() -> void:
 	assert_eq(_player().global_position, _marker("AreaTesteReturn").global_position, "game_over ignorado")
 	assert_eq(_added_maps, 2, "só uma transição de volta")
 	# go_to direto durante uma transição também é ignorado.
-	(game.current as Overworld).location_entered.emit(&"area_teste")
+	(game.current as Overworld).location_entered.emit(&"area_teste", &"Entry")
 	assert_true(game.busy)
 	game.go_to(&"overworld", &"Start")
 	await _wait_idle()
@@ -203,7 +203,7 @@ func test_signals_ignored_while_busy() -> void:
 	assert_eq(_added_maps, 3)
 
 func test_unknown_location_is_ignored() -> void:
-	(game.current as Overworld).location_entered.emit(&"inexistente")
+	(game.current as Overworld).location_entered.emit(&"inexistente", &"Entry")
 	assert_push_error("desconhecido")
 	assert_false(game.busy)
 	assert_true(game.current is Overworld)
@@ -223,7 +223,7 @@ func test_outgoing_map_frozen_during_fade_out() -> void:
 	var player: Player = _player()
 	var start: Vector2 = player.global_position
 	watch_signals(world)
-	world.location_entered.emit(&"area_teste")
+	world.location_entered.emit(&"area_teste", &"Entry")
 	assert_true(game.busy)
 	await get_tree().process_frame
 	assert_eq(world.process_mode, Node.PROCESS_MODE_DISABLED, "mapa de saída congelado")
@@ -237,7 +237,7 @@ func test_outgoing_map_frozen_during_fade_out() -> void:
 
 func test_enemy_touch_during_fade_in_waits_for_transition() -> void:
 	_slow_fade()
-	(game.current as Overworld).location_entered.emit(&"area_teste")
+	(game.current as Overworld).location_entered.emit(&"area_teste", &"Entry")
 	while game.current is Overworld:
 		await get_tree().process_frame
 	var map: LocalMap = game.current as LocalMap
