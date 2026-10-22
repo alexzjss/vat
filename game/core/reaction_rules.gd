@@ -74,7 +74,7 @@ static func apply(def: ReactionDef, actor: Combatant, t: Combatant, base: int, b
 	if def.area_radius > 0.0 and (def.area_pct > 0.0 or not def.area_statuses.is_empty()):
 		var victims: Array[Combatant] = []
 		for o: Combatant in b.allies_of(t):
-			if o != t and not o.is_down() and o.position.distance_to(t.position) <= def.area_radius:
+			if o != t and not o.is_out() and o.position.distance_to(t.position) <= def.area_radius:
 				victims.append(o)
 		var area_base: int = floori(float(base) * def.area_pct)
 		for o: Combatant in victims:
@@ -116,7 +116,7 @@ static func apply(def: ReactionDef, actor: Combatant, t: Combatant, base: int, b
 	if def.heal_allies_pct > 0.0:
 		var each: int = floori(float(base) * def.heal_allies_pct)
 		for o: Combatant in b.allies_of(actor):
-			if o.is_down():
+			if o.is_out():
 				continue
 			var healed: int = ActionExecutor.restore(each, o, b)
 			(fx["heal_allies"] as Array).append({"target_id": o.id, "amount": healed})
@@ -138,7 +138,7 @@ static func _status(fx: Dictionary, actor: Combatant, t: Combatant, s: StatusDef
 ## Soma `delta` (fracao da barra) ao ATB de `c`, entre 0 e cheio, e devolve a variacao real. Quem esta cheio e fora
 ## da fila (agindo, em menu ou parado) nao muda. Atrasar tira da fila; encher poe na fila (se nao esta parado).
 static func shift_atb(c: Combatant, delta: float, b: BattleState) -> float:
-	if c.is_down() or (c.atb >= 1.0 and not b.queue.has(c)):
+	if c.is_out() or (c.atb >= 1.0 and not b.queue.has(c)):
 		return 0.0
 	var before: float = c.atb
 	c.atb = clampf(before + delta, 0.0, 1.0)

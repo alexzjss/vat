@@ -16,12 +16,29 @@ static func _sides(side: AbilityDef.Side, actor: Combatant, b: BattleState) -> A
 			return b.allies_of(actor)
 	return b.all()
 
+## Cura de Petrificacao (M15): um REMOVE_STATUS que cita o estado PETRIFY pode mirar um petrificado.
+static func cures_petrify(effects: Array[EffectDef]) -> bool:
+	for e: EffectDef in effects:
+		if e.kind != EffectDef.Kind.REMOVE_STATUS:
+			continue
+		if e.status != null and e.status.kind == StatusDef.Kind.PETRIFY:
+			return true
+		for s: StatusDef in e.statuses:
+			if s != null and s.kind == StatusDef.Kind.PETRIFY:
+				return true
+	return false
+
 static func _valid(arr: Array[Combatant], effects: Array[EffectDef]) -> Array[Combatant]:
 	var downed: bool = wants_downed(effects)
+	var petrified_ok: bool = cures_petrify(effects)
 	var out: Array[Combatant] = []
 	for c: Combatant in arr:
-		if c.is_down() == downed:
-			out.append(c)
+		if c.is_down() != downed:
+			continue
+		# Petrificado nao e alvo de nada, salvo da propria cura.
+		if c.is_petrified() and not petrified_ok:
+			continue
+		out.append(c)
 	return out
 
 static func candidates(shape: AbilityDef.Shape, side: AbilityDef.Side, effects: Array[EffectDef], actor: Combatant, b: BattleState) -> Array[Combatant]:

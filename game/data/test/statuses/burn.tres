@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="StatusDef" format=3]
+
+[ext_resource type="Script" path="res://core/defs/status_def.gd" id="1_r"]
+
+[resource]
+script = ExtResource("1_r")
+id = &"burn"
+kind = 13
+duration = 3
+potency = 6
+apply_contribution = 10
+cancels = Array[StringName]([&"wet"])
+negative = true

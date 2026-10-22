@@ -25,6 +25,10 @@ signal phase_changed(c: Combatant, banner: String)
 signal charge_started(c: Combatant, a: PendingAction)
 ## Chefe (M11): `c` contra-ataca `target` (logo depois da acao do heroi).
 signal counter_fired(c: Combatant, target: Combatant)
+## Petrificacao (M15): a contagem de `c` zerou e ele virou pedra (fora da luta).
+signal petrified(c: Combatant)
+## Contagem (M15): a contagem de `c` zerou e ele caiu.
+signal doom_fired(c: Combatant)
 ## Sangramento (M13): a acao de `c` saiu e o Sangramento tirou `amount` de HP (nunca derruba).
 signal bleed_tick(c: Combatant, amount: int)
 
@@ -139,6 +143,11 @@ func _advance_atb(delta: float) -> void:
 		stop_ended.emit(c)
 		if c.atb >= 1.0 and not b.queue.has(c) and not _is_busy(c):
 			b.queue.push(c, b.tick)
+	_tick_countdowns(delta * speed_mult)
+	# Quem foi curado de Congelado/Petrificacao com o ATB cheio volta a fila.
+	for c: Combatant in b.all():
+		if not c.is_out() and not c.is_stopped() and c.atb >= 1.0 and not b.queue.has(c) and not _is_busy(c):
+			b.queue.push(c, b.tick)
 	for c: Combatant in _clock.advance(delta * speed_mult, b.all(), b.queue):
 		var out: StatusSystem.AtbFullOutcome = b.statuses.on_atb_full(c, b.living(b.enemies))
 		status_tick.emit(c, out)
@@ -154,6 +163,24 @@ func _advance_atb(delta: float) -> void:
 			b.queue.push(c, b.tick)
 	# Veneno pode derrubar o ultimo nucleo: as partes caem junto.
 	b.collapse_parts()
+
+## Contagens do M15: quem petrificou sai da fila e perde o ATB e a preparacao; quem caiu pela Contagem e limpo como
+## qualquer caido. Cada um vira um sinal.
+func _tick_countdowns(dt: float) -> void:
+	var res: Dictionary = b.statuses.tick_countdowns(b.all(), dt)
+	for raw: Variant in res["petrified"]:
+		var c: Combatant = raw as Combatant
+		c.atb = 0.0
+		c.charging = null
+		b.queue.remove(c)
+		petrified.emit(c)
+	for raw: Variant in res["doomed"]:
+		var c: Combatant = raw as Combatant
+		b.statuses.clear_all(c)
+		c.atb = 0.0
+		c.charging = null
+		b.queue.remove(c)
+		doom_fired.emit(c)
 
 func _advance_execution(delta: float) -> void:
 	var a: PendingAction = executing

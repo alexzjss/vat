@@ -12,6 +12,8 @@ class AtbFullOutcome:
 	var expired: Array[StringName] = []
 	## A marca elemental (M14) acabou neste ATB cheio.
 	var mark_expired: bool = false
+	## Queimadura (M15): dano deste ATB cheio.
+	var burn_damage: int = 0
 
 var _cfg: BalanceConfig
 var _ledger: ContributionLedger
@@ -23,17 +25,31 @@ func _init(cfg: BalanceConfig, ledger: ContributionLedger, dice: Dice) -> void:
 	_ledger = ledger
 	_dice = dice
 
+## Estados contados em segundos de batalha (`ActiveStatus.time_left`), nao em turnos.
+static func is_timed(kind: StatusDef.Kind) -> bool:
+	return kind == StatusDef.Kind.STOP or kind == StatusDef.Kind.FREEZE or kind == StatusDef.Kind.PETRIFY or kind == StatusDef.Kind.DOOM
+
 func apply(target: Combatant, def: StatusDef, source: Combatant, chance: float, living_enemies: Array[Combatant]) -> ApplyResult:
-	if target.immunities.has(def.id):
+	# Petrificado nao recebe estados (M15).
+	if target.immunities.has(def.id) or target.is_petrified():
 		return ApplyResult.IMMUNE
 	var resistance: float = float(target.resistances.get(def.id, 0.0))
 	if _dice.roll() >= chance * (1.0 - resistance):
 		return ApplyResult.RESISTED
+	if _wet_blocks(target, def):
+		return ApplyResult.IMMUNE
 	return _install(target, def, source, living_enemies, true)
+
+## Molhado (M15) impede Queimadura: o fogo se apaga e o Molhado sai (cancelamento mutuo com o `cancels` do Molhado).
+func _wet_blocks(target: Combatant, def: StatusDef) -> bool:
+	if def.kind != StatusDef.Kind.BURN or not target.has_kind(StatusDef.Kind.WET):
+		return false
+	remove_kind(target, StatusDef.Kind.WET)
+	return true
 
 ## Aplica sem sortear e sem crédito de contribuição; a fonte é o próprio alvo (passivos de equipamento).
 func apply_forced(target: Combatant, def: StatusDef) -> ApplyResult:
-	if target.immunities.has(def.id):
+	if target.immunities.has(def.id) or target.is_petrified() or _wet_blocks(target, def):
 		return ApplyResult.IMMUNE
 	var none: Array[Combatant] = []
 	return _install(target, def, target, none, false)
@@ -48,7 +64,7 @@ func _install(target: Combatant, def: StatusDef, source: Combatant, living_enemi
 			s.source_team = source.team
 			if def.kind == StatusDef.Kind.BARRIER:
 				s.barrier_left = def.potency
-			if def.kind == StatusDef.Kind.STOP:
+			if is_timed(def.kind):
 				s.time_left = def.seconds
 			if credit and dur > 0:
 				_credit_apply(target, source, float(def.apply_contribution) * float(dur - r) / float(dur), living_enemies)
@@ -94,6 +110,18 @@ func remove(target: Combatant, id: StringName) -> bool:
 			return true
 	return false
 
+## Remove todos os estados do tipo `kind` e devolve quantos saíram.
+func remove_kind(target: Combatant, kind: StatusDef.Kind) -> int:
+	var kept: Array[ActiveStatus] = []
+	var n: int = 0
+	for s: ActiveStatus in target.statuses:
+		if s.def.kind == kind:
+			n += 1
+		else:
+			kept.append(s)
+	target.statuses = kept
+	return n
+
 ## Remove os estados da lista (ids) e devolve quantos saíram.
 func remove_many(target: Combatant, defs: Array[StatusDef]) -> int:
 	var n: int = 0
@@ -114,7 +142,7 @@ func remove_negative(target: Combatant) -> int:
 	target.statuses = kept
 	return n
 
-## Tempo de batalha (segundos, já com a velocidade da batalha): desconta o Pare de quem está parado.
+## Tempo de batalha (segundos, já com a velocidade da batalha): desconta o Pare e o Congelado de quem está parado.
 ## Devolve quem deixou de estar parado neste passo; o chamador devolve à fila quem tem o ATB cheio.
 func tick_time(combatants: Array[Combatant], delta: float) -> Array[Combatant]:
 	var freed: Array[Combatant] = []
@@ -123,7 +151,7 @@ func tick_time(combatants: Array[Combatant], delta: float) -> Array[Combatant]:
 			continue
 		var kept: Array[ActiveStatus] = []
 		for s: ActiveStatus in c.statuses:
-			if s.def.kind == StatusDef.Kind.STOP:
+			if s.def.kind == StatusDef.Kind.STOP or s.def.kind == StatusDef.Kind.FREEZE:
 				s.time_left -= delta
 				if s.time_left <= 0.0:
 					continue
@@ -132,6 +160,40 @@ func tick_time(combatants: Array[Combatant], delta: float) -> Array[Combatant]:
 		if not c.is_stopped():
 			freed.append(c)
 	return freed
+
+## Contagens (M15, segundos de batalha): Petrificacao e Contagem Regressiva (Doom) de quem ainda age.
+## Petrificacao em 0 deixa o alvo petrificado (o estado fica, com `time_left` 0). Doom em 0 derruba o alvo (HP 0), com o
+## credito de contribuicao (inimigo) ou de dano sofrido (heroi) para quem aplicou, e o estado sai.
+## Devolve {"petrified": Array[Combatant], "doomed": Array[Combatant]}; o chamador limpa fila, ATB e preparacao.
+func tick_countdowns(combatants: Array[Combatant], delta: float) -> Dictionary:
+	var petrified: Array[Combatant] = []
+	var doomed: Array[Combatant] = []
+	for c: Combatant in combatants:
+		if c.is_down() or c.is_petrified():
+			continue
+		for s: ActiveStatus in c.statuses:
+			if s.def.kind == StatusDef.Kind.PETRIFY and s.time_left > 0.0:
+				s.time_left -= delta
+				if s.time_left <= 0.0:
+					s.time_left = 0.0
+					petrified.append(c)
+		if c.is_petrified():
+			continue
+		var fired: ActiveStatus = null
+		for s: ActiveStatus in c.statuses:
+			if s.def.kind == StatusDef.Kind.DOOM:
+				s.time_left -= delta
+				if s.time_left <= 0.0 and fired == null:
+					fired = s
+		if fired != null:
+			var lost: int = maxi(0, c.hp)
+			c.hp = 0
+			if c.team == Combatant.Team.ENEMY and fired.source_team == Combatant.Team.HERO and lost > 0:
+				_ledger.add(fired.source_id, c.id, float(lost))
+			elif c.team == Combatant.Team.HERO and fired.source_team == Combatant.Team.ENEMY:
+				c.damage_taken_from[fired.source_id] = int(c.damage_taken_from.get(fired.source_id, 0)) + lost
+			doomed.append(c)
+	return {"petrified": petrified, "doomed": doomed}
 
 func _first_blocker(c: Combatant) -> ActiveStatus:
 	var best: ActiveStatus = null
@@ -155,6 +217,15 @@ func on_atb_full(c: Combatant, living_enemies: Array[Combatant]) -> AtbFullOutco
 			c.gain_limit(dmg, StatCalculator.hp_max(c, _cfg), _cfg)
 			if c.team == Combatant.Team.ENEMY and dmg > 0:
 				_ledger.add(s.source_id, c.id, float(dmg))
+	# (a1) Queimadura (M15): % do HP maximo por ATB cheio, pode derrubar.
+	for s: ActiveStatus in c.statuses:
+		if s.def.kind == StatusDef.Kind.BURN and c.hp > 0:
+			var burn: int = mini(maxi(1, floori(float(StatCalculator.hp_max(c, _cfg)) * float(s.def.potency) / 100.0)), c.hp)
+			c.hp -= burn
+			out.burn_damage += burn
+			c.gain_limit(burn, StatCalculator.hp_max(c, _cfg), _cfg)
+			if c.team == Combatant.Team.ENEMY:
+				_ledger.add(s.source_id, c.id, float(burn))
 	if c.hp <= 0:
 		return out
 	# (a2) regeneração: depois do veneno, nunca revive
@@ -175,7 +246,7 @@ func on_atb_full(c: Combatant, living_enemies: Array[Combatant]) -> AtbFullOutco
 	# (c) duração
 	var kept: Array[ActiveStatus] = []
 	for s: ActiveStatus in c.statuses:
-		if s.def.kind == StatusDef.Kind.STOP:
+		if is_timed(s.def.kind):
 			kept.append(s)
 			continue
 		s.remaining -= 1

@@ -199,6 +199,8 @@ func start_with(heroes: Array[HeroState], enemies: Array[EnemyDef], hero_pos: Ar
 	ctrl.charge_started.connect(_on_charge_started)
 	ctrl.counter_fired.connect(_on_counter_fired)
 	ctrl.turn_lost.connect(_on_turn_lost)
+	ctrl.petrified.connect(_on_petrified)
+	ctrl.doom_fired.connect(_on_doom_fired)
 	ctrl.battle_ended.connect(_on_battle_ended)
 
 func _process(delta: float) -> void:
@@ -461,8 +463,18 @@ func _on_bleed_tick(c: Combatant, amount: int) -> void:
 func _on_status_tick(c: Combatant, out: StatusSystem.AtbFullOutcome) -> void:
 	if out.poison_damage > 0 and views.has(c.id):
 		views[c.id].float_text("-%d" % out.poison_damage, Color(0.7, 0.3, 0.9))
+	if out.burn_damage > 0 and views.has(c.id):
+		views[c.id].float_text("-%d" % out.burn_damage, Color(1.0, 0.5, 0.2))
 	if out.regen_heal > 0 and views.has(c.id):
 		views[c.id].float_text("+%d" % out.regen_heal, Color(0.4, 1.0, 0.5))
+
+func _on_petrified(c: Combatant) -> void:
+	if views.has(c.id):
+		views[c.id].float_text("Pedra", Color.WHITE)
+
+func _on_doom_fired(c: Combatant) -> void:
+	if views.has(c.id):
+		views[c.id].float_text("Contagem", Color(0.6, 0.2, 0.6))
 
 func _on_turn_lost(c: Combatant) -> void:
 	if views.has(c.id):

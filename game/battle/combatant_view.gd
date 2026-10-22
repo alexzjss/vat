@@ -43,6 +43,11 @@ const STATUS_LABELS: Dictionary[StatusDef.Kind, String] = {
 	StatusDef.Kind.BLIND: "CEG",
 	StatusDef.Kind.REGEN: "REG",
 	StatusDef.Kind.BLEED: "SANG",
+	StatusDef.Kind.BURN: "QUEI",
+	StatusDef.Kind.FREEZE: "GELO",
+	StatusDef.Kind.WET: "MOLH",
+	StatusDef.Kind.PETRIFY: "PEDRA",
+	StatusDef.Kind.DOOM: "DOOM",
 }
 ## Buff/debuff: abreviação do atributo + sinal da potência (FOR+, VEL-...).
 const ATTR_LABELS: Dictionary[StringName, String] = {
@@ -70,7 +75,7 @@ func _process(_delta: float) -> void:
 func _draw() -> void:
 	if combatant == null:
 		return
-	var down: bool = combatant.is_down()
+	var down: bool = combatant.is_out()
 	var half: float = SIZE / 2.0
 	if combatant.team == Combatant.Team.HERO:
 		draw_rect(Rect2(-half, -half, SIZE, SIZE), DOWN_COLOR if down else HERO_COLOR)
@@ -165,7 +170,12 @@ func status_text() -> String:
 		parts.append(status_label(s))
 	return " ".join(parts)
 
+## Petrificacao mostra a contagem enquanto nao petrificou ("PEDRA 5"); Contagem mostra "DOOM N" (segundos, arredondado para cima).
 static func status_label(s: ActiveStatus) -> String:
+	if s.def.kind == StatusDef.Kind.PETRIFY and s.time_left > 0.0:
+		return "%s %d" % [STATUS_LABELS[StatusDef.Kind.PETRIFY], ceili(s.time_left)]
+	if s.def.kind == StatusDef.Kind.DOOM:
+		return "%s %d" % [STATUS_LABELS[StatusDef.Kind.DOOM], ceili(s.time_left)]
 	return def_label(s.def)
 
 static func def_label(d: StatusDef) -> String:
@@ -188,6 +198,9 @@ static func popup_slots(hit: Dictionary) -> int:
 func show_hit(hit: Dictionary) -> void:
 	var kind: EffectDef.Kind = hit["kind"]
 	var amount: int = hit["amount"]
+	if hit.get("petrified", false):
+		float_text("Pedra", Color.WHITE)
+		return
 	if hit.get("missed", false):
 		float_text("Errou", Color.WHITE)
 		return

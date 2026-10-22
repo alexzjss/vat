@@ -21,10 +21,14 @@ static func element_of(ability: AbilityDef, actor: Combatant) -> ElementDef:
 	return null
 
 ## Afinidade total do alvo ao elemento: base + equipamentos (ja somados no Combatant).
-static func total_resist(element: ElementDef, target: Combatant) -> float:
+## Molhado (M15) soma `wet_indra_bonus` de fraqueza no elemento `cfg.wet_element_id`; sem `cfg` nao conta.
+static func total_resist(element: ElementDef, target: Combatant, cfg: BalanceConfig = null) -> float:
 	if element == null:
 		return 0.0
-	return float(target.element_resist.get(element.id, 0.0))
+	var total: float = float(target.element_resist.get(element.id, 0.0))
+	if cfg != null and element.id == cfg.wet_element_id and target.has_kind(StatusDef.Kind.WET):
+		total -= cfg.wet_indra_bonus
+	return total
 
 ## true se o elemento esta entre os nativos do atacante.
 static func is_native(element: ElementDef, actor: Combatant) -> bool:
@@ -66,7 +70,7 @@ static func resolve(dmg: int, element: ElementDef, actor: Combatant, target: Com
 	if element.rule == ElementDef.Rule.RADIOACTIVE:
 		# Ignora afinidade (ate imunidade e absorcao); o bonus de mesmo elemento ja valeu acima.
 		return {"damage": out, "heal": 0, "affinity": Affinity.NEUTRAL}
-	var total: float = total_resist(element, target)
+	var total: float = total_resist(element, target, cfg)
 	var aff: Affinity = affinity_of(total)
 	var m: float = 1.0 - total
 	match aff:

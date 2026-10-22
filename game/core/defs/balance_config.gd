@@ -101,6 +101,12 @@ enum DurationMode { A, B }
 # Estados (M11).
 @export var blind_miss_chance: float = 0.5 # valor de teste (M11: chance extra de errar de quem esta Cego; so dano de Forca)
 @export var regen_pct: float = 0.05 # valor de teste (M11: fracao do HP maximo curada por ATB cheio, minimo 1)
+# Estados do M15.
+@export var burn_str_pct: float = 0.2 # valor de teste (M15: queda da Forca efetiva de quem esta Queimado)
+@export var freeze_shatter_bonus: float = 0.5 # valor de teste (M15: bonus do golpe de Forca que quebra o gelo, uma vez)
+@export var wet_indra_bonus: float = 0.3 # valor de teste (M15: Molhado soma isto de fraqueza a Indra na afinidade do alvo)
+@export var wet_element_id: StringName = &"indra" # valor de teste (M15: elemento que o Molhado enfraquece)
+@export var fire_element_id: StringName = &"kagutsuchi" # valor de teste (M15: elemento que derrete o gelo e seca o Molhado)
 # Chefes (M11).
 @export var core_shield_mult: float = 0.25 # valor de teste (M11: multiplicador de dano no nucleo enquanto uma parte protetora esta de pe)
 @export var same_element_bonus: float = 1.2 # valor de teste (M13: multiplicador de dano quando o elemento efetivo e nativo do atacante)

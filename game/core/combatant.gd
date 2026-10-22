@@ -82,9 +82,20 @@ func has_kind(k: StatusDef.Kind) -> bool:
 			return true
 	return false
 
-## Pare: o ATB nao enche e nao age (M11).
+## Pare, Congelado ou petrificado: o ATB nao enche e nao age (M11, M15).
 func is_stopped() -> bool:
-	return has_kind(StatusDef.Kind.STOP)
+	return has_kind(StatusDef.Kind.STOP) or has_kind(StatusDef.Kind.FREEZE) or is_petrified()
+
+## Petrificado (M15): a contagem do estado PETRIFY chegou a 0. Fora da luta: nao age, nao enche ATB, nao e alvo.
+func is_petrified() -> bool:
+	for s: ActiveStatus in statuses:
+		if s.def.kind == StatusDef.Kind.PETRIFY and s.time_left <= 0.0:
+			return true
+	return false
+
+## Fora da luta: caido ou petrificado (conta como derrotado para o fim da batalha).
+func is_out() -> bool:
+	return is_down() or is_petrified()
 
 func is_silenced() -> bool:
 	return has_kind(StatusDef.Kind.SILENCE)

@@ -18,7 +18,7 @@ static func roll(enemies: Array[Combatant], dice: Dice, fled: bool = false) -> B
 	if fled:
 		return r
 	for e: Combatant in enemies:
-		if e.enemy_def == null or not e.is_down():
+		if e.enemy_def == null or not e.is_out():
 			continue
 		r.money += maxi(0, e.enemy_def.money)
 		for d: DropEntry in e.enemy_def.drops:

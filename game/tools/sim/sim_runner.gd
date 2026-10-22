@@ -60,7 +60,7 @@ class RunState:
 
 	func scan_defeats() -> void:
 		for e: Combatant in ctrl.b.enemies:
-			if e.is_down() and not defeated.has(e.id):
+			if e.is_out() and not defeated.has(e.id):
 				defeated[e.id] = true
 				var did: StringName = e.enemy_def.id
 				if not m.ttk_actions.has(did):

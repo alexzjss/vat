@@ -47,7 +47,7 @@ func _drop_downed() -> void:
 	var kept: Array[Dictionary] = []
 	for e: Dictionary in _entries:
 		var c: Combatant = e["combatant"]
-		if not c.is_down():
+		if not c.is_out():
 			kept.append(e)
 	_entries = kept
 

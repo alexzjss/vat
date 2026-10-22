@@ -35,6 +35,25 @@ static func _hit(r: ActionResult, t: Combatant, kind: EffectDef.Kind, amount: in
 	hit.merge(extra, true)
 	r.hits.append(hit)
 
+## Petrificado (M15): nada o atinge; a UI mostra "Pedra".
+static func _petrified_hit(r: ActionResult, t: Combatant, kind: EffectDef.Kind) -> void:
+	_hit(r, t, kind, 0, false, -1, false, false, &"", ElementMath.Affinity.NEUTRAL, {"petrified": true})
+
+## Congelado e Molhado no golpe de dano (M15), depois da afinidade e antes do escudo do nucleo e da barreira.
+## Kagutsuchi (`cfg.fire_element_id`) derrete o gelo (sem bonus) e seca o Molhado; senao o primeiro golpe de Forca
+## quebra o gelo e ganha `freeze_shatter_bonus` uma vez. Dano de Aura nao quebra. Devolve o dano ajustado.
+static func _freeze_and_wet(e: EffectDef, el_id: StringName, dmg: int, t: Combatant, b: BattleState) -> int:
+	if dmg <= 0:
+		return dmg
+	if el_id != &"" and el_id == b.cfg.fire_element_id:
+		b.statuses.remove_kind(t, StatusDef.Kind.FREEZE)
+		b.statuses.remove_kind(t, StatusDef.Kind.WET)
+		return dmg
+	if e.scale == EffectDef.Scale.STRENGTH and t.has_kind(StatusDef.Kind.FREEZE):
+		b.statuses.remove_kind(t, StatusDef.Kind.FREEZE)
+		return maxi(1, floori(float(dmg) * (1.0 + b.cfg.freeze_shatter_bonus)))
+	return dmg
+
 static func _scaled(e: EffectDef, actor: Combatant, attr: StringName, cfg: BalanceConfig) -> int:
 	if e.scale == EffectDef.Scale.FIXED:
 		return EffectMath.heal_amount(e, 0)
@@ -46,6 +65,9 @@ static func _apply_effect(e: EffectDef, actor: Combatant, t: Combatant, b: Battl
 	match e.kind:
 		EffectDef.Kind.DAMAGE:
 			if t.is_down():
+				return
+			if t.is_petrified():
+				_petrified_hit(r, t, e.kind)
 				return
 			# Cegueira: erra antes da esquiva, só em dano de Força ("Errou").
 			if e.scale == EffectDef.Scale.STRENGTH and actor.is_blind() and b.dice.roll() < b.cfg.blind_miss_chance:
@@ -66,6 +88,7 @@ static func _apply_effect(e: EffectDef, actor: Combatant, t: Combatant, b: Battl
 				# Absorver cura o alvo: sem barreira, Limite nem contribuicao.
 				_hit(r, t, EffectDef.Kind.HEAL, restore(int(res["heal"]), t, b), false, -1, false, false, el_id, affinity)
 				return
+			dmg = _freeze_and_wet(e, el_id, dmg, t, b)
 			# Nucleo protegido por uma parte: dano reduzido (minimo 1 se havia dano).
 			var shielded: bool = dmg > 0 and b.core_shielded(t)
 			if shielded:
@@ -97,7 +120,7 @@ static func _apply_effect(e: EffectDef, actor: Combatant, t: Combatant, b: Battl
 			for d: Combatant in area_downed:
 				_on_down(d, b, r)
 		EffectDef.Kind.HEAL:
-			if t.is_down():
+			if t.is_out():
 				return
 			var restored: int = restore(_scaled(e, actor, &"aura", b.cfg), t, b)
 			_credit_heal(actor, credit, t, restored, b, enemies_alive)
@@ -112,13 +135,16 @@ static func _apply_effect(e: EffectDef, actor: Combatant, t: Combatant, b: Battl
 			_hit(r, t, e.kind, t.hp, false, -1)
 		EffectDef.Kind.RESTORE_AP:
 			# Sem contribuição ([P-plano] 16): Éter não gera XP.
-			if t.is_down():
+			if t.is_out():
 				return
 			var before: int = t.ap
 			t.ap = mini(StatCalculator.ap_max(t, b.cfg), t.ap + EffectMath.restore_ap_amount(e))
 			_hit(r, t, e.kind, maxi(0, t.ap - before), false, -1)
 		EffectDef.Kind.APPLY_STATUS:
 			if t.is_down() or e.status == null:
+				return
+			if t.is_petrified():
+				_petrified_hit(r, t, e.kind)
 				return
 			var res: int = b.statuses.apply(t, e.status, actor, e.chance, enemies_alive)
 			_hit(r, t, e.kind, 0, false, res)

@@ -51,7 +51,7 @@ func foes_of(c: Combatant) -> Array[Combatant]:
 func living(arr: Array[Combatant]) -> Array[Combatant]:
 	var out: Array[Combatant] = []
 	for c: Combatant in arr:
-		if not c.is_down():
+		if not c.is_out():
 			out.append(c)
 	return out
 
@@ -89,19 +89,19 @@ func has_core() -> bool:
 
 ## O nucleo `c` esta protegido: ha uma parte com `shields_core` de pe.
 func core_shielded(c: Combatant) -> bool:
-	if c.is_down() or _role_of(c) != EnemyDef.Role.CORE:
+	if c.is_out() or _role_of(c) != EnemyDef.Role.CORE:
 		return false
 	for p: Combatant in enemies:
-		if not p.is_down() and _role_of(p) == EnemyDef.Role.PART and p.enemy_def.shields_core:
+		if not p.is_out() and _role_of(p) == EnemyDef.Role.PART and p.enemy_def.shields_core:
 			return true
 	return false
 
-## Os inimigos foram derrotados: com nucleo, a queda de todos os nucleos; senao, de todos os inimigos.
+## Os inimigos foram derrotados (caidos ou petrificados, M15): com nucleo, a queda de todos os nucleos; senao, de todos os inimigos.
 func enemies_defeated() -> bool:
 	if not has_core():
 		return living(enemies).is_empty()
 	for c: Combatant in enemies:
-		if _role_of(c) == EnemyDef.Role.CORE and not c.is_down():
+		if _role_of(c) == EnemyDef.Role.CORE and not c.is_out():
 			return false
 	return true
 

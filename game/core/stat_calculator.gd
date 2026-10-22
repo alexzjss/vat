@@ -30,6 +30,9 @@ static func effective(c: Combatant, attr: StringName, cfg: BalanceConfig) -> int
 	# Radioativo (M13): a contaminacao corroi a Vitalidade (so quando ha contaminacao).
 	if attr == &"vitality" and c.contamination > 0 and total > 0:
 		total = maxi(1, floori(float(total) * maxf(0.0, 1.0 - cfg.rad_corrode_per_stack * float(c.contamination))))
+	# Queimadura (M15): a Forca efetiva cai enquanto queima.
+	if attr == &"strength" and total > 0 and c.has_kind(StatusDef.Kind.BURN):
+		total = maxi(1, floori(float(total) * maxf(0.0, 1.0 - cfg.burn_str_pct)))
 	# Buff/debuff nunca zera o atributo (minimo 1); sem estado, o valor base segue como era.
 	return maxi(1 if modded else 0, total)
 
