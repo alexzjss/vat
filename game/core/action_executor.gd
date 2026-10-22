@@ -11,9 +11,11 @@ static func apply(a: PendingAction, b: BattleState) -> ActionResult:
 		return r
 	r.targets = Targeting.area(a.shape(), a.side(), effects, a.radius(), a.width(), a.actor, center, b)
 	var credit: StringName = a.turn_owner().id
+	# Marca e reacao uma vez por habilidade por alvo (M14): guarda quem ja foi tratado.
+	var handled: Dictionary = {}
 	for t: Combatant in r.targets:
 		for e: EffectDef in effects:
-			_apply_effect(e, a.actor, t, b, r, credit, a.ability)
+			_apply_effect(e, a.actor, t, b, r, credit, a.ability, handled)
 	# Chefe com nucleo: a queda do ultimo nucleo derruba as partes junto.
 	for p: Combatant in b.collapse_parts():
 		if not r.downed.has(p):
@@ -23,7 +25,8 @@ static func apply(a: PendingAction, b: BattleState) -> ActionResult:
 static func _hit(r: ActionResult, t: Combatant, kind: EffectDef.Kind, amount: int, dodged: bool, status_result: int, missed: bool = false, shielded: bool = false, element: StringName = &"", affinity: int = ElementMath.Affinity.NEUTRAL, extra: Dictionary = {}) -> void:
 	# Campos de elemento para a UI (M13): `lifesteal` (HP que o atacante roubou), `self_damage` (HP que o atacante
 	# perdeu, Radioativo), `contamination` (nivel do alvo apos o golpe) e `burst` (dano do estouro; > 0 = estourou).
-	var hit: Dictionary = {"target_id": t.id, "kind": kind, "amount": amount, "dodged": dodged, "status_result": status_result, "missed": missed, "shielded": shielded, "element": element, "affinity": affinity, "lifesteal": 0, "self_damage": 0, "contamination": 0, "burst": 0}
+	# Marcas (M14): `mark` (id da marca que o alvo carrega depois do golpe; vazio = nenhuma).
+	var hit: Dictionary = {"target_id": t.id, "kind": kind, "amount": amount, "dodged": dodged, "status_result": status_result, "missed": missed, "shielded": shielded, "element": element, "affinity": affinity, "lifesteal": 0, "self_damage": 0, "contamination": 0, "burst": 0, "mark": MarkRules.id_of(t)}
 	hit.merge(extra, true)
 	r.hits.append(hit)
 
@@ -33,7 +36,7 @@ static func _scaled(e: EffectDef, actor: Combatant, attr: StringName, cfg: Balan
 	return EffectMath.heal_amount(e, StatCalculator.effective(actor, attr, cfg))
 
 ## `credit` e quem recebe a contribuicao (o chamador, no Suporte; senao o ator).
-static func _apply_effect(e: EffectDef, actor: Combatant, t: Combatant, b: BattleState, r: ActionResult, credit: StringName, ability: AbilityDef = null) -> void:
+static func _apply_effect(e: EffectDef, actor: Combatant, t: Combatant, b: BattleState, r: ActionResult, credit: StringName, ability: AbilityDef = null, handled: Dictionary = {}) -> void:
 	var enemies_alive: Array[Combatant] = b.living(b.enemies)
 	match e.kind:
 		EffectDef.Kind.DAMAGE:
@@ -75,6 +78,12 @@ static func _apply_effect(e: EffectDef, actor: Combatant, t: Combatant, b: Battl
 			var extra: Dictionary = {}
 			if eff > 0 and element != null:
 				extra = _element_rules(element, actor, t, eff, b, credit)
+			# Marca (M14): so o primeiro golpe da habilidade que chegou ao alvo; quem caiu nao fica marcado.
+			if not handled.has(t) and MarkRules.marks(element, affinity):
+				handled[t] = true
+				if not t.is_down():
+					MarkRules.set_mark(t, element, b.cfg.mark_turns)
+				extra["mark"] = MarkRules.id_of(t)
 			_hit(r, t, e.kind, eff, false, -1, false, shielded, el_id, affinity, extra)
 			if t.is_down():
 				b.statuses.clear_all(t)

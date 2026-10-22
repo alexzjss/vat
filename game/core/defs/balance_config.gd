@@ -111,6 +111,7 @@ enum DurationMode { A, B }
 @export var rad_decay_actions: int = 2 # valor de teste (M13 Radioativo: acoes do alvo para perder 1 de contaminacao)
 @export var rad_corrode_per_stack: float = 0.1 # valor de teste (M13 Radioativo: queda da Vitalidade efetiva por nivel de contaminacao)
 @export var rad_self_pct: float = 0.1 # valor de teste (M13 Radioativo: fracao do dano efetivo que fere o atacante, nunca abaixo de 1 HP)
+@export var mark_turns: int = 3 # valor de teste (M14: turnos ATB do alvo que uma marca elemental dura)
 @export var sim_tick: float = 0.1 # valor de teste (simulador: passo de tempo por tick)
 @export var sim_max_seconds: float = 600.0 # valor de teste (simulador: limite de uma batalha, em segundos de jogo)
 

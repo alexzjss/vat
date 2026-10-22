@@ -10,6 +10,8 @@ class AtbFullOutcome:
 	var regen_heal: int = 0
 	var lost_turn: bool = false
 	var expired: Array[StringName] = []
+	## A marca elemental (M14) acabou neste ATB cheio.
+	var mark_expired: bool = false
 
 var _cfg: BalanceConfig
 var _ledger: ContributionLedger
@@ -182,6 +184,12 @@ func on_atb_full(c: Combatant, living_enemies: Array[Combatant]) -> AtbFullOutco
 		else:
 			kept.append(s)
 	c.statuses = kept
+	# Marca elemental (M14): conta no mesmo ponto dos estados.
+	if c.mark != null:
+		c.mark_turns -= 1
+		if c.mark_turns <= 0:
+			MarkRules.clear(c)
+			out.mark_expired = true
 	return out
 
 ## Sangramento (M13): chamado quando a acao do afetado sai. Tira `potency`% do HP maximo por estado BLEED,
@@ -228,3 +236,4 @@ func clear_all(c: Combatant) -> void:
 	# Quem cai perde a contaminacao (M13).
 	c.contamination = 0
 	c.contam_actions = 0
+	MarkRules.clear(c)

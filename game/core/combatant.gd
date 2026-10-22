@@ -59,6 +59,13 @@ var element_resist: Dictionary[StringName, float]:
 var contamination: int = 0
 ## Acoes do afetado desde o ultimo decaimento da contaminacao.
 var contam_actions: int = 0
+## Marca elemental (M14): no maximo uma por alvo; so dentro da batalha. Nula = sem marca.
+var mark: ElementDef
+## Turnos ATB do alvo que a marca ainda dura (0 sem marca).
+var mark_turns: int = 0
+## Reacoes (M14): ATB que o atacante ganha com a reacao enquanto sua acao ainda nao terminou; o controlador
+## o devolve depois de zerar a barra no fim da acao.
+var atb_bonus: float = 0.0
 var start_statuses: Array[StatusDef] = []
 var damage_taken_from: Dictionary[StringName, int] = {}
 ## Chefe (M11): ataque anunciado em preparacao (sai no proximo ATB cheio); nulo = nao esta preparando.

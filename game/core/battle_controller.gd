@@ -119,7 +119,7 @@ func _try_flee() -> void:
 	_drop_session()
 	_discard_queued()
 	_counters.clear()
-	_reset_contamination()
+	_reset_transients()
 	battle_ended.emit(outcome)
 
 func submit(a: PendingAction) -> void:
@@ -189,11 +189,12 @@ func _on_action_fired(c: Combatant) -> void:
 			c.contam_actions = 0
 			c.contamination -= 1
 
-## Contaminacao e so da batalha: zera em todos antes de encerrar.
-func _reset_contamination() -> void:
+## Contaminacao e marcas so existem na batalha: zeram em todos antes de encerrar.
+func _reset_transients() -> void:
 	for c: Combatant in b.all():
 		c.contamination = 0
 		c.contam_actions = 0
+		MarkRules.clear(c)
 
 # --- Fases, contra-ataque e preparacao (chefes, M11) ---
 
@@ -280,7 +281,7 @@ func _check_end() -> void:
 	_drop_session()
 	_discard_queued()
 	_counters.clear()
-	_reset_contamination()
+	_reset_transients()
 	battle_ended.emit(outcome)
 
 ## Quem está com a vez nas mãos (executando, em sessão ou com ação enfileirada) não entra na fila.
