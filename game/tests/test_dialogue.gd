@@ -334,6 +334,22 @@ func test_start_battle_waits_for_victory_then_continues() -> void:
 	game.event_player.cancel()
 	assert_true(map.player.enabled)
 
+func test_say_before_start_battle_closes_the_box_so_the_battle_gets_the_input() -> void:
+	_make_game()
+	await _enter_area()
+	map.auto_battle = true
+	var sb := StartBattleStep.new()
+	sb.encounter = _weak_encounter()
+	game.play_event(_script([_say("aviso"), sb] as Array[EventStep]))
+	assert_true(game.event_player.dialogue.is_open, "o aviso aparece")
+	game.event_player.dialogue.accept()
+	game.event_player.dialogue.accept()
+	assert_not_null(map.battle, "a batalha começou")
+	assert_false(game.event_player.dialogue.is_open, "a caixa não fica aberta sobre a batalha (consumiria o Enter)")
+	map.battle.set_process(false)
+	map.battle.finished.emit(BattleController.Outcome.VICTORY)
+	game.event_player.cancel()
+
 func test_start_battle_defeat_is_game_over_not_continue() -> void:
 	_make_game()
 	await _enter_area()

@@ -8,7 +8,8 @@ extends Node
 ## jogador passa a mostrar o líder atual.
 ## Eventos (M10): `play_event(script)` roda um roteiro no mapa atual com o EventPlayer; enquanto dura, o mapa fica
 ## parado e o menu de campo não abre. Troca de mapa e Game Over cancelam o evento.
-## Debug: `-- --demo-field-menu` (DemoFieldMenu) percorre as páginas do menu; `-- --demo-m2` (DemoM2) e
+## Debug: `-- --demo-fatia` (DemoFatia, M12) percorre a fatia vertical inteira no perfil da fatia (precisa de game_fatia.tscn,
+## a cena principal); `-- --demo-field-menu` (DemoFieldMenu) percorre as páginas do menu; `-- --demo-m2` (DemoM2) e
 ## `-- --demo-m3` (DemoM3) / `-- --demo-m4` (DemoM4) / `-- --demo-m6` (DemoM6, descanso e save) / `-- --demo-m7` (DemoM7, corrida, iniciativa, fuga e chefe) / `-- --demo-m8` (DemoM8, Limite e Suporte) / `-- --demo-m11` (DemoM11, chefe de teste da dungeon) percorrem os ciclos dos marcos sozinhos (verificação com --write-movie).
 
 ## Perfil de início (M12): `start_profile` é o do Novo jogo (a fatia vertical em game_fatia.tscn); as demos (`--demo-*`)
@@ -18,6 +19,9 @@ extends Node
 
 ## Saves das demos (`--demo-*`) vão para cá, nunca para os slots reais.
 const DEMO_SAVE_DIR: String = "user://demo_saves/"
+
+## Única demo que NÃO usa o perfil de teste: percorre a fatia, do título ao fim (usa o `start_profile` e o título).
+const FATIA_DEMO_FLAG: String = "--demo-fatia"
 
 ## Flag gravada no "clear save" ao chegar à tela de fim.
 const FLAG_CONCLUDED: StringName = &"fatia_concluida"
@@ -53,7 +57,7 @@ var settings_path: String = SettingsStore.DEFAULT_PATH
 var save_dir: String = "user://"
 ## Pula a tela de título e começa em Novo jogo (testes; qualquer flag --demo-* também pula).
 var skip_title: bool = false
-## Usar `test_profile` no Novo jogo (ligado por qualquer flag --demo-*).
+## Usar `test_profile` no Novo jogo (ligado por qualquer flag --demo-*, exceto --demo-fatia).
 var use_test_profile: bool = false
 ## Mapas conhecidos (cópia de MAPS; testes podem acrescentar mapas).
 var maps: Dictionary[StringName, PackedScene] = MAPS.duplicate()
@@ -90,7 +94,7 @@ func _ready() -> void:
 	registry = _registry_cache
 	var args: PackedStringArray = OS.get_cmdline_user_args()
 	use_test_profile = uses_test_profile(args)
-	if use_test_profile:
+	if is_demo(args):
 		save_dir = DEMO_SAVE_DIR
 	store = SaveStore.new(save_dir, registry, balance)
 	settings = GameSettings.new(balance)
@@ -131,12 +135,15 @@ func _ready() -> void:
 		_add_demo(DemoM11.new(), "DemoM11")
 	if args.has("--demo-field-menu"):
 		_add_demo(DemoFieldMenu.new(), "DemoFieldMenu")
+	if args.has(FATIA_DEMO_FLAG):
+		_add_demo(DemoFatia.new(), "DemoFatia")
 
-## As demos (qualquer flag --demo-*) rodam no perfil de teste.
+## As demos (qualquer flag --demo-*, menos --demo-fatia) rodam no perfil de teste.
 static func uses_test_profile(args: PackedStringArray) -> bool:
-	return _has_demo_flag(args)
+	return is_demo(args) and not args.has(FATIA_DEMO_FLAG)
 
-static func _has_demo_flag(args: PackedStringArray) -> bool:
+## Qualquer flag --demo-* (as demos gravam em DEMO_SAVE_DIR).
+static func is_demo(args: PackedStringArray) -> bool:
 	for a: String in args:
 		if a.begins_with("--demo-"):
 			return true

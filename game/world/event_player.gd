@@ -123,6 +123,8 @@ func _present(req: EventRequest, gen: int) -> int:
 			end_demo_requested.emit()
 			return 0
 		EventRequest.Kind.START_BATTLE:
+			# A fala que veio antes (ex.: o aviso da armadilha) não pode ficar aberta sobre a batalha: a caixa consome o Enter.
+			dialogue.close()
 			_map.event_battle_finished.connect(_done_with.bind(gen), CONNECT_ONE_SHOT)
 			_map.start_event_battle(req.encounter)
 	return await _step_done

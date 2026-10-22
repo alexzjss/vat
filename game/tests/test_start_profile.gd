@@ -70,6 +70,13 @@ func test_demo_flag_picks_test_profile() -> void:
 	assert_false(Game.uses_test_profile(PackedStringArray()))
 	assert_false(Game.uses_test_profile(PackedStringArray(["--other"])))
 
+func test_demo_fatia_flag_keeps_the_fatia_profile_but_still_uses_demo_saves() -> void:
+	var args := PackedStringArray(["--demo-fatia"])
+	assert_false(Game.uses_test_profile(args), "a demo da fatia usa o perfil da fatia")
+	assert_true(Game.is_demo(args), "e continua gravando em demo_saves")
+	assert_true(Game.is_demo(PackedStringArray(["--demo-m2"])))
+	assert_false(Game.is_demo(PackedStringArray(["--other"])))
+
 func test_new_game_with_test_profile_ignores_start_profile() -> void:
 	game = _make()
 	game.start_profile = load(FATIA_PROFILE) as StartProfile
