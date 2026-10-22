@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="ReactionDef" format=3]
+
+[ext_resource type="Script" path="res://core/defs/reaction_def.gd" id="1_1"]
+[ext_resource type="Resource" path="res://data/elements/susanoo.tres" id="2_2"]
+[ext_resource type="Resource" path="res://data/elements/tsukuyomi.tres" id="3_3"]
+[ext_resource type="Script" path="res://core/defs/status_def.gd" id="4_4"]
+[ext_resource type="Resource" path="res://data/test/statuses/silence.tres" id="5_5"]
+
+[resource]
+script = ExtResource("1_1")
+id = &"abismo"
+display_name = "Abismo"
+a = ExtResource("2_2")
+b = ExtResource("3_3")
+keep = ExtResource("3_3")
+bonus_pct = 0.1
+target_statuses = Array[ExtResource("4_4")]([ExtResource("5_5")])
+status_chance = 0.6

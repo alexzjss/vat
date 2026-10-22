@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ReactionDef" format=3]
+
+[ext_resource type="Script" path="res://core/defs/reaction_def.gd" id="1_1"]
+[ext_resource type="Resource" path="res://data/elements/fuhaku.tres" id="2_2"]
+[ext_resource type="Resource" path="res://data/elements/shukketsu.tres" id="3_3"]
+[ext_resource type="Script" path="res://core/defs/status_def.gd" id="4_4"]
+[ext_resource type="Resource" path="res://data/test/statuses/bleed.tres" id="5_5"]
+
+[resource]
+script = ExtResource("1_1")
+id = &"nevoa_rubra"
+display_name = "Névoa Rubra"
+a = ExtResource("2_2")
+b = ExtResource("3_3")
+target_statuses = Array[ExtResource("4_4")]([ExtResource("5_5")])
+status_chance = 0.5
+area_radius = 200.0
+area_pct = 0.1
+area_statuses = Array[ExtResource("4_4")]([ExtResource("5_5")])

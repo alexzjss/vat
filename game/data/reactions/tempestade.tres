@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ReactionDef" format=3]
+
+[ext_resource type="Script" path="res://core/defs/reaction_def.gd" id="1_1"]
+[ext_resource type="Resource" path="res://data/elements/susanoo.tres" id="2_2"]
+[ext_resource type="Resource" path="res://data/elements/fuhaku.tres" id="3_3"]
+
+[resource]
+script = ExtResource("1_1")
+id = &"tempestade"
+display_name = "Tempestade"
+a = ExtResource("2_2")
+b = ExtResource("3_3")
+area_radius = 300.0
+area_pct = 0.3
+target_atb = -0.15

@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="ReactionDef" format=3]
+
+[ext_resource type="Script" path="res://core/defs/reaction_def.gd" id="1_1"]
+[ext_resource type="Resource" path="res://data/elements/atlas.tres" id="2_2"]
+[ext_resource type="Resource" path="res://data/elements/tsukuyomi.tres" id="3_3"]
+[ext_resource type="Script" path="res://core/defs/status_def.gd" id="4_4"]
+[ext_resource type="Resource" path="res://data/test/statuses/stop.tres" id="5_5"]
+
+[resource]
+; Pare no lugar de Petrificação (M15). Valores de teste.
+script = ExtResource("1_1")
+id = &"sepultura"
+display_name = "Sepultura"
+a = ExtResource("2_2")
+b = ExtResource("3_3")
+target_statuses = Array[ExtResource("4_4")]([ExtResource("5_5")])
+status_chance = 0.3
