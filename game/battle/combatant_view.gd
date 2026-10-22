@@ -22,6 +22,9 @@ const DOWN_COLOR: Color = Color(0.4, 0.4, 0.4)
 const CONTAM_COLOR: Color = Color(0.75, 0.95, 0.3)
 const BLEED_COLOR: Color = Color(0.85, 0.12, 0.2)
 const SELF_DAMAGE_COLOR: Color = Color(1.0, 0.55, 0.45)
+## Icone da marca elemental (M14): raio do circulo e centro, a direita do corpo e abaixo do indicador de contaminacao.
+const MARK_RADIUS: float = 10.0
+const MARK_CENTER: Vector2 = Vector2(SIZE / 2.0 + 18.0, -4.0)
 ## Altura (acima do numero) do rotulo de afinidade / nome do efeito.
 const LABEL_LIFT: float = 22.0
 ## Os numeros comecam acima do nome e da linha Protegido/Preparando (valor de teste).
@@ -88,6 +91,8 @@ func _draw() -> void:
 	var contam: String = contamination_text()
 	if contam != "" and not down:
 		draw_string(font, Vector2(half + 6.0, -half + 12.0), contam, HORIZONTAL_ALIGNMENT_LEFT, -1, 12, CONTAM_COLOR)
+	if mark_text() != "":
+		_draw_mark(font)
 	var y: float = half + 8.0
 	var hp_max: int = StatCalculator.hp_max(combatant, cfg)
 	var ap_max: int = StatCalculator.ap_max(combatant, cfg)
@@ -116,6 +121,19 @@ func contamination_text() -> String:
 	if combatant == null or combatant.contamination <= 0:
 		return ""
 	return "Contam. %d" % combatant.contamination
+
+## Marca elemental (M14): inicial do nome curto + turnos restantes ("F2"); vazio sem marca ou com o combatente caido.
+func mark_text() -> String:
+	if combatant == null or combatant.mark == null or combatant.is_down():
+		return ""
+	return "%s%d" % [ElementText.initial_of(combatant.mark), combatant.mark_turns]
+
+func _draw_mark(font: Font) -> void:
+	var tint: Color = combatant.mark.color
+	draw_circle(MARK_CENTER, MARK_RADIUS, tint)
+	draw_arc(MARK_CENTER, MARK_RADIUS, 0.0, TAU, 20, Color(0.0, 0.0, 0.0, 0.8), 1.5)
+	var ink: Color = Color.BLACK if tint.get_luminance() > 0.45 else Color.WHITE
+	draw_string(font, MARK_CENTER + Vector2(-MARK_RADIUS, 4.0), mark_text(), HORIZONTAL_ALIGNMENT_CENTER, MARK_RADIUS * 2.0, 11, ink)
 
 ## Ajusta o nome à largura `max_w`: encolhe a fonte de `base_size` até `min_size`; se ainda passar, corta e termina em "…".
 ## Devolve {"text": String, "size": int}.
@@ -148,9 +166,23 @@ func status_text() -> String:
 	return " ".join(parts)
 
 static func status_label(s: ActiveStatus) -> String:
-	if s.def.kind == StatusDef.Kind.ATTR_MOD and ATTR_LABELS.has(s.def.attr):
-		return ATTR_LABELS[s.def.attr] + ("-" if s.def.potency < 0 else "+")
-	return STATUS_LABELS.get(s.def.kind, String(s.def.id))
+	return def_label(s.def)
+
+static func def_label(d: StatusDef) -> String:
+	if d.kind == StatusDef.Kind.ATTR_MOD and ATTR_LABELS.has(d.attr):
+		return ATTR_LABELS[d.attr] + ("-" if d.potency < 0 else "+")
+	return STATUS_LABELS.get(d.kind, String(d.id))
+
+## Quantos "andares" de popup um golpe de dano ocupa (numero, rotulo de afinidade, estouro); a reacao empilha acima.
+static func popup_slots(hit: Dictionary) -> int:
+	if hit.get("missed", false) or hit.get("dodged", false) or int(hit.get("kind", -1)) != EffectDef.Kind.DAMAGE:
+		return 1
+	var n: int = 1
+	if int(hit.get("amount", 0)) > 0 and ElementText.affinity_label(int(hit.get("affinity", ElementMath.Affinity.NEUTRAL))) != "":
+		n += 1
+	if int(hit.get("burst", 0)) > 0:
+		n += 1
+	return n
 
 ## Mostra o resultado de um hit de ActionResult sobre este combatente.
 func show_hit(hit: Dictionary) -> void:
@@ -205,10 +237,12 @@ func show_bleed(amount: int) -> void:
 	float_text("-%d" % amount, BLEED_COLOR)
 	float_text("Sangramento", BLEED_COLOR, LABEL_LIFT)
 
-func float_text(text: String, color: Color, lift: float = 0.0) -> void:
+func float_text(text: String, color: Color, lift: float = 0.0, font_size: int = 0) -> void:
 	var label := Label.new()
 	label.text = text
 	label.modulate = color
+	if font_size > 0:
+		label.add_theme_font_size_override("font_size", font_size)
 	label.position = Vector2(-20.0, -SIZE - POPUP_RISE - lift)
 	add_child(label)
 	var tw: Tween = label.create_tween()

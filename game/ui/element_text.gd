@@ -28,6 +28,13 @@ static func short_name_of(id: StringName) -> String:
 	var e: ElementDef = def_of(id)
 	return e.short_name if e != null and e.short_name != "" else String(id).capitalize()
 
+## Inicial do nome curto, para o icone da marca ("F" de Fogo); vazia sem elemento.
+static func initial_of(e: ElementDef) -> String:
+	if e == null:
+		return ""
+	var t: String = tag(e)
+	return t.substr(0, 1) if t != "" else ""
+
 static func color_of(id: StringName) -> Color:
 	var e: ElementDef = def_of(id)
 	return e.color if e != null else Color.WHITE

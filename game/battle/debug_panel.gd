@@ -5,6 +5,8 @@ extends Control
 ## O texto é montado só a partir do estado (build_text); refresh só atribui quando visível.
 
 var _label: Label
+## Ultima reacao vista (M14): linhas prontas; vazio ate a primeira.
+var _last_reaction: PackedStringArray = PackedStringArray()
 
 func _init() -> void:
 	visible = false
@@ -84,6 +86,8 @@ func build_text(b: BattleState, ctrl: BattleController) -> String:
 			lines.append("    %s: %.1f" % [hid, float(per[hid])])
 		lines.append("    total: %.1f" % b.ledger.total_against(eid))
 	lines.append_array(_contamination_lines(b))
+	lines.append_array(_mark_lines(b))
+	lines.append_array(_last_reaction)
 	lines.append("Wait: %s" % ("sim" if ctrl.is_paused() else "não"))
 	lines.append("ATB: %s" % ("Ativo" if ctrl.active_mode else "Espera"))
 	return "\n".join(lines)
@@ -120,3 +124,24 @@ func _contamination_lines(b: BattleState) -> PackedStringArray:
 	if not out.is_empty():
 		out.insert(0, "Contaminação")
 	return out
+
+## Marca elemental e turnos de quem a carrega (so aparece se alguem tiver).
+func _mark_lines(b: BattleState) -> PackedStringArray:
+	var out: PackedStringArray = PackedStringArray()
+	for c: Combatant in b.all():
+		if c.mark != null and not c.is_down():
+			out.append("  %s: %s (%d)" % [c.id, ElementText.tag(c.mark), c.mark_turns])
+	if not out.is_empty():
+		out.insert(0, "Marcas")
+	return out
+
+## Guarda a ultima reacao do resultado: nome, par e o calculo do dano extra (nada muda sem reacao).
+func record_impact(r: ActionResult, b: BattleState) -> void:
+	for hit: Dictionary in r.hits:
+		var def: ReactionDef = ReactionText.find_by_id(b.reactions, hit.get("reaction", &""))
+		if def == null:
+			continue
+		var fx: Dictionary = hit.get("reaction_effects", {})
+		var extra: int = int(fx.get("extra_damage", 0))
+		_last_reaction = PackedStringArray(["Última reação", "  %s (%s) em %s" % [def.display_name, ReactionText.pair_text(def), hit["target_id"]]])
+		_last_reaction.append("  Dano extra: %d (%s do golpe)" % [extra, ElementText.pct(def.bonus_pct)])

@@ -429,11 +429,24 @@ func _on_action_impact(a: PendingAction, r: ActionResult) -> void:
 			v.show_hit(hit)
 		lifesteal += int(hit.get("lifesteal", 0))
 		self_damage += int(hit.get("self_damage", 0))
+	_debug.record_impact(r, ctrl.b)
+	_show_reactions(a, r, (1 if lifesteal > 0 else 0) + (1 if self_damage > 0 else 0))
 	if lifesteal > 0 or self_damage > 0:
 		# O reserva do Suporte nao esta em `views`: usa a vista dele.
 		var av: CombatantView = views.get(a.actor.id, _support_view)
 		if av != null:
 			av.show_attacker_effects(lifesteal, self_damage)
+
+## Popups das reacoes (M14): nome acima do numero, dano extra, area, estados, ATB, curas e remocoes.
+func _show_reactions(a: PendingAction, r: ActionResult, attacker_slot: int) -> void:
+	for hit: Dictionary in r.hits:
+		var def: ReactionDef = ReactionText.find_by_id(ctrl.b.reactions, hit.get("reaction", &""))
+		if def == null:
+			continue
+		for p: Dictionary in ReactionText.plan(hit, def, a.actor.id, CombatantView.popup_slots(hit), attacker_slot):
+			var pv: CombatantView = views.get(p["id"], _support_view if p["id"] == a.actor.id else null)
+			if pv != null:
+				pv.float_text(p["text"], p["color"], p["lift"], p["size"])
 
 func _on_bleed_tick(c: Combatant, amount: int) -> void:
 	if views.has(c.id):
