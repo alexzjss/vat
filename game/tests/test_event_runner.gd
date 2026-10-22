@@ -362,3 +362,70 @@ func test_give_equipment_respects_the_cap() -> void:
 	var r: EventRunner = _run([ge] as Array[EventStep])
 	assert_eq(g.bag.count(&"espada"), cfg.max_stack)
 	assert_eq(_drain(r), ["Espada: mochila cheia"] as Array[String])
+
+# --- IfItemStep e TakeItemStep ----------------------------------------------------------
+
+func _herb(key: bool = true) -> ItemDef:
+	var item := ItemDef.new()
+	item.id = &"erva"
+	item.display_name = "Erva"
+	item.key_item = key
+	return item
+
+func _if_item(item: ItemDef, n: int, else_label: StringName) -> IfItemStep:
+	var s := IfItemStep.new()
+	s.item = item
+	s.count = n
+	s.else_label = else_label
+	return s
+
+func _take(item: ItemDef, n: int) -> TakeItemStep:
+	var s := TakeItemStep.new()
+	s.item = item
+	s.count = n
+	return s
+
+func test_if_item_follows_when_the_party_has_enough() -> void:
+	var herb: ItemDef = _herb()
+	g.inventory.add(herb, 2)
+	var r: EventRunner = _run([_if_item(herb, 2, &"falta"), _say("tem"), _goto(&"fim"), _label(&"falta"), _say("falta"), _label(&"fim")] as Array[EventStep])
+	assert_eq(_drain(r), ["tem"] as Array[String])
+
+func test_if_item_jumps_to_else_when_short_or_missing() -> void:
+	var herb: ItemDef = _herb()
+	var steps: Array[EventStep] = [_if_item(herb, 2, &"falta"), _say("tem"), _goto(&"fim"), _label(&"falta"), _say("falta"), _label(&"fim")]
+	assert_eq(_drain(_run(steps)), ["falta"] as Array[String], "sem o item")
+	g.inventory.add(herb, 1)
+	assert_eq(_drain(_run(steps)), ["falta"] as Array[String], "1 de 2")
+
+func test_if_item_default_count_is_one_and_empty_else_ends_the_event() -> void:
+	var herb: ItemDef = _herb()
+	var s := IfItemStep.new()
+	s.item = herb
+	assert_eq(s.count, 1)
+	var r: EventRunner = _run([s, _say("nunca")] as Array[EventStep])
+	assert_true(r.finished, "falta e else vazio: termina")
+	g.inventory.add(herb, 1)
+	var r2: EventRunner = _run([s, _say("tem")] as Array[EventStep])
+	assert_eq(_drain(r2), ["tem"] as Array[String])
+
+func test_if_item_with_a_null_item_takes_the_else_branch() -> void:
+	var r: EventRunner = _run([IfItemStep.new(), _say("nunca")] as Array[EventStep])
+	assert_true(r.finished)
+
+func test_take_item_removes_it_even_a_key_item_and_says_so() -> void:
+	var herb: ItemDef = _herb(true)
+	g.inventory.add(herb, 3)
+	var r: EventRunner = _run([_take(herb, 2), _say("depois")] as Array[EventStep])
+	assert_eq(g.inventory.count(&"erva"), 1)
+	assert_eq(_drain(r), ["Entregou Erva x2!", "depois"] as Array[String])
+	var r2: EventRunner = _run([_take(herb, 1)] as Array[EventStep])
+	assert_eq(g.inventory.count(&"erva"), 0)
+	assert_eq(r2.current().text, "Entregou Erva!")
+
+func test_take_item_without_enough_takes_nothing_and_stays_quiet() -> void:
+	var herb: ItemDef = _herb()
+	g.inventory.add(herb, 1)
+	var r: EventRunner = _run([_take(herb, 2)] as Array[EventStep])
+	assert_true(r.finished)
+	assert_eq(g.inventory.count(&"erva"), 1)

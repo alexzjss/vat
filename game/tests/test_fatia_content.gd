@@ -301,16 +301,30 @@ func test_quest_during_without_herb_only_reminds() -> void:
 	assert_eq(game.state.get_flag(&"missao_estado"), 1, "segue em andamento")
 	assert_eq(game.state.money, money, "sem entrega, sem pagamento")
 
-func test_quest_delivery_pays_money_equipment_and_xp_once() -> void:
+func test_quest_checks_the_herb_item_not_the_chest_flag() -> void:
 	await _start_game()
 	game.state.set_flag(&"missao_estado", 1)
 	game.state.set_flag(&"bau_erva", 1)
+	var money: int = game.state.money
+	_drive(QUEST)
+	assert_eq(game.state.get_flag(&"missao_estado"), 1, "o baú aberto não basta: a erva tem de estar com o grupo")
+	assert_eq(game.state.money, money)
+
+func _give_herb() -> void:
+	game.state.grant_item(game.registry.item(&"erva_teste"), 1)
+
+func test_quest_delivery_pays_money_equipment_and_xp_once() -> void:
+	await _start_game()
+	game.state.set_flag(&"missao_estado", 1)
+	_give_herb()
 	var money: int = game.state.money
 	var xp: int = game.state.heroes[0].xp
 	var level: int = game.state.heroes[0].level
 	var bag_before: int = game.state.bag.listing().size()
 	var res: Dictionary = _drive(QUEST)
 	assert_eq(game.state.get_flag(&"missao_estado"), 2, "concluída")
+	assert_eq(game.state.inventory.count(&"erva_teste"), 0, "a erva foi entregue")
+	assert_true(_has_text(res, "Entregou Erva de Teste"), "linha de sistema")
 	assert_gt(game.state.money, money, "Moedas")
 	assert_gt(game.state.bag.listing().size(), bag_before, "equipamento")
 	assert_true(game.state.heroes[0].xp > xp or game.state.heroes[0].level > level, "XP narrativa ACTIVE")

@@ -111,6 +111,12 @@ func _exec(step: EventStep) -> void:
 		var f: IfFlagStep = step
 		if not IfFlagStep.compare(state.get_flag(f.flag), f.op, f.value):
 			_jump(f.else_label)
+	elif step is IfItemStep:
+		var ii: IfItemStep = step
+		if ii.item == null or state.inventory.available(ii.item.id) < maxi(1, ii.count):
+			_jump(ii.else_label)
+	elif step is TakeItemStep:
+		_take_item(step as TakeItemStep)
 	elif step is GotoStep:
 		_jump((step as GotoStep).label)
 	elif step is GiveItemStep:
@@ -179,6 +185,11 @@ func _jump(label: StringName) -> void:
 
 func _system(text: String) -> void:
 	_queue.append(EventRequest.say("", text))
+
+func _take_item(t: TakeItemStep) -> void:
+	if t.item == null or t.count <= 0 or not state.inventory.remove(t.item.id, t.count):
+		return
+	_system("Entregou %s x%d!" % [t.item.display_name, t.count] if t.count > 1 else "Entregou %s!" % t.item.display_name)
 
 func _recruit(r: RecruitStep) -> void:
 	var lv: int = maxi(1, r.level) if r.level_mode == RecruitStep.LevelMode.FIXED else 0

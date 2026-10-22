@@ -12,6 +12,9 @@
 [ext_resource type="Script" path="res://core/events/grant_xp_step.gd" id="10_grantxps"]
 [ext_resource type="Script" path="res://core/events/set_flag_step.gd" id="11_setflags"]
 [ext_resource type="Script" path="res://core/events/choice_step.gd" id="12_choicest"]
+[ext_resource type="Script" path="res://core/events/if_item_step.gd" id="13_ifitemst"]
+[ext_resource type="Script" path="res://core/events/take_item_step.gd" id="14_takeitem"]
+[ext_resource type="Resource" path="res://data/fatia/items/erva_teste.tres" id="15_erva"]
 
 [sub_resource type="Resource" id="s1"]
 script = ExtResource("3_ifflagst")
@@ -41,10 +44,9 @@ value = 1
 else_label = &"inicio"
 
 [sub_resource type="Resource" id="s6"]
-script = ExtResource("3_ifflagst")
-flag = &"bau_erva"
-op = 0
-value = 1
+script = ExtResource("13_ifitemst")
+item = ExtResource("15_erva")
+count = 1
 else_label = &"falta"
 
 [sub_resource type="Resource" id="s7"]
@@ -138,10 +140,15 @@ script = ExtResource("4_saystep")
 speaker = "Morador C"
 text = "Texto de teste: tudo bem, volte se mudar de ideia."
 
+[sub_resource type="Resource" id="s27"]
+script = ExtResource("14_takeitem")
+item = ExtResource("15_erva")
+count = 1
+
 [sub_resource type="Resource" id="s26"]
 script = ExtResource("6_labelste")
 label_name = &"fim"
 
 [resource]
 script = ExtResource("1_eventscr")
-steps = Array[ExtResource("2_eventste")]([SubResource("s1"), SubResource("s2"), SubResource("s3"), SubResource("s4"), SubResource("s5"), SubResource("s6"), SubResource("s7"), SubResource("s8"), SubResource("s9"), SubResource("s10"), SubResource("s11"), SubResource("s12"), SubResource("s13"), SubResource("s14"), SubResource("s15"), SubResource("s16"), SubResource("s17"), SubResource("s18"), SubResource("s19"), SubResource("s20"), SubResource("s21"), SubResource("s22"), SubResource("s23"), SubResource("s24"), SubResource("s25"), SubResource("s26")])
+steps = Array[ExtResource("2_eventste")]([SubResource("s1"), SubResource("s2"), SubResource("s3"), SubResource("s4"), SubResource("s5"), SubResource("s6"), SubResource("s7"), SubResource("s27"), SubResource("s8"), SubResource("s9"), SubResource("s10"), SubResource("s11"), SubResource("s12"), SubResource("s13"), SubResource("s14"), SubResource("s15"), SubResource("s16"), SubResource("s17"), SubResource("s18"), SubResource("s19"), SubResource("s20"), SubResource("s21"), SubResource("s22"), SubResource("s23"), SubResource("s24"), SubResource("s25"), SubResource("s26")])

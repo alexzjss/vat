@@ -505,7 +505,7 @@ func _stage_floor_one_herb() -> bool:
 		return false
 	if not await _use("BauErva"):
 		return false
-	if not _check(s.get_flag(&"bau_erva") == 1, "baú da erva aberto"):
+	if not _check(s.get_flag(&"bau_erva") == 1 and s.inventory.count(&"erva_teste") == 1, "baú da erva aberto, erva na mochila"):
 		return false
 	_log("erva obtida; volta à cidade para entregar a missão")
 	if not await _go_link("SaidaLink", &"overworld_fatia"):
@@ -520,6 +520,8 @@ func _stage_quest_delivery() -> bool:
 	if not await _use("MoradorC"):
 		return false
 	if not _check(s.get_flag(&"missao_estado") == 2 and s.money > money and s.bag.listing().size() > bag, "missão entregue (Moedas e equipamento)"):
+		return false
+	if not _check(s.inventory.count(&"erva_teste") == 0, "a missão consumiu a erva"):
 		return false
 	await _milestone("missão entregue: %d Moedas" % s.money)
 	if not await _equip_from_bag(&"capacete_teste_b_f"):
