@@ -33,6 +33,7 @@ xp_base = 150
 money = 20
 abilities = Array[ExtResource("s_ab")]([ExtResource("ab_golpe")])
 ai_rules = Array[ExtResource("s_rule")]([SubResource("sub_2")])
+immunities = Array[StringName]([&"doom", &"petrify"])
 role = 2
 shields_core = true
 element_resist = Dictionary[StringName, float]({

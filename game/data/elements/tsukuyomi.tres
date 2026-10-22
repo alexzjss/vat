@@ -7,4 +7,5 @@ script = ExtResource("1_r")
 id = &"tsukuyomi"
 display_name = "Tsukuyomi"
 short_name = "Trevas"
+icon_text = "Ts"
 color = Color(0.478, 0.310, 0.710, 1)

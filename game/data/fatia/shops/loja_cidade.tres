@@ -7,6 +7,7 @@
 [ext_resource type="Resource" path="res://data/fatia/items/eter_f.tres" id="5_eterf"]
 [ext_resource type="Resource" path="res://data/fatia/items/remedio_f.tres" id="6_remediof"]
 [ext_resource type="Resource" path="res://data/fatia/items/reviver_f.tres" id="7_reviverf"]
+[ext_resource type="Resource" path="res://data/fatia/items/lente_f.tres" id="13_lentef"]
 [ext_resource type="Resource" path="res://data/fatia/equipment/lamina_aco_f.tres" id="8_laminaac"]
 [ext_resource type="Resource" path="res://data/fatia/equipment/bastao_carvalho_f.tres" id="9_bastaoca"]
 [ext_resource type="Resource" path="res://data/fatia/equipment/arco_longo_f.tres" id="10_arcolong"]
@@ -17,5 +18,5 @@
 script = ExtResource("1_shopdef")
 id = &"loja_cidade"
 display_name = "Loja da Cidade Teste"
-items = Array[ExtResource("2_itemdef")]([ExtResource("4_pocaof"), ExtResource("5_eterf"), ExtResource("6_remediof"), ExtResource("7_reviverf")])
+items = Array[ExtResource("2_itemdef")]([ExtResource("4_pocaof"), ExtResource("5_eterf"), ExtResource("6_remediof"), ExtResource("7_reviverf"), ExtResource("13_lentef")])
 equipment = Array[ExtResource("3_equipmen")]([ExtResource("8_laminaac"), ExtResource("9_bastaoca"), ExtResource("10_arcolong"), ExtResource("11_armadura"), ExtResource("12_capacete")])

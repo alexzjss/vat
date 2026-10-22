@@ -203,3 +203,62 @@ func test_boss_fight_final_scene_end_screen_and_back_to_the_title() -> void:
 	assert_eq(clear.get_flag(Game.FLAG_CONCLUDED), 1, "clear save no último slot usado")
 	assert_false(clear.is_defeated(&"chefe_fatia"), "o clear save mantém o save de antes do chefe: o chefe segue vivo")
 	assert_eq(clear.save_map, &"dungeon_2", "Continuar volta ao ponto de descanso antes do chefe")
+
+# --- M15: Scan, obstaculo elemental e veneno no mapa na rota ------------------------------------
+
+func test_scan_hook_scans_one_enemy_in_a_real_fight_and_the_bestiary_reveals_it() -> void:
+	await _new_game()
+	_level_party(4)
+	await _enter(&"estrada")
+	assert_true(demo._want_scan)
+	Engine.time_scale = FIGHT_SPEED
+	var won: bool = await demo._fight("Errante")
+	Engine.time_scale = 1.0
+	assert_true(won)
+	assert_false(demo._want_scan, "o Scan foi usado")
+	assert_ne(demo._scanned, &"")
+	var s: GameState = game.state
+	assert_true(bool(s.bestiary_entry(demo._scanned)["scanned"]))
+	assert_true(s.bestiary_revealed(demo._scanned))
+
+func test_vines_open_with_the_flame_and_the_chest_behind_gives_potions() -> void:
+	await _new_game()
+	await _enter(&"dungeon_1")
+	var s: GameState = game.state
+	var potions: int = s.inventory.count(&"pocao_f")
+	var ap: int = s.heroes[0].ap
+	assert_true(await demo._open_obstacle("Vinhas"))
+	assert_lt(s.heroes[0].ap, ap, "a tecnica gastou AP")
+	assert_true(await demo._use("BauVinhas"))
+	assert_eq(s.get_flag(&"f1_bau_vinhas"), 1)
+	assert_eq(s.inventory.count(&"pocao_f"), potions + 2)
+	assert_false(demo.failed)
+
+func test_field_poison_hurts_without_downing_and_the_remedy_cures_it() -> void:
+	await _new_game()
+	var s: GameState = game.state
+	s.inventory.add(game.registry.item(&"remedio_f"), 1)
+	var hp_max: int = StatCalculator.hp_max(Combatant.from_hero(s.heroes[0], Vector2.ZERO), s.cfg)
+	for h: HeroState in s.heroes:
+		h.hp = mini(h.hp, hp_max)
+	assert_true(await demo._poison_walk_and_cure())
+	assert_false(demo.failed)
+	for h: HeroState in s.heroes:
+		assert_false(FieldPoison.is_poisoned(h, s.cfg))
+		assert_gt(h.hp, 0)
+
+func test_bestiary_stage_needs_the_scan_and_a_revealed_entry() -> void:
+	await _new_game()
+	var s: GameState = game.state
+	assert_false(await demo._stage_bestiary(), "sem entradas")
+	demo.failed = false
+	s.bestiary[&"inimigo_f1"] = {"seen": true, "defeated": 1, "scanned": false}
+	assert_false(await demo._stage_bestiary(), "Scan nao usado")
+	demo.failed = false
+	demo._want_scan = false
+	demo._scanned = &"inimigo_f1"
+	demo._scanned_def = load("res://data/fatia/enemies/inimigo_f1.tres") as EnemyDef
+	assert_false(await demo._stage_bestiary(), "o escaneado nao esta revelado")
+	demo.failed = false
+	s.bestiary[&"inimigo_f1"]["scanned"] = true
+	assert_true(await demo._stage_bestiary())

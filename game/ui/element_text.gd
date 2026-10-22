@@ -28,10 +28,12 @@ static func short_name_of(id: StringName) -> String:
 	var e: ElementDef = def_of(id)
 	return e.short_name if e != null and e.short_name != "" else String(id).capitalize()
 
-## Inicial do nome curto, para o icone da marca ("F" de Fogo); vazia sem elemento.
+## Texto do icone da marca: `icon_text` do elemento ("At" de Atlas) ou, vazio, a inicial do nome curto ("F" de Fogo); vazio sem elemento.
 static func initial_of(e: ElementDef) -> String:
 	if e == null:
 		return ""
+	if e.icon_text != "":
+		return e.icon_text
 	var t: String = tag(e)
 	return t.substr(0, 1) if t != "" else ""
 
@@ -99,7 +101,7 @@ static func resist_text(resist: Dictionary) -> String:
 	return ", ".join(parts)
 
 ## Multiplicador de dano do elemento contra o alvo (1 - afinidade); Radioativo ignora afinidade.
-static func multiplier(element: ElementDef, target: Combatant) -> float:
+static func multiplier(element: ElementDef, target: Combatant, cfg: BalanceConfig = null) -> float:
 	if element == null or element.rule == ElementDef.Rule.RADIOACTIVE:
 		return 1.0
-	return 1.0 - ElementMath.total_resist(element, target)
+	return 1.0 - ElementMath.total_resist(element, target, cfg)

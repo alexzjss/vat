@@ -7,6 +7,9 @@ extends Node
 ## save e continua → mapa-múndi → estrada (lutas) → andar 1 (chaves, porta, baú da erva) → volta à cidade (entrega da missão,
 ## compra e equipa) → andar 1 (interruptor, armadilhas, lutas, recruta E) → andar 2 (puzzle dos dois interruptores, lutas,
 ## descanso) → cena de entrada → chefe (auto_battle) → cena final → tela de fim → título.
+## M15: o roteiro também usa o Scan (técnica da Teste C, numa luta; `BattleScene.auto_hook`), abre o obstáculo elemental "Vinhas"
+## (andar 1: a Teste A usa a Chama), compra Remédio e Lente, anda com veneno no mapa (forçado uma vez, se nenhuma luta o deu) e o
+## cura com o Remédio, e confere que o bestiário tem entradas e ao menos uma revelada.
 ## O jogador é posto (teletransportado) junto de cada objeto e usa a tecla de interação de verdade (LocalMap.try_interact);
 ## diálogos, menus e telas de resultado/nível são conduzidos pela API pública das telas. As lutas são auto_battle (ataque básico).
 ## Cada marco imprime uma linha com o quadro (verificação com --write-movie). Termina com `quit(0)`, ou `quit(1)` e "FALHA: ..."
@@ -22,6 +25,10 @@ const MILESTONE_HOLD: float = 1.0
 ## Limite de quadros de cada espera (evita travar o roteiro).
 const MAX_FRAMES: int = 60000
 const WEAK_BELOW: float = 0.5
+## Limite de quadros do `--quit-after` desta demo (M15, sobra 22 do M14); a demo imprime a folga no fim.
+const FRAME_LIMIT: int = 7500
+## Passos de veneno no mapa que a demo anda antes de curar.
+const POISON_STEPS: int = 3
 
 var game: Game
 ## Verdadeiro se alguma verificação falhou (a demo imprime "FALHA: ..." e sai com 1; os testes olham isto).
@@ -33,6 +40,10 @@ var auto_run: bool = true
 var _answers: Array[int] = []
 var _idle: float = 0.0
 var _battles: int = 0
+## Scan: a demo quer usar a técnica uma vez, na primeira luta em que alguém a saiba; `_scanned` guarda o inimigo escaneado.
+var _want_scan: bool = true
+var _scanned: StringName = &""
+var _scanned_def: EnemyDef
 
 func _ready() -> void:
 	if not auto_run:
@@ -66,6 +77,14 @@ func _check(cond: bool, what: String) -> bool:
 	_log("FALHA: %s" % what)
 	failed = true
 	return false
+
+## O `--quit-after` da linha de comando (engine); sem ele vale FRAME_LIMIT.
+func _frame_limit() -> int:
+	var args: PackedStringArray = OS.get_cmdline_args()
+	var i: int = args.find("--quit-after")
+	if i >= 0 and i + 1 < args.size() and args[i + 1].is_valid_int():
+		return int(args[i + 1])
+	return FRAME_LIMIT
 
 func _arg(name: String, default: String) -> String:
 	for a: String in OS.get_cmdline_user_args():
@@ -211,6 +230,7 @@ func _fight(name: String) -> bool:
 		await get_tree().physics_frame
 	if not _check(m.battle != null, "a luta com '%s' começou" % name):
 		return false
+	m.battle.auto_hook = _scan_hook
 	_answers = []
 	await _drive()
 	if not _check(game.game_over_screen == null, "venceu '%s' (Game Over)" % name):
@@ -273,6 +293,57 @@ func _fights(names: Array[String]) -> bool:
 			return false
 		if not await _fight(n):
 			return false
+	return true
+
+# --- Scan e obstáculos (M15) --------------------------------------------------------------
+
+## Gancho do auto_battle: o herói que sabe Escanear a usa uma vez, num inimigo ainda não escaneado. Nulo = ataque básico.
+func _scan_hook(session: SelectionSession) -> PendingAction:
+	if not _want_scan:
+		return null
+	var scan: AbilityDef = null
+	for ab: AbilityDef in session.actor.abilities:
+		for e: EffectDef in ab.effects:
+			if e.kind == EffectDef.Kind.SCAN:
+				scan = ab
+	if scan == null or not session.can_use(scan) or not session.choose_ability(scan):
+		return null
+	var target: Combatant = null
+	for c: Combatant in session.target_candidates():
+		if not c.is_down() and c.enemy_def != null and not bool(game.state.bestiary_entry(c.enemy_def.id)["scanned"]):
+			target = c
+			break
+	if target == null:
+		session.back()
+		return null
+	session.set_center(target)
+	var pa: PendingAction = session.confirm()
+	if pa == null:
+		return null
+	_want_scan = false
+	_scanned = target.enemy_def.id
+	_scanned_def = target.enemy_def
+	_log("Scan: %s usa %s em %s" % [session.actor.id, scan.display_name, target.enemy_def.display_name])
+	return pa
+
+## Abre o obstáculo elemental `name`: interage, escolhe o primeiro herói capaz e conduz a fala. Confere a flag.
+func _open_obstacle(name: String) -> bool:
+	var o: ElementalObstacle = _node(name) as ElementalObstacle
+	if not _check(o != null and not o.is_open(), "obstáculo '%s' fechado em '%s'" % [name, game.current_map]):
+		return false
+	await _stand_by(o)
+	_answers = []
+	if not _check(_map().try_interact() and game.obstacle_menu.is_open, "abrir a escolha do obstáculo '%s'" % name):
+		return false
+	_log("obstáculo: %s | %s" % [game.obstacle_menu.title_text(), ", ".join(game.obstacle_menu.entries())])
+	await _wait(0.4)
+	if not _check(game.obstacle_menu.entry_enabled(game.obstacle_menu.cursor), "alguém capaz de abrir '%s'" % name):
+		return false
+	game.obstacle_menu.accept()
+	await _drive()
+	if not _check(o.is_open() and game.state.get_flag(o.flag) == 1, "obstáculo '%s' aberto (flag %s)" % [name, o.flag]):
+		return false
+	_log("obstáculo '%s' aberto" % name)
 	return true
 
 # --- loja ------------------------------------------------------------------------------
@@ -346,6 +417,56 @@ func _buy_potions() -> bool:
 		return true
 	return await _shop_buy(&"pocao_f", qty)
 
+## Na loja da cidade: um Remédio (cura o veneno), uma Lente (Scan, se der) e Poções com o resto.
+func _buy_remedy_lens_potions() -> bool:
+	var s: GameState = game.state
+	if not _check(s.money >= 15, "Moedas para o Remédio (%d)" % s.money):
+		return false
+	if not await _shop_buy(&"remedio_f", 1):
+		return false
+	if s.money >= 20:
+		if not await _shop_buy(&"lente_f", 1):
+			return false
+		if not _check(s.inventory.count(&"lente_f") == 1, "Lente na mochila"):
+			return false
+	else:
+		_log("sem Moedas para a Lente (%d)" % s.money)
+	return await _buy_potions()
+
+## Veneno no mapa (M15): se nenhuma luta o deu, o gancho de teste põe Veneno num herói; o grupo anda `POISON_STEPS` passos (HP cai
+## sem derrubar) e o Remédio cura. Confere que o veneno saiu e que ninguém caiu.
+func _poison_walk_and_cure() -> bool:
+	var s: GameState = game.state
+	var cfg: BalanceConfig = s.cfg
+	var victim: HeroState = null
+	for h: HeroState in s.heroes:
+		if h.hp > 0 and FieldPoison.is_poisoned(h, cfg):
+			victim = h
+			break
+	if victim == null:
+		for h: HeroState in s.heroes:
+			if victim == null or h.hp > victim.hp:
+				victim = h
+		victim.field_statuses.append(&"poison")
+		_log("veneno no mapa forçado em %s (gancho de teste)" % victim.def.display_name)
+	var before: int = victim.hp
+	var lost: int = FieldPoison.walk(s, cfg.poison_step_px * float(POISON_STEPS))
+	if not _check(lost > 0 and victim.hp >= 1 and victim.hp < before, "o veneno tira HP sem derrubar (%d -> %d)" % [before, victim.hp]):
+		return false
+	_log("veneno no mapa: %s %d -> %d HP em %d passos" % [victim.def.display_name, before, victim.hp, POISON_STEPS])
+	var remedy: ItemDef = game.registry.item(&"remedio_f")
+	if not _check(remedy != null and FieldActions.use_item(s, remedy, victim), "Remédio cura o veneno do mapa"):
+		return false
+	if not _check(not FieldPoison.is_poisoned(victim, cfg) and victim.hp >= 1, "veneno curado, ninguém caiu"):
+		return false
+	# Devolve o HP que o veneno tirou com Poções, para a rota seguir como antes.
+	var potion: ItemDef = game.registry.item(&"pocao_f")
+	var guard: int = 0
+	while potion != null and guard < 4 and victim.hp < before and FieldActions.use_item(s, potion, victim):
+		guard += 1
+	_log("HP de %s depois do Remédio e das Poções: %d" % [victim.def.display_name, victim.hp])
+	return true
+
 ## Equipa o equipamento `id` da mochila em quem pode vesti-lo.
 func _equip_from_bag(id: StringName) -> bool:
 	var def: EquipmentDef = game.registry.equipment(id)
@@ -372,13 +493,15 @@ func _run() -> void:
 		get_tree().quit(1)
 		return
 	_log("roteiro concluído: %d lutas" % _battles)
+	var limit: int = _frame_limit()
+	_log("folga: quadro %d de %d (sobram %d)" % [Engine.get_process_frames(), limit, limit - Engine.get_process_frames()])
 	await _wait(0.5)
 	get_tree().quit(0)
 
 func _route() -> bool:
 	return await _stage_title() and await _stage_town() and await _stage_save_and_load() and await _stage_road() \
 			and await _stage_floor_one_herb() and await _stage_quest_delivery() and await _stage_floor_one_rest() \
-			and await _stage_floor_two() and await _stage_boss() and await _stage_end()
+			and await _stage_floor_two() and await _stage_bestiary() and await _stage_boss() and await _stage_end()
 
 ## Título → Novo jogo, no perfil da fatia (só vale na cena principal game_fatia.tscn).
 func _stage_title() -> bool:
@@ -507,6 +630,11 @@ func _stage_floor_one_herb() -> bool:
 		return false
 	if not _check(s.get_flag(&"bau_erva") == 1 and s.inventory.count(&"erva_teste") == 1, "baú da erva aberto, erva na mochila"):
 		return false
+	# Obstáculo elemental (M15): as Vinhas guardam um baú opcional; a Teste A abre com a Chama.
+	if not await _open_obstacle("Vinhas") or not await _use("BauVinhas"):
+		return false
+	if not _check(s.get_flag(&"f1_bau_vinhas") == 1, "baú das Vinhas aberto"):
+		return false
 	_log("erva obtida; volta à cidade para entregar a missão")
 	if not await _go_link("SaidaLink", &"overworld_fatia"):
 		return false
@@ -526,8 +654,10 @@ func _stage_quest_delivery() -> bool:
 	await _milestone("missão entregue: %d Moedas" % s.money)
 	if not await _equip_from_bag(&"capacete_teste_b_f"):
 		return false
-	# Gasta o que dá em Poções (cura para as lutas do andar).
-	if not await _at_shop(_buy_potions):
+	# Remédio e Lente (M15), depois o que sobra em Poções (cura para as lutas do andar).
+	if not await _at_shop(_buy_remedy_lens_potions):
+		return false
+	if not await _poison_walk_and_cure():
 		return false
 	if not await _go_link("SaidaLink", &"overworld_fatia"):
 		return false
@@ -552,7 +682,7 @@ func _stage_floor_one_rest() -> bool:
 	await _stand_by(_node("TrapBatalha"), Vector2.ZERO)
 	_answers = []
 	await _drive()
-	if not _check(s.get_flag(&"f1_trap_batalha") == 1 and game.game_over_screen == null, "armadilha de batalha vencida"):
+	if not _check(s.get_flag(&"f1_trap_batalha") == 1 and game.game_over_screen == null, "armadilha de batalha vencida (flag=%d, gameover=%s, batalha=%s)" % [s.get_flag(&"f1_trap_batalha"), game.game_over_screen != null, _map() != null and _map().battle != null]):
 		return false
 	_battles += 1
 	if not await _fights(["Patrulheiro", "Errante", "Perseguidor", "DuplaA"]):
@@ -600,6 +730,23 @@ func _any_blocking(gates: Array[FlagGate]) -> bool:
 		if g.blocking():
 			return true
 	return false
+
+## Bestiário (M15): tem entradas, o Scan foi usado uma vez e ao menos um inimigo está revelado.
+func _stage_bestiary() -> bool:
+	var s: GameState = game.state
+	if not _check(not s.bestiary.is_empty(), "o bestiário tem entradas"):
+		return false
+	if not _check(not _want_scan and _scanned != &"", "o Scan foi usado numa luta"):
+		return false
+	var revealed: int = 0
+	for id: StringName in s.bestiary:
+		if s.bestiary_revealed(id):
+			revealed += 1
+	if not _check(revealed >= 1 and s.bestiary_revealed(_scanned), "ao menos um inimigo revelado (o escaneado: %s)" % _scanned):
+		return false
+	_check(_scanned_def != null and not BestiaryText.entry_lines(_scanned_def, s.bestiary_entry(_scanned), true, s.cfg).is_empty(), "linhas do bestiário do escaneado")
+	await _milestone("bestiário: %d entradas, %d reveladas; reações vistas: %d" % [s.bestiary.size(), revealed, s.seen_reactions.size()])
+	return not failed
 
 ## Cena de entrada, o chefe (auto_battle) e a vitória.
 func _stage_boss() -> bool:

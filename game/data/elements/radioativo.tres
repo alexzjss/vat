@@ -7,6 +7,7 @@ script = ExtResource("1_r")
 id = &"radioativo"
 display_name = "Radioativo"
 short_name = "Radioativo"
+icon_text = "Rd"
 color = Color(0.608, 0.878, 0.165, 1)
 reacts = false
 rule = 2

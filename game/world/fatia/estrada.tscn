@@ -10,6 +10,7 @@
 [ext_resource type="Script" path="res://world/party_followers.gd" id="e8"]
 [ext_resource type="PackedScene" path="res://world/player.tscn" id="e9"]
 [ext_resource type="Script" path="res://world/map_camera.gd" id="e10"]
+[ext_resource type="Resource" path="res://data/fatia/terrain/chuva.tres" id="e_terrain"]
 
 [sub_resource type="RectangleShape2D" id="sh_2400x20"]
 size = Vector2(2400, 20)
@@ -31,6 +32,7 @@ size = Vector2(40, 160)
 
 [node name="Estrada" type="Node2D"]
 script = ExtResource("e1")
+terrain = ExtResource("e_terrain")
 
 [node name="Background" type="ColorRect" parent="."]
 offset_left = 0

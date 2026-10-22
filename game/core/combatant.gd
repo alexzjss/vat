@@ -66,6 +66,9 @@ var mark_turns: int = 0
 ## Reacoes (M14): ATB que o atacante ganha com a reacao enquanto sua acao ainda nao terminou; o controlador
 ## o devolve depois de zerar a barra no fim da acao.
 var atb_bonus: float = 0.0
+## Reacoes (M15, sobra do M14): o `on_atb_full` deste turno ja rodou (estava na fila quando uma reacao o atrasou). Ao reencher
+## a barra ele volta para a fila sem contar o turno de novo; zera quando o alvo age (ou cai).
+var turn_counted: bool = false
 var start_statuses: Array[StatusDef] = []
 var damage_taken_from: Dictionary[StringName, int] = {}
 ## Chefe (M11): ataque anunciado em preparacao (sai no proximo ATB cheio); nulo = nao esta preparando.

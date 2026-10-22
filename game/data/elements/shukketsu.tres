@@ -7,5 +7,6 @@ script = ExtResource("1_r")
 id = &"shukketsu"
 display_name = "Shukketsu"
 short_name = "Sangue"
+icon_text = "S"
 color = Color(0.702, 0.071, 0.180, 1)
 rule = 1

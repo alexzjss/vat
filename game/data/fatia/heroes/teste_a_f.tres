@@ -19,6 +19,8 @@
 
 [ext_resource type="Resource" path="res://data/test/abilities/limite_a.tres" id="lim_r"]
 
+[ext_resource type="Resource" path="res://data/fatia/abilities/desafio_f.tres" id="ab_desafio"]
+
 [sub_resource type="Resource" id="stats_1"]
 script = ExtResource("1_r")
 strength = 12
@@ -56,6 +58,11 @@ script = ExtResource("le_script")
 ability = ExtResource("ab_elem")
 level = 1
 
+[sub_resource type="Resource" id="le_desafio"]
+script = ExtResource("le_script")
+ability = ExtResource("ab_desafio")
+level = 2
+
 [resource]
 script = ExtResource("6_r")
 id = &"teste_a_f"
@@ -63,7 +70,7 @@ display_name = "Teste A"
 base = SubResource("stats_1")
 basic_attack = ExtResource("2_r")
 limit_ability = ExtResource("lim_r")
-learnset = Array[ExtResource("le_script")]([SubResource("le_elem"), SubResource("le_0"), SubResource("le_1"), SubResource("le_2"), SubResource("le_3"), SubResource("le_4")])
+learnset = Array[ExtResource("le_script")]([SubResource("le_elem"), SubResource("le_0"), SubResource("le_1"), SubResource("le_2"), SubResource("le_3"), SubResource("le_4"), SubResource("le_desafio")])
 weapon_types = Array[StringName]([&"blade"])
 elements = Array[ExtResource("el_script")]([ExtResource("el_native")])
 starting_equipment = Array[ExtResource("eq_script")]([ExtResource("w_r"), ExtResource("ar_r")])

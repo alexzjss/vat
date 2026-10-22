@@ -77,6 +77,33 @@ func test_mark_text_is_initial_and_turns() -> void:
 	MarkRules.set_mark(c, water, 2)
 	assert_eq(v.mark_text(), "Á2")
 
+func test_mark_icon_uses_icon_text_and_falls_back_to_initial() -> void:
+	var earth: ElementDef = _el(&"atlas", "Terra", Color(0.6, 0.4, 0.2))
+	var dark: ElementDef = _el(&"tsukuyomi", "Trevas", Color(0.3, 0.1, 0.5))
+	# Sem icon_text as duas viram "T"; com icon_text ficam distintas.
+	assert_eq(ElementText.initial_of(earth), "T")
+	assert_eq(ElementText.initial_of(dark), "T")
+	earth.icon_text = "At"
+	dark.icon_text = "Ts"
+	var c: Combatant = _enemy()
+	var v: CombatantView = _view(c)
+	MarkRules.set_mark(c, earth, 3)
+	assert_eq(v.mark_text(), "At3")
+	MarkRules.set_mark(c, dark, 2)
+	assert_eq(v.mark_text(), "Ts2")
+
+func test_shipped_elements_have_distinct_icon_texts() -> void:
+	var seen: Dictionary = {}
+	for id: StringName in [&"amaterasu", &"atlas", &"fuhaku", &"indra", &"kagutsuchi", &"radioativo", &"shukketsu", &"susanoo", &"tsukuyomi"]:
+		var e: ElementDef = ElementText.def_of(id)
+		assert_not_null(e, String(id))
+		var t: String = ElementText.initial_of(e)
+		assert_true(t.length() >= 1 and t.length() <= 2, "%s: '%s'" % [id, t])
+		assert_false(seen.has(t), "icone repetido: %s" % t)
+		seen[t] = true
+	assert_eq(ElementText.initial_of(ElementText.def_of(&"atlas")), "At")
+	assert_eq(ElementText.initial_of(ElementText.def_of(&"tsukuyomi")), "Ts")
+
 func test_mark_hidden_when_down() -> void:
 	var c: Combatant = _enemy()
 	var v: CombatantView = _view(c)

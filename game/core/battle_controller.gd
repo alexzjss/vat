@@ -155,6 +155,9 @@ func _advance_atb(delta: float) -> void:
 		if not c.is_out() and not c.is_stopped() and c.atb >= 1.0 and not b.queue.has(c) and not _is_busy(c):
 			b.queue.push(c, b.tick)
 	for c: Combatant in _clock.advance(delta * speed_mult, b.all(), b.queue):
+		if c.turn_counted:
+			b.queue.push(c, b.tick)
+			continue
 		var out: StatusSystem.AtbFullOutcome = b.statuses.on_atb_full(c, b.living(b.enemies))
 		status_tick.emit(c, out)
 		if c.is_down():
@@ -213,6 +216,7 @@ func _advance_execution(delta: float) -> void:
 func _end_turn_atb(c: Combatant) -> void:
 	c.atb = clampf(c.atb_bonus, 0.0, 1.0)
 	c.atb_bonus = 0.0
+	c.turn_counted = false
 	if c.atb >= 1.0 and not c.is_down() and not c.is_stopped() and not b.queue.has(c):
 		b.queue.push(c, b.tick)
 
@@ -364,6 +368,7 @@ func _start_next() -> void:
 	var c: Combatant = _pop_next_enemy() if session != null else b.queue.pop_next()
 	if c == null:
 		return
+	c.turn_counted = false
 	if c.is_confused():
 		var ca: PendingAction = EnemyAI.confused_action(c, b)
 		if ca == null:

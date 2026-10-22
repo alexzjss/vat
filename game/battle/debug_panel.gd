@@ -110,8 +110,8 @@ func _element_lines(ctrl: BattleController) -> PackedStringArray:
 		return out
 	out.append("Elemento: %s" % ElementText.tag(el))
 	if a.center != null:
-		var m: float = ElementText.multiplier(el, a.center)
-		var aff: String = ElementText.affinity_label(ElementMath.affinity_of(ElementMath.total_resist(el, a.center)))
+		var m: float = ElementText.multiplier(el, a.center, ctrl.b.cfg)
+		var aff: String = ElementText.affinity_label(ElementMath.affinity_of(ElementMath.total_resist(el, a.center, ctrl.b.cfg)))
 		out.append("  x%.2f em %s%s" % [m, a.center.id, " (%s)" % aff if aff != "" and el.rule != ElementDef.Rule.RADIOACTIVE else ""])
 	return out
 

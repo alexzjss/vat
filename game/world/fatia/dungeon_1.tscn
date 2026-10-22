@@ -26,6 +26,9 @@
 [ext_resource type="Script" path="res://world/party_followers.gd" id="e24"]
 [ext_resource type="PackedScene" path="res://world/player.tscn" id="e25"]
 [ext_resource type="Script" path="res://world/map_camera.gd" id="e26"]
+[ext_resource type="Script" path="res://world/chest.gd" id="e_chest"]
+[ext_resource type="Script" path="res://world/elemental_obstacle.gd" id="e_obst"]
+[ext_resource type="Resource" path="res://data/elements/kagutsuchi.tres" id="e_kagu"]
 
 [sub_resource type="RectangleShape2D" id="sh_2400x20"]
 size = Vector2(2400, 20)
@@ -44,6 +47,9 @@ size = Vector2(120, 80)
 
 [sub_resource type="RectangleShape2D" id="sh_96x96"]
 size = Vector2(96, 96)
+
+[sub_resource type="RectangleShape2D" id="sh_20x100"]
+size = Vector2(20, 100)
 
 [node name="Dungeon1" type="Node2D"]
 script = ExtResource("e1")
@@ -348,6 +354,52 @@ encounter = ExtResource("e22")
 region = Rect2(1860, 130, 140, 70)
 group = &"dupla"
 arena_path = NodePath("../Arena")
+
+[node name="VinhasParedeE" type="StaticBody2D" parent="."]
+position = Vector2(370, 70)
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="VinhasParedeE"]
+shape = SubResource("sh_20x100")
+
+[node name="ColorRect" type="ColorRect" parent="VinhasParedeE"]
+offset_left = -10
+offset_top = -50
+offset_right = 10
+offset_bottom = 50
+mouse_filter = 2
+color = Color(0.35, 0.3, 0.25, 1)
+
+[node name="VinhasParedeD" type="StaticBody2D" parent="."]
+position = Vector2(470, 70)
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="VinhasParedeD"]
+shape = SubResource("sh_20x100")
+
+[node name="ColorRect" type="ColorRect" parent="VinhasParedeD"]
+offset_left = -10
+offset_top = -50
+offset_right = 10
+offset_bottom = 50
+mouse_filter = 2
+color = Color(0.35, 0.3, 0.25, 1)
+
+[node name="BauVinhas" type="Area2D" parent="."]
+position = Vector2(420, 56)
+script = ExtResource("e_chest")
+item = ExtResource("e6")
+count = 2
+opened_flag = &"f1_bau_vinhas"
+
+[node name="Vinhas" type="Area2D" parent="."]
+position = Vector2(420, 108)
+script = ExtResource("e_obst")
+element = ExtResource("e_kagu")
+flag = &"f1_vinhas"
+open_text = "Texto de teste: o caminho se abriu."
+locked_text = "Texto de teste: algo bloqueia o caminho."
+size = Vector2(80, 24)
 
 [node name="Arena" type="Node2D" parent="."]
 position = Vector2(1950, 360)

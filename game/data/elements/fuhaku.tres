@@ -7,4 +7,5 @@ script = ExtResource("1_r")
 id = &"fuhaku"
 display_name = "Fuhaku"
 short_name = "Vento"
+icon_text = "V"
 color = Color(0.373, 0.812, 0.604, 1)

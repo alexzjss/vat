@@ -7,4 +7,5 @@ script = ExtResource("1_r")
 id = &"atlas"
 display_name = "Atlas"
 short_name = "Terra"
+icon_text = "At"
 color = Color(0.663, 0.471, 0.247, 1)

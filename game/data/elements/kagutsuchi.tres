@@ -7,4 +7,5 @@ script = ExtResource("1_r")
 id = &"kagutsuchi"
 display_name = "Kagutsuchi"
 short_name = "Fogo"
+icon_text = "F"
 color = Color(0.910, 0.341, 0.165, 1)

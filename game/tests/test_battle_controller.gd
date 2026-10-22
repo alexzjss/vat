@@ -332,3 +332,38 @@ func test_fizzle_keeps_ap_spent_resets_atb_and_finishes() -> void:
 	assert_eq(h.atb, 0.0)
 	assert_null(ctrl.executing)
 	assert_signal_emit_count(ctrl, "action_finished", 1)
+
+## M15 (sobra do M14): um alvo que ja estava na fila, atrasado por uma reacao, nao conta o turno de novo ao reencher.
+func test_delayed_queued_target_does_not_count_its_turn_twice() -> void:
+	var ctrl := _battle([10, 10], [1])
+	ctrl.active_mode = true
+	var b: BattleState = ctrl.b
+	var a: Combatant = b.heroes[0]
+	var c: Combatant = b.heroes[1]
+	var slow := Fixtures.status_def(StatusDef.Kind.SLOW, 3, 50)
+	b.statuses.apply(c, slow, b.enemies[0], 1.0, b.living(b.enemies))
+	assert_eq(c.statuses[0].remaining, 3)
+	a.atb = 0.999
+	ctrl.tick(0.05)
+	assert_not_null(ctrl.session, "a sessao de A fica aberta (modo Ativo): C espera na fila")
+	c.atb = 0.999
+	ctrl.tick(0.05)
+	assert_true(b.queue.has(c))
+	assert_eq(c.statuses[0].remaining, 2, "o turno de C foi contado ao encher")
+	# Uma reacao atrasa C, que estava na fila.
+	ReactionRules.shift_atb(c, -0.25, b)
+	assert_false(b.queue.has(c))
+	assert_true(c.turn_counted)
+	c.atb = 0.999
+	ctrl.tick(0.05)
+	assert_true(b.queue.has(c), "reencheu: volta para a fila")
+	assert_eq(c.statuses[0].remaining, 2, "sem contar o turno de novo")
+	# Age: a marca zera.
+	_attack(ctrl, b.enemies[0])
+	var guard: int = 0
+	while c.turn_counted and guard < 400:
+		ctrl.tick(0.05)
+		guard += 1
+	assert_false(c.turn_counted, "zera quando o alvo age")
+	# O proximo ATB cheio conta normalmente.
+	assert_eq(c.statuses[0].remaining, 2)

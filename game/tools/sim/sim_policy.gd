@@ -37,7 +37,7 @@ static func _basic(session: SelectionSession, b: BattleState, avoid_shielded: bo
 				open.append(c)
 		if not open.is_empty():
 			cands = open
-	var target: Combatant = _best_element_target(session.actor, session.actor.basic_attack, cands) if avoid_shielded else _lowest_hp(cands)
+	var target: Combatant = _best_element_target(session.actor, session.actor.basic_attack, cands, b.cfg) if avoid_shielded else _lowest_hp(cands)
 	if target == null:
 		session.back()
 		return null
@@ -66,20 +66,20 @@ static func _smart(session: SelectionSession, b: BattleState) -> PendingAction:
 
 ## Multiplicador elemental (M13) do alvo para a habilidade: 1 - afinidade total (neutro = 1.0, fraqueza > 1.0,
 ## imune/absorve <= 0.0). Radioativo ignora afinidade. So a politica smart usa.
-static func elem_mult(actor: Combatant, ab: AbilityDef, target: Combatant) -> float:
+static func elem_mult(actor: Combatant, ab: AbilityDef, target: Combatant, cfg: BalanceConfig = null) -> float:
 	var el: ElementDef = ElementMath.element_of(ab, actor)
 	if el == null or el.rule == ElementDef.Rule.RADIOACTIVE:
 		return 1.0
-	return 1.0 - ElementMath.total_resist(el, target)
+	return 1.0 - ElementMath.total_resist(el, target, cfg)
 
 ## Alvo de maior multiplicador (empate: menor HP). Nunca escolhe imune/absorve se houver outro alvo.
-static func _best_element_target(actor: Combatant, ab: AbilityDef, cands: Array[Combatant]) -> Combatant:
+static func _best_element_target(actor: Combatant, ab: AbilityDef, cands: Array[Combatant], cfg: BalanceConfig = null) -> Combatant:
 	var best: Combatant = null
 	var best_m: float = 0.0
 	for c: Combatant in cands:
 		if c.is_down():
 			continue
-		var m: float = elem_mult(actor, ab, c)
+		var m: float = elem_mult(actor, ab, c, cfg)
 		if m <= 0.0 and best != null:
 			continue
 		if best == null or (best_m <= 0.0 and m > 0.0) or m > best_m or (is_equal_approx(m, best_m) and c.hp < best.hp):
@@ -104,13 +104,13 @@ static func _reaction(session: SelectionSession, b: BattleState) -> PendingActio
 		for c: Combatant in _cands(session):
 			if c.is_down() or b.core_shielded(c) or not MarkRules.has_other(c, el) or ReactionRules.find(b.reactions, c.mark, el) == null:
 				continue
-			var m: float = elem_mult(session.actor, ab, c)
-			if m <= 0.0 or not MarkRules.marks(el, ElementMath.affinity_of(ElementMath.total_resist(el, c))):
+			var m: float = elem_mult(session.actor, ab, c, session.b.cfg)
+			if m <= 0.0 or not MarkRules.marks(el, ElementMath.affinity_of(ElementMath.total_resist(el, c, session.b.cfg))):
 				continue
 			session.set_center(c)
 			var ok: bool = true
 			for t: Combatant in session.preview_area():
-				if elem_mult(session.actor, ab, t) <= 0.0:
+				if elem_mult(session.actor, ab, t, session.b.cfg) <= 0.0:
 					ok = false
 			if ok and (best_c == null or m > best_m + 0.0001 or (is_equal_approx(m, best_m) and c.hp < best_c.hp)):
 				best_ab = ab
@@ -139,9 +139,9 @@ static func _weakness(session: SelectionSession) -> PendingAction:
 			session.set_center(c)
 			var ok: bool = true
 			for t: Combatant in session.preview_area():
-				if elem_mult(session.actor, ab, t) <= 0.0:
+				if elem_mult(session.actor, ab, t, session.b.cfg) <= 0.0:
 					ok = false
-			var m: float = elem_mult(session.actor, ab, c)
+			var m: float = elem_mult(session.actor, ab, c, session.b.cfg)
 			if ok and m > best_m + 0.0001:
 				best_ab = ab
 				best_c = c
@@ -303,7 +303,7 @@ static func _area(session: SelectionSession, _b: BattleState) -> PendingAction:
 			var m: float = 0.0
 			var blocked: bool = false
 			for t: Combatant in area:
-				var tm: float = elem_mult(session.actor, ab, t)
+				var tm: float = elem_mult(session.actor, ab, t, session.b.cfg)
 				blocked = blocked or tm <= 0.0
 				m += tm
 			if blocked:

@@ -178,7 +178,7 @@ static func _reacting_targets(a: AbilityDef, actor: Combatant, b: BattleState) -
 	for c: Combatant in Targeting.candidates(a.shape, a.side, a.effects, actor, b):
 		if c.is_down() or not MarkRules.has_other(c, el):
 			continue
-		var aff: int = ElementMath.affinity_of(ElementMath.total_resist(el, c))
+		var aff: int = ElementMath.affinity_of(ElementMath.total_resist(el, c, b.cfg))
 		if MarkRules.marks(el, aff) and ReactionRules.find(b.reactions, c.mark, el) != null:
 			out.append(c)
 	return out

@@ -584,8 +584,10 @@ func test_slice_heroes_have_one_native_and_one_elemental_technique() -> void:
 		assert_eq(h.elements.size(), 1, "%s: 1 nativo" % id)
 		assert_eq(ElementMath.native_errors(h.id, h.elements).size(), 0, "%s: nativos validos" % id)
 		var techs: Array[AbilityDef] = _elemental_techniques(h)
-		assert_eq(techs.size(), 1, "%s: 1 tecnica elemental" % id)
-		assert_eq(techs[0].element, h.elements[0], "%s: tecnica do elemento nativo" % id)
+		# M15: a Teste B ganhou Chuvisco (Molhado) e Geada (Congelado), tambem de Susanoo.
+		assert_eq(techs.size(), 3 if id == "teste_b_f" else 1, "%s: tecnicas elementais" % id)
+		for t: AbilityDef in techs:
+			assert_eq(t.element, h.elements[0], "%s: tecnica do elemento nativo" % id)
 
 func test_slice_heroes_are_used_by_the_start_profile_and_recruits() -> void:
 	var p: StartProfile = load(DATA + "/start.tres") as StartProfile
@@ -688,3 +690,169 @@ func test_slice_has_an_enemy_that_marks_heroes_before_the_combo() -> void:
 	assert_not_null(marker, "ataque basico elemental que reage")
 	var enc: EncounterDef = load(DATA + "/encounters/enc_f34.tres") as EncounterDef
 	assert_true(enc.enemies.has(f3))
+
+# --- estados novos, Scan, puzzles e terreno no conteudo (M15, Task 7) ------------------------------
+
+func _hero(id: String) -> CharacterDef:
+	return load("%s/heroes/%s.tres" % [DATA, id]) as CharacterDef
+
+func _learned(h: CharacterDef, level: int = 99) -> Array[AbilityDef]:
+	var out: Array[AbilityDef] = []
+	for le: LearnEntry in h.learnset:
+		if le.ability != null and le.level <= level:
+			out.append(le.ability)
+	return out
+
+## Alguma habilidade da lista aplica um estado do tipo pedido?
+func _has_status_effect(abilities: Array[AbilityDef], kind: StatusDef.Kind) -> bool:
+	for a: AbilityDef in abilities:
+		for e: EffectDef in a.effects:
+			if e.kind == EffectDef.Kind.APPLY_STATUS and e.status != null and e.status.kind == kind:
+				return true
+	return false
+
+func _one(ab: AbilityDef) -> Array[AbilityDef]:
+	var out: Array[AbilityDef] = [ab]
+	return out
+
+func test_taunt_technique_is_on_the_tank_hero_and_targets_self() -> void:
+	var a: CharacterDef = _hero("teste_a_f")
+	var found: AbilityDef = null
+	for ab: AbilityDef in _learned(a):
+		if _has_status_effect(_one(ab), StatusDef.Kind.TAUNT):
+			found = ab
+	assert_not_null(found, "Provocar na Teste A")
+	assert_eq(found.shape, AbilityDef.Shape.CIRCLE_SELF, "aplica em si mesmo")
+	assert_eq(found.side, AbilityDef.Side.ALLIES)
+
+func test_susanoo_techniques_apply_wet_and_freeze() -> void:
+	var b: CharacterDef = _hero("teste_b_f")
+	var learned: Array[AbilityDef] = _learned(b)
+	assert_true(_has_status_effect(learned, StatusDef.Kind.WET), "Molhado numa tecnica de Susanoo")
+	assert_true(_has_status_effect(learned, StatusDef.Kind.FREEZE), "Congelado numa tecnica de Susanoo")
+	for ab: AbilityDef in learned:
+		if _has_status_effect(_one(ab), StatusDef.Kind.WET) or _has_status_effect(_one(ab), StatusDef.Kind.FREEZE):
+			assert_eq(ab.element, b.elements[0], String(ab.id))
+
+func test_reflect_is_on_an_enemy_of_floor_two() -> void:
+	var floor_two: Array[EnemyDef] = []
+	for enc_id: String in ["enc_f3", "enc_f4", "enc_f34"]:
+		floor_two.append_array((load("%s/encounters/%s.tres" % [DATA, enc_id]) as EncounterDef).enemies)
+	var reflect: bool = false
+	for e: EnemyDef in floor_two:
+		for ab: AbilityDef in e.abilities:
+			reflect = reflect or _has_status_effect(_one(ab), StatusDef.Kind.REFLECT)
+	assert_true(reflect, "um inimigo do andar 2 usa Reflexo")
+
+func test_doom_is_on_one_rare_optional_enemy() -> void:
+	var users: Array[String] = []
+	for f: String in _list_tres(DATA + "/enemies"):
+		var e: EnemyDef = load(f) as EnemyDef
+		for ab: AbilityDef in e.abilities:
+			if _has_status_effect(_one(ab), StatusDef.Kind.DOOM):
+				users.append(String(e.id))
+	assert_eq(users, ["inimigo_raro_f"] as Array[String], "Contagem so no inimigo raro")
+
+func test_scan_is_learned_at_level_two_and_the_lens_is_sold() -> void:
+	var scanners: int = 0
+	for id: String in SLICE_HEROES:
+		for le: LearnEntry in _hero(id).learnset:
+			for e: EffectDef in le.ability.effects:
+				if e.kind == EffectDef.Kind.SCAN:
+					scanners += 1
+					assert_eq(le.level, 2, "%s aprende o Scan no Nv 2" % id)
+					assert_eq(le.ability.side, AbilityDef.Side.ENEMIES)
+	assert_eq(scanners, 1, "um heroi com Scan")
+	var shop: ShopDef = load(DATA + "/shops/loja_cidade.tres") as ShopDef
+	var lens: ItemDef = null
+	for it: ItemDef in shop.items:
+		for e: EffectDef in it.effects:
+			if e.kind == EffectDef.Kind.SCAN:
+				lens = it
+	assert_not_null(lens, "Lente na loja")
+	assert_eq(lens.side, AbilityDef.Side.ENEMIES)
+	assert_gt(lens.price, 0)
+
+func test_remedy_also_cures_doom_and_petrify() -> void:
+	var r: ItemDef = load(DATA + "/items/remedio_f.tres") as ItemDef
+	var kinds: Array[StatusDef.Kind] = []
+	for e: EffectDef in r.effects:
+		for s: StatusDef in e.statuses:
+			kinds.append(s.kind)
+	assert_true(kinds.has(StatusDef.Kind.POISON) and kinds.has(StatusDef.Kind.DOOM) and kinds.has(StatusDef.Kind.PETRIFY))
+
+## Todo inimigo com papel de chefe (nucleo ou parte) e imune a Contagem e Petrificacao: nao cai nem sai da luta por contagem.
+func test_every_boss_role_enemy_is_immune_to_doom_and_petrify() -> void:
+	var seen: int = 0
+	for f: String in _list_tres(DATA + "/enemies"):
+		var e: EnemyDef = load(f) as EnemyDef
+		if e.role == EnemyDef.Role.NORMAL:
+			continue
+		seen += 1
+		assert_true(e.immunities.has(&"doom"), "%s imune a Contagem" % e.id)
+		assert_true(e.immunities.has(&"petrify"), "%s imune a Petrificacao" % e.id)
+	assert_gte(seen, 2, "o Guardiao e o Braco")
+	for e: EnemyDef in (load(DATA + "/encounters/chefe_fatia.tres") as EncounterDef).enemies:
+		assert_true(e.immunities.has(&"doom") and e.immunities.has(&"petrify"), String(e.id))
+
+func _obstacles(m: LocalMap) -> Array[ElementalObstacle]:
+	var out: Array[ElementalObstacle] = []
+	for c: Node in m.get_children():
+		if c is ElementalObstacle:
+			out.append(c)
+	return out
+
+func test_dungeons_have_elemental_obstacles_the_party_can_open_each_guarding_a_chest() -> void:
+	await _start_game()
+	var total: int = 0
+	var provided: Array[ElementDef] = []
+	for id: String in SLICE_HEROES:
+		for ab: AbilityDef in _learned(_hero(id)):
+			if ab.element != null and not provided.has(ab.element):
+				provided.append(ab.element)
+	for map_id: StringName in [&"dungeon_1", &"dungeon_2"]:
+		var m: LocalMap = await _enter(map_id)
+		for o: ElementalObstacle in _obstacles(m):
+			total += 1
+			assert_not_null(o.element, String(o.name))
+			assert_true(provided.has(o.element), "%s: elemento que o grupo da fatia tem" % o.name)
+			assert_ne(o.flag, &"")
+			var chest: Chest = m.get_node_or_null(NodePath("Bau" + String(o.name))) as Chest
+			assert_not_null(chest, "bau atras de %s" % o.name)
+			assert_ne(chest.opened_flag, &"")
+			# O bau fica no nicho, acima do obstaculo.
+			assert_lt(chest.position.y, o.position.y, "%s guarda o bau" % o.name)
+	assert_between(total, 2, 3, "2 a 3 obstaculos nas duas dungeons")
+
+func test_road_and_floor_two_have_placeholder_terrain() -> void:
+	await _start_game()
+	var road: LocalMap = await _enter(&"estrada")
+	assert_not_null(road.terrain)
+	assert_gt(float(road.terrain.element_mult.get(&"susanoo", 1.0)), 1.0, "Chuva favorece Susanoo")
+	assert_lt(float(road.terrain.element_mult.get(&"kagutsuchi", 1.0)), 1.0, "Chuva enfraquece Kagutsuchi")
+	var d2: LocalMap = await _enter(&"dungeon_2")
+	assert_not_null(d2.terrain)
+	assert_ne(d2.terrain.id, road.terrain.id)
+
+func test_rare_enemy_is_optional_and_stays_put() -> void:
+	await _start_game()
+	var d2: LocalMap = await _enter(&"dungeon_2")
+	var rare: MapEnemy = d2.get_node_or_null(^"Raro") as MapEnemy
+	assert_not_null(rare)
+	assert_eq(rare.encounter.id, &"enc_raro")
+	assert_false(rare.chases, "nao persegue")
+
+func test_slice_f4_reserves_ap_for_the_combo_and_heals_only_when_an_ally_is_low() -> void:
+	var e: EnemyDef = load(DATA + "/enemies/inimigo_f4.tres") as EnemyDef
+	var combo_i: int = -1
+	var heal_i: int = -1
+	for i: int in e.ai_rules.size():
+		var r: AiRule = e.ai_rules[i]
+		if r.condition == AiRule.Condition.CAN_REACT and combo_i < 0:
+			combo_i = i
+		if r.condition == AiRule.Condition.ALLY_HP_BELOW and heal_i < 0:
+			heal_i = i
+			assert_lte(r.threshold, 0.4, "cura so com aliado bem ferido")
+	assert_gte(combo_i, 0)
+	assert_gte(heal_i, 0)
+	assert_lt(combo_i, heal_i, "a regra de combo vem antes da de cura")

@@ -7,4 +7,5 @@ script = ExtResource("1_r")
 id = &"indra"
 display_name = "Indra"
 short_name = "Raio"
+icon_text = "R"
 color = Color(0.949, 0.835, 0.188, 1)

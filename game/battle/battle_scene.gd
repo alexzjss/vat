@@ -16,6 +16,9 @@ const VIEW_SCENE: PackedScene = preload("res://battle/combatant_view.tscn")
 @export var start_item_counts: Array[int] = []
 ## Só testes/debug: confirma o ataque básico no primeiro candidato em cada turno de herói.
 @export var auto_battle: bool = false
+## Só debug (`--demo-fatia`): no auto_battle, devolve a ação do herói no lugar do ataque básico (nulo = o padrão).
+## Recebe a SelectionSession; ao devolver nulo deve deixá-la em estado limpo.
+var auto_hook: Callable = Callable()
 ## Semente do Dice da batalha (-1 = aleatório). Testes usam valor fixo para desfecho determinístico.
 @export var dice_seed: int = -1
 ## Configurações do jogador (velocidade, memória do cursor, modo ATB). Nulo = padrões (Espera, x1.0, sem memória).
@@ -422,6 +425,12 @@ func _on_menu_submitted(_a: PendingAction) -> void:
 	_set_highlight_off()
 
 func _auto_confirm(session: SelectionSession) -> void:
+	if auto_hook.is_valid():
+		var custom: PendingAction = auto_hook.call(session) as PendingAction
+		if custom != null:
+			_set_highlight_off()
+			ctrl.submit(custom)
+			return
 	session.choose_ability(session.actor.basic_attack)
 	session.set_center(session.target_candidates()[0])
 	_set_highlight_off()

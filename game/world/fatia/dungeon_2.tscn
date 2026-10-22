@@ -22,6 +22,14 @@
 [ext_resource type="Script" path="res://world/party_followers.gd" id="e20"]
 [ext_resource type="PackedScene" path="res://world/player.tscn" id="e21"]
 [ext_resource type="Script" path="res://world/map_camera.gd" id="e22"]
+[ext_resource type="Script" path="res://world/chest.gd" id="e_chest"]
+[ext_resource type="Script" path="res://world/elemental_obstacle.gd" id="e_obst"]
+[ext_resource type="Resource" path="res://data/elements/susanoo.tres" id="e_susa"]
+[ext_resource type="Resource" path="res://data/elements/indra.tres" id="e_indra"]
+[ext_resource type="Resource" path="res://data/fatia/items/remedio_f.tres" id="e_remedio"]
+[ext_resource type="Resource" path="res://data/fatia/items/eter_f.tres" id="e_eter"]
+[ext_resource type="Resource" path="res://data/fatia/encounters/enc_raro.tres" id="e_raro"]
+[ext_resource type="Resource" path="res://data/fatia/terrain/calor.tres" id="e_terrain"]
 
 [sub_resource type="RectangleShape2D" id="sh_2400x20"]
 size = Vector2(2400, 20)
@@ -38,8 +46,12 @@ size = Vector2(40, 160)
 [sub_resource type="RectangleShape2D" id="sh_120x80"]
 size = Vector2(120, 80)
 
+[sub_resource type="RectangleShape2D" id="sh_20x100"]
+size = Vector2(20, 100)
+
 [node name="Dungeon2" type="Node2D"]
 script = ExtResource("e1")
+terrain = ExtResource("e_terrain")
 
 [node name="Background" type="ColorRect" parent="."]
 offset_left = 0
@@ -313,6 +325,104 @@ encounter = ExtResource("e18")
 region = Rect2(2240, 350, 20, 20)
 arena_path = NodePath("../Arena")
 requires_flag = &"f2_cena_chefe"
+
+[node name="ComportaParedeE" type="StaticBody2D" parent="."]
+position = Vector2(150, 70)
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ComportaParedeE"]
+shape = SubResource("sh_20x100")
+
+[node name="ColorRect" type="ColorRect" parent="ComportaParedeE"]
+offset_left = -10
+offset_top = -50
+offset_right = 10
+offset_bottom = 50
+mouse_filter = 2
+color = Color(0.35, 0.3, 0.25, 1)
+
+[node name="ComportaParedeD" type="StaticBody2D" parent="."]
+position = Vector2(250, 70)
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ComportaParedeD"]
+shape = SubResource("sh_20x100")
+
+[node name="ColorRect" type="ColorRect" parent="ComportaParedeD"]
+offset_left = -10
+offset_top = -50
+offset_right = 10
+offset_bottom = 50
+mouse_filter = 2
+color = Color(0.35, 0.3, 0.25, 1)
+
+[node name="BauComporta" type="Area2D" parent="."]
+position = Vector2(200, 56)
+script = ExtResource("e_chest")
+item = ExtResource("e_remedio")
+count = 1
+opened_flag = &"f2_bau_comporta"
+
+[node name="Comporta" type="Area2D" parent="."]
+position = Vector2(200, 108)
+script = ExtResource("e_obst")
+element = ExtResource("e_susa")
+flag = &"f2_comporta"
+open_text = "Texto de teste: o caminho se abriu."
+locked_text = "Texto de teste: algo bloqueia o caminho."
+size = Vector2(80, 24)
+
+[node name="MecanismoParedeE" type="StaticBody2D" parent="."]
+position = Vector2(1200, 70)
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="MecanismoParedeE"]
+shape = SubResource("sh_20x100")
+
+[node name="ColorRect" type="ColorRect" parent="MecanismoParedeE"]
+offset_left = -10
+offset_top = -50
+offset_right = 10
+offset_bottom = 50
+mouse_filter = 2
+color = Color(0.35, 0.3, 0.25, 1)
+
+[node name="MecanismoParedeD" type="StaticBody2D" parent="."]
+position = Vector2(1300, 70)
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="MecanismoParedeD"]
+shape = SubResource("sh_20x100")
+
+[node name="ColorRect" type="ColorRect" parent="MecanismoParedeD"]
+offset_left = -10
+offset_top = -50
+offset_right = 10
+offset_bottom = 50
+mouse_filter = 2
+color = Color(0.35, 0.3, 0.25, 1)
+
+[node name="BauMecanismo" type="Area2D" parent="."]
+position = Vector2(1250, 56)
+script = ExtResource("e_chest")
+item = ExtResource("e_eter")
+count = 1
+opened_flag = &"f2_bau_mecanismo"
+
+[node name="Mecanismo" type="Area2D" parent="."]
+position = Vector2(1250, 108)
+script = ExtResource("e_obst")
+element = ExtResource("e_indra")
+flag = &"f2_mecanismo"
+open_text = "Texto de teste: o caminho se abriu."
+locked_text = "Texto de teste: algo bloqueia o caminho."
+size = Vector2(80, 24)
+
+[node name="Raro" parent="." instance=ExtResource("e15")]
+position = Vector2(1340, 620)
+encounter = ExtResource("e_raro")
+region = Rect2(1290, 590, 130, 70)
+arena_path = NodePath("../Arena")
 
 [node name="Arena" type="Node2D" parent="."]
 position = Vector2(2050, 360)

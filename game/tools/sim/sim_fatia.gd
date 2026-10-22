@@ -27,6 +27,12 @@ const BOSS_WIN_MIN: float = 0.90 # valor de teste (M12)
 const ROUTE_LEVEL_MIN: float = 4.0 # valor de teste (M12: Nv na chegada ao chefe, perfil tipico)
 const ROUTE_LEVEL_MAX: float = 6.0
 
+## Terreno do mapa de cada encontro (M15): o andar 2 (`calor`) abriga F3, F4, F3+F4 e o chefe. Os encontros F1, F2 e F1+F2 aparecem
+## na estrada (`chuva`) e no andar 1 (sem terreno), entao os cenarios fixos os deixam neutros.
+const TERRAIN_BY_ENC: Dictionary = {
+	"enc_f3": "calor", "enc_f4": "calor", "enc_f34": "calor", "chefe_fatia": "calor",
+}
+
 static func make_scenario(enc: String, level: int, policy: StringName, runs: int, label: String) -> SimScenario:
 	var s := SimScenario.new()
 	s.label = label
@@ -41,6 +47,8 @@ static func make_scenario(enc: String, level: int, policy: StringName, runs: int
 	s.base_seed = 1
 	s.cfg = SimScenario.config_chosen()
 	s.baseline = SimScenario.BASELINE_CHOSEN
+	if TERRAIN_BY_ENC.has(enc):
+		s.terrain = load("res://data/fatia/terrain/%s.tres" % str(TERRAIN_BY_ENC[enc])) as TerrainDef
 	var kit: Array[Array] = BOSS_KIT if enc == BOSS_ENC else KIT
 	for pair: Array in kit:
 		s.items.append(load("res://data/fatia/items/%s.tres" % str(pair[0])) as ItemDef)

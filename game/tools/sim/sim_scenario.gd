@@ -27,6 +27,8 @@ var items: Array[ItemDef] = []
 var item_counts: Array[int] = []
 ## M14: true = a batalha usa uma tabela de reacoes vazia (nada reage), para comparar com a tabela real.
 var no_reactions: bool = false
+## M15: terreno/clima do mapa onde o encontro acontece (nulo = sem efeito).
+var terrain: TerrainDef
 
 ## Baseline M5a: todos os modos na opcao A (reproduz a comparacao do M5a). Coeficientes ficam nos valores do codigo.
 static func config_all_a() -> BalanceConfig:

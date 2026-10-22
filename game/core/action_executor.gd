@@ -260,6 +260,7 @@ static func deal_damage(actor: Combatant, t: Combatant, dmg: int, b: BattleState
 static func _on_down(t: Combatant, b: BattleState, r: ActionResult) -> void:
 	b.statuses.clear_all(t)
 	t.atb = 0.0
+	t.turn_counted = false
 	t.charging = null
 	b.queue.remove(t)
 	if not r.downed.has(t):

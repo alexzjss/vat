@@ -149,6 +149,7 @@ phases = Array[ExtResource("s_phase")]([SubResource("sub_8"), SubResource("sub_1
 counter = ExtResource("ab_contra_ataque")
 counter_chance = 0.5
 counter_only_basic = true
+immunities = Array[StringName]([&"doom", &"petrify"])
 role = 1
 shields_core = false
 element_resist = Dictionary[StringName, float]({

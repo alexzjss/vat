@@ -143,6 +143,9 @@ static func shift_atb(c: Combatant, delta: float, b: BattleState) -> float:
 	var before: float = c.atb
 	c.atb = clampf(before + delta, 0.0, 1.0)
 	if c.atb < 1.0:
+		# Estava na fila (o turno ja foi contado em `on_atb_full`): ao reencher nao conta de novo.
+		if b.queue.has(c):
+			c.turn_counted = true
 		b.queue.remove(c)
 	elif not b.queue.has(c) and not c.is_stopped():
 		b.queue.push(c, b.tick)
