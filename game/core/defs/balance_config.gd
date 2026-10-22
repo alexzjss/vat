@@ -106,6 +106,11 @@ enum DurationMode { A, B }
 @export var same_element_bonus: float = 1.2 # valor de teste (M13: multiplicador de dano quando o elemento efetivo e nativo do atacante)
 @export var blood_lifesteal: float = 0.25 # valor de teste (M13 Sangue: fracao do dano efetivo devolvida ao atacante como HP)
 @export var blood_low_hp_bonus: float = 0.5 # valor de teste (M13 Sangue: bonus de dano = 1 + isto x (1 - hp/hp_max) do atacante)
+@export var rad_threshold: int = 3 # valor de teste (M13 Radioativo: contaminacao que faz estourar)
+@export var rad_burst_pct: float = 0.15 # valor de teste (M13 Radioativo: fracao do HP maximo do alvo no estouro, minimo 1)
+@export var rad_decay_actions: int = 2 # valor de teste (M13 Radioativo: acoes do alvo para perder 1 de contaminacao)
+@export var rad_corrode_per_stack: float = 0.1 # valor de teste (M13 Radioativo: queda da Vitalidade efetiva por nivel de contaminacao)
+@export var rad_self_pct: float = 0.1 # valor de teste (M13 Radioativo: fracao do dano efetivo que fere o atacante, nunca abaixo de 1 HP)
 @export var sim_tick: float = 0.1 # valor de teste (simulador: passo de tempo por tick)
 @export var sim_max_seconds: float = 600.0 # valor de teste (simulador: limite de uma batalha, em segundos de jogo)
 

@@ -27,6 +27,9 @@ static func effective(c: Combatant, attr: StringName, cfg: BalanceConfig) -> int
 		if s.def.kind == StatusDef.Kind.ATTR_MOD and s.def.attr == attr:
 			total += s.def.potency
 			modded = true
+	# Radioativo (M13): a contaminacao corroi a Vitalidade (so quando ha contaminacao).
+	if attr == &"vitality" and c.contamination > 0 and total > 0:
+		total = maxi(1, floori(float(total) * maxf(0.0, 1.0 - cfg.rad_corrode_per_stack * float(c.contamination))))
 	# Buff/debuff nunca zera o atributo (minimo 1); sem estado, o valor base segue como era.
 	return maxi(1 if modded else 0, total)
 

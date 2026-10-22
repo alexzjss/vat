@@ -225,3 +225,6 @@ func on_hp_damage(target: Combatant) -> void:
 
 func clear_all(c: Combatant) -> void:
 	c.statuses.clear()
+	# Quem cai perde a contaminacao (M13).
+	c.contamination = 0
+	c.contam_actions = 0

@@ -21,8 +21,9 @@ static func apply(a: PendingAction, b: BattleState) -> ActionResult:
 	return r
 
 static func _hit(r: ActionResult, t: Combatant, kind: EffectDef.Kind, amount: int, dodged: bool, status_result: int, missed: bool = false, shielded: bool = false, element: StringName = &"", affinity: int = ElementMath.Affinity.NEUTRAL, extra: Dictionary = {}) -> void:
-	# Campos de elemento para a UI (M13): `lifesteal` (HP que o atacante roubou).
-	var hit: Dictionary = {"target_id": t.id, "kind": kind, "amount": amount, "dodged": dodged, "status_result": status_result, "missed": missed, "shielded": shielded, "element": element, "affinity": affinity, "lifesteal": 0}
+	# Campos de elemento para a UI (M13): `lifesteal` (HP que o atacante roubou), `self_damage` (HP que o atacante
+	# perdeu, Radioativo), `contamination` (nivel do alvo apos o golpe) e `burst` (dano do estouro; > 0 = estourou).
+	var hit: Dictionary = {"target_id": t.id, "kind": kind, "amount": amount, "dodged": dodged, "status_result": status_result, "missed": missed, "shielded": shielded, "element": element, "affinity": affinity, "lifesteal": 0, "self_damage": 0, "contamination": 0, "burst": 0}
 	hit.merge(extra, true)
 	r.hits.append(hit)
 
@@ -118,7 +119,8 @@ static func _apply_effect(e: EffectDef, actor: Combatant, t: Combatant, b: Battl
 					count += 1
 			_hit(r, t, e.kind, count, false, -1)
 
-## Regras especiais do elemento depois do dano efetivo `eff` (> 0): Sangue rouba vida. Devolve os campos extras do hit. Nao consome Dice.
+## Regras especiais do elemento depois do dano efetivo `eff` (> 0): Sangue rouba vida; Radioativo contamina
+## (estoura no limite) e fere o atacante. Devolve os campos extras do hit. Nao consome Dice.
 static func _element_rules(element: ElementDef, actor: Combatant, t: Combatant, eff: int, b: BattleState, credit: StringName) -> Dictionary:
 	var extra: Dictionary = {}
 	match element.rule:
@@ -126,6 +128,25 @@ static func _element_rules(element: ElementDef, actor: Combatant, t: Combatant, 
 			# Sem contribuicao de cura: o golpe ja gerou a de dano.
 			if not actor.is_down():
 				extra["lifesteal"] = _restore(floori(float(eff) * b.cfg.blood_lifesteal), actor, b)
+		ElementDef.Rule.RADIOACTIVE:
+			var self_dmg: int = clampi(floori(float(eff) * b.cfg.rad_self_pct), 0, maxi(0, actor.hp - 1))
+			actor.hp -= self_dmg
+			extra["self_damage"] = self_dmg
+			if not t.is_down():
+				t.contamination += 1
+				if t.contamination >= b.cfg.rad_threshold:
+					# Zera antes de medir: o estouro usa o HP maximo sem a corrosao.
+					t.contamination = 0
+					t.contam_actions = 0
+					var burst: int = mini(maxi(1, floori(float(StatCalculator.hp_max(t, b.cfg)) * b.cfg.rad_burst_pct)), t.hp)
+					t.hp -= burst
+					if actor.team == Combatant.Team.HERO and t.team == Combatant.Team.ENEMY:
+						b.ledger.add(credit, t.id, float(burst))
+					elif t.team == Combatant.Team.HERO and actor.team == Combatant.Team.ENEMY:
+						t.damage_taken_from[actor.id] = int(t.damage_taken_from.get(actor.id, 0)) + burst
+					t.gain_limit(burst, StatCalculator.hp_max(t, b.cfg), b.cfg)
+					extra["burst"] = burst
+			extra["contamination"] = t.contamination
 	return extra
 
 static func _restore(amount: int, t: Combatant, b: BattleState) -> int:

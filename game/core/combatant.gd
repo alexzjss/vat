@@ -55,6 +55,10 @@ var element_resist: Dictionary[StringName, float]:
 		return enemy_def.element_resist if enemy_def != null else _element_resist
 	set(v):
 		_element_resist = v
+## Radioativo (M13): nivel de contaminacao, so dentro da batalha (zera ao cair e no fim).
+var contamination: int = 0
+## Acoes do afetado desde o ultimo decaimento da contaminacao.
+var contam_actions: int = 0
 var start_statuses: Array[StatusDef] = []
 var damage_taken_from: Dictionary[StringName, int] = {}
 ## Chefe (M11): ataque anunciado em preparacao (sai no proximo ATB cheio); nulo = nao esta preparando.

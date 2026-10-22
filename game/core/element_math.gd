@@ -63,6 +63,9 @@ static func resolve(dmg: int, element: ElementDef, actor: Combatant, target: Com
 		var bonus: float = blood_multiplier(actor, cfg)
 		if bonus > 1.0:
 			out = maxi(1, floori(float(out) * bonus))
+	if element.rule == ElementDef.Rule.RADIOACTIVE:
+		# Ignora afinidade (ate imunidade e absorcao); o bonus de mesmo elemento ja valeu acima.
+		return {"damage": out, "heal": 0, "affinity": Affinity.NEUTRAL}
 	var total: float = total_resist(element, target)
 	var aff: Affinity = affinity_of(total)
 	var m: float = 1.0 - total
