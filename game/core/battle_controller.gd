@@ -164,7 +164,9 @@ func _advance_execution(delta: float) -> void:
 		a.impacted = true
 		_collect_counters(a, r, ready)
 		action_impact.emit(a, r)
-		_on_action_fired(a.turn_owner())
+		# Contra-ataque nao e o turno de quem contra-ataca: sem Sangramento nem decaimento da contaminacao.
+		if not a.is_counter:
+			_on_action_fired(a.turn_owner())
 		_check_phases()
 	if a.elapsed >= a.cast_time(b.cfg):
 		# Contra-ataque nao usa nem zera o ATB de quem contra-ataca.

@@ -256,6 +256,27 @@ func test_counter_fires_after_the_hero_action_and_keeps_the_atb() -> void:
 	assert_gt(boss.atb, 0.0, "nao zera o ATB")
 	assert_gte(boss.atb, atb_before)
 
+func test_counter_is_not_the_counterers_turn_for_bleed_or_contamination() -> void:
+	var boss: Combatant = _counter_boss()
+	var hero: Combatant = _hero(&"h")
+	var ctrl: BattleController = _ctrl([hero], [boss])
+	var bleed: StatusDef = Fixtures.status_def(StatusDef.Kind.BLEED, 4, 20)
+	bleed.id = &"bleed"
+	bleed.negative = true
+	ctrl.b.statuses.apply_forced(boss, bleed)
+	boss.contamination = 3
+	boss.contam_actions = cfg.rad_decay_actions - 1
+	var bled: Array[int] = []
+	ctrl.bleed_tick.connect(func(c: Combatant, amount: int) -> void:
+		if c == boss:
+			bled.append(amount))
+	_auto_heroes(ctrl)
+	assert_true(_until(ctrl, func() -> bool: return _count("counter:") == 1))
+	assert_true(_until(ctrl, func() -> bool: return ctrl.executing == null))
+	assert_eq(bled.size(), 0, "o contra-ataque nao cobra Sangramento")
+	assert_eq(boss.contamination, 3, "nem faz a contaminacao decair")
+	assert_eq(boss.contam_actions, cfg.rad_decay_actions - 1)
+
 func test_counter_respects_the_chance() -> void:
 	var boss: Combatant = _counter_boss(0.0)
 	var ctrl: BattleController = _ctrl([_hero(&"h")], [boss])
