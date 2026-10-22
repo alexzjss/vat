@@ -15,6 +15,10 @@ var tick: int = 0
 var reserve: Array[HeroState] = []
 ## Onde o reserva aparece (SupportSpot da arena); nao finito = ao lado de quem o chamou.
 var support_pos: Vector2 = Vector2.INF
+## Reacoes elementais (M14). Injetavel nos testes; em producao vem de TABLE_PATH, se existir (senao nada reage).
+var reactions: ReactionTable
+
+const REACTION_TABLE_PATH: String = "res://data/reactions/tabela.tres"
 
 static func create(p_cfg: BalanceConfig, p_dice: Dice, p_heroes: Array[Combatant], p_enemies: Array[Combatant]) -> BattleState:
 	var s := BattleState.new()
@@ -27,7 +31,16 @@ static func create(p_cfg: BalanceConfig, p_dice: Dice, p_heroes: Array[Combatant
 	s.queue = ReadyQueue.new(p_cfg, p_dice)
 	s.inventory = Inventory.new()
 	s.tick = 0
+	s.reactions = load_reactions()
 	return s
+
+## Unico ponto de carga da tabela de reacoes: o arquivo, se existir; senao uma tabela vazia.
+static func load_reactions(path: String = REACTION_TABLE_PATH) -> ReactionTable:
+	if ResourceLoader.exists(path):
+		var t: ReactionTable = load(path) as ReactionTable
+		if t != null:
+			return t
+	return ReactionTable.new()
 
 func allies_of(c: Combatant) -> Array[Combatant]:
 	return heroes if c.team == Combatant.Team.HERO else enemies

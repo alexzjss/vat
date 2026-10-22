@@ -237,3 +237,4 @@ func clear_all(c: Combatant) -> void:
 	c.contamination = 0
 	c.contam_actions = 0
 	MarkRules.clear(c)
+	c.atb_bonus = 0.0

@@ -171,10 +171,17 @@ func _advance_execution(delta: float) -> void:
 	if a.elapsed >= a.cast_time(b.cfg):
 		# Contra-ataque nao usa nem zera o ATB de quem contra-ataca.
 		if not a.is_counter:
-			a.turn_owner().atb = 0.0
+			_end_turn_atb(a.turn_owner())
 		executing = null
 		action_finished.emit(a)
 		_next_counter()
+
+## Fim da acao: zera a barra de `c`, menos o ATB que uma reacao deu a ele durante a acao (M14).
+func _end_turn_atb(c: Combatant) -> void:
+	c.atb = clampf(c.atb_bonus, 0.0, 1.0)
+	c.atb_bonus = 0.0
+	if c.atb >= 1.0 and not c.is_down() and not c.is_stopped() and not b.queue.has(c):
+		b.queue.push(c, b.tick)
 
 ## A acao de `c` saiu (impacto): o Sangramento cobra e a contaminacao decai (1 a cada `rad_decay_actions` acoes).
 func _on_action_fired(c: Combatant) -> void:
