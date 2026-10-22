@@ -16,5 +16,5 @@ id = &"capacete_teste_b_f"
 display_name = "Capacete do Teste B"
 slot = &"helmet"
 modifiers = SubResource("stats_1")
-allowed_ids = Array[StringName]([&"teste_b"])
+allowed_ids = Array[StringName]([&"teste_b_f"])
 price = 60

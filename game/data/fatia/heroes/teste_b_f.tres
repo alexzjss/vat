@@ -1,0 +1,75 @@
+[gd_resource type="Resource" script_class="CharacterDef" format=3]
+
+[ext_resource type="Script" path="res://core/defs/stats.gd" id="1_r"]
+[ext_resource type="Resource" path="res://data/test/abilities/cura.tres" id="ab_cura"]
+[ext_resource type="Resource" path="res://data/test/abilities/barreira.tres" id="ab_barreira"]
+[ext_resource type="Resource" path="res://data/test/abilities/pressa.tres" id="ab_pressa"]
+[ext_resource type="Resource" path="res://data/test/abilities/sono.tres" id="ab_sono"]
+[ext_resource type="Resource" path="res://data/test/abilities/cura_maior.tres" id="ab_cura_maior"]
+[ext_resource type="Resource" path="res://data/test/abilities/tempestade.tres" id="ab_tempestade"]
+[ext_resource type="Script" path="res://core/defs/learn_entry.gd" id="le_script"]
+[ext_resource type="Resource" path="res://data/fatia/abilities/onda_f.tres" id="ab_elem"]
+[ext_resource type="Resource" path="res://data/elements/susanoo.tres" id="el_native"]
+[ext_resource type="Script" path="res://core/defs/element_def.gd" id="el_script"]
+[ext_resource type="Resource" path="res://data/test/abilities/golpe.tres" id="2_r"]
+[ext_resource type="Script" path="res://core/defs/character_def.gd" id="8_r"]
+
+[ext_resource type="Resource" path="res://data/test/equipment/bastao_simples.tres" id="w_r"]
+[ext_resource type="Resource" path="res://data/test/equipment/armadura_simples.tres" id="ar_r"]
+[ext_resource type="Script" path="res://core/defs/equipment_def.gd" id="eq_script"]
+
+[ext_resource type="Resource" path="res://data/test/abilities/limite_b.tres" id="lim_r"]
+
+[sub_resource type="Resource" id="stats_1"]
+script = ExtResource("1_r")
+strength = 6
+speed = 10
+vitality = 7
+aura = 7
+
+[sub_resource type="Resource" id="le_0"]
+script = ExtResource("le_script")
+ability = ExtResource("ab_cura")
+level = 1
+
+[sub_resource type="Resource" id="le_1"]
+script = ExtResource("le_script")
+ability = ExtResource("ab_barreira")
+level = 3
+
+[sub_resource type="Resource" id="le_2"]
+script = ExtResource("le_script")
+ability = ExtResource("ab_pressa")
+level = 6
+
+[sub_resource type="Resource" id="le_3"]
+script = ExtResource("le_script")
+ability = ExtResource("ab_sono")
+level = 10
+
+[sub_resource type="Resource" id="le_4"]
+script = ExtResource("le_script")
+ability = ExtResource("ab_cura_maior")
+level = 15
+
+[sub_resource type="Resource" id="le_5"]
+script = ExtResource("le_script")
+ability = ExtResource("ab_tempestade")
+level = 0
+
+[sub_resource type="Resource" id="le_elem"]
+script = ExtResource("le_script")
+ability = ExtResource("ab_elem")
+level = 1
+
+[resource]
+script = ExtResource("8_r")
+id = &"teste_b_f"
+display_name = "Teste B"
+base = SubResource("stats_1")
+basic_attack = ExtResource("2_r")
+limit_ability = ExtResource("lim_r")
+learnset = Array[ExtResource("le_script")]([SubResource("le_elem"), SubResource("le_0"), SubResource("le_1"), SubResource("le_2"), SubResource("le_3"), SubResource("le_4"), SubResource("le_5")])
+weapon_types = Array[StringName]([&"staff"])
+elements = Array[ExtResource("el_script")]([ExtResource("el_native")])
+starting_equipment = Array[ExtResource("eq_script")]([ExtResource("w_r"), ExtResource("ar_r")])

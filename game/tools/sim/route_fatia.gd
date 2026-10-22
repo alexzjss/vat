@@ -21,7 +21,7 @@ const ENC_DIR: String = "res://data/fatia/encounters/%s.tres"
 const START_PROFILE: String = "res://data/fatia/start.tres"
 const QUEST_EVENT: String = "res://data/fatia/events/morador_c.tres"
 const BOSS_ENC: String = "chefe_fatia"
-const RECRUIT_D: String = "res://data/test/heroes/teste_d.tres"
+const RECRUIT_D: String = "res://data/fatia/heroes/teste_d_f.tres"
 const SHOP: String = "res://data/fatia/shops/loja_cidade.tres"
 
 ## Prioridade de compra de equipamento (armas primeiro) e estoque alvo de Pocoes (valores de teste do simulador).
@@ -252,7 +252,7 @@ static func _allocate_all(state: GameState) -> void:
 		SimRunner.allocate(h, &"main")
 
 static func _recruit_reserve(state: GameState) -> void:
-	var e: CharacterDef = load("res://data/test/heroes/teste_e.tres") as CharacterDef
+	var e: CharacterDef = load("res://data/fatia/heroes/teste_e_f.tres") as CharacterDef
 	state.recruit(e)
 	_allocate_all(state)
 

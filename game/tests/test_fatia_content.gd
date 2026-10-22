@@ -376,7 +376,7 @@ func test_recruit_d_joins_the_active_party_at_party_avg_level() -> void:
 	var res: Dictionary = _drive(DATA + "/events/recruta_d.tres")
 	assert_eq(game.state.heroes.size(), 4, "vaga nos ativos")
 	var d: HeroState = game.state.heroes[3]
-	assert_eq(d.def.id, &"teste_d")
+	assert_eq(d.def.id, &"teste_d_f")
 	assert_eq(d.level, avg)
 	assert_true(_has_text(res, "entrou no grupo"))
 
@@ -392,7 +392,7 @@ func test_recruit_e_goes_to_reserve_when_active_is_full() -> void:
 	var res: Dictionary = _drive(DATA + "/events/recruta_e.tres")
 	assert_eq(game.state.heroes.size(), 4)
 	assert_eq(game.state.reserve.size(), 1, "E vai para a reserva")
-	assert_eq(game.state.reserve[0].def.id, &"teste_e")
+	assert_eq(game.state.reserve[0].def.id, &"teste_e_f")
 	assert_true(_has_text(res, "entrou no grupo"))
 	_drive(DATA + "/events/recruta_e.tres")
 	assert_eq(game.state.roster().size(), 5, "só uma vez")
@@ -404,7 +404,7 @@ func test_recruit_d_npc_is_in_house_two_and_e_in_the_dungeon() -> void:
 		var npc: Npc = n as Npc
 		if npc != null and npc.event != null:
 			for s: EventStep in npc.event.steps:
-				if s is RecruitStep and (s as RecruitStep).hero.id == &"teste_d":
+				if s is RecruitStep and (s as RecruitStep).hero.id == &"teste_d_f":
 					has_recruit = true
 	assert_true(has_recruit, "evento de recrutamento do D na casa 2")
 	casa2.free()
@@ -412,7 +412,7 @@ func test_recruit_d_npc_is_in_house_two_and_e_in_the_dungeon() -> void:
 	var trig: EventTrigger = d1.get_node("CenaETrigger") as EventTrigger
 	var found: bool = false
 	for s: EventStep in trig.event.steps:
-		if s is RecruitStep and (s as RecruitStep).hero.id == &"teste_e":
+		if s is RecruitStep and (s as RecruitStep).hero.id == &"teste_e_f":
 			found = true
 	assert_true(found, "evento de recrutamento do E no fim do andar 1")
 	assert_gt(trig.global_position.x, (d1.get_node("Entry") as Node2D).global_position.x + 1500.0, "sala final")
@@ -564,3 +564,86 @@ func test_dungeon_rest_point_saves_on_each_floor() -> void:
 		assert_true(game.continue_from_slot(2))
 		await _wait_idle()
 		assert_eq(game.current_map, id)
+
+# --- elementos no conteudo (M13, Task 5) ---------------------------------------------------
+
+const SLICE_HEROES: Array[String] = ["teste_a_f", "teste_b_f", "teste_c_f", "teste_d_f", "teste_e_f"]
+const SLICE_ENEMIES: Array[String] = ["inimigo_f1", "inimigo_f2", "inimigo_f3", "inimigo_f4", "braco_fatia", "guardiao_fatia"]
+
+func _elemental_techniques(h: CharacterDef) -> Array[AbilityDef]:
+	var out: Array[AbilityDef] = []
+	for le: LearnEntry in h.learnset:
+		if le.ability != null and le.ability.element != null:
+			out.append(le.ability)
+	return out
+
+func test_slice_heroes_have_one_native_and_one_elemental_technique() -> void:
+	for id: String in SLICE_HEROES:
+		var h: CharacterDef = load("%s/heroes/%s.tres" % [DATA, id]) as CharacterDef
+		assert_not_null(h, id)
+		assert_eq(h.elements.size(), 1, "%s: 1 nativo" % id)
+		assert_eq(ElementMath.native_errors(h.id, h.elements).size(), 0, "%s: nativos validos" % id)
+		var techs: Array[AbilityDef] = _elemental_techniques(h)
+		assert_eq(techs.size(), 1, "%s: 1 tecnica elemental" % id)
+		assert_eq(techs[0].element, h.elements[0], "%s: tecnica do elemento nativo" % id)
+
+func test_slice_heroes_are_used_by_the_start_profile_and_recruits() -> void:
+	var p: StartProfile = load(DATA + "/start.tres") as StartProfile
+	for d: CharacterDef in p.party:
+		assert_true(d.resource_path.begins_with(DATA + "/heroes/"), d.id)
+	for ev: String in ["recruta_d", "recruta_e"]:
+		var s: EventScript = load("%s/events/%s.tres" % [DATA, ev]) as EventScript
+		for st: EventStep in s.steps:
+			if st is RecruitStep:
+				assert_true((st as RecruitStep).hero.resource_path.begins_with(DATA + "/heroes/"), ev)
+
+func test_test_heroes_stay_neutral() -> void:
+	for id: String in ["teste_a", "teste_b", "teste_c", "teste_d", "teste_e"]:
+		var h: CharacterDef = load("res://data/test/heroes/%s.tres" % id) as CharacterDef
+		assert_true(h.elements.is_empty(), id)
+		assert_true(_elemental_techniques(h).is_empty(), id)
+
+func test_slice_enemies_have_weaknesses_and_a_resistance_and_the_guardian_absorbs() -> void:
+	for id: String in SLICE_ENEMIES:
+		var e: EnemyDef = load("%s/enemies/%s.tres" % [DATA, id]) as EnemyDef
+		var weak: int = 0
+		var resist: int = 0
+		var absorb: int = 0
+		for k: StringName in e.element_resist:
+			var v: float = e.element_resist[k]
+			if v < 0.0:
+				weak += 1
+			elif v > 1.0:
+				absorb += 1
+			elif v > 0.0:
+				resist += 1
+		assert_between(weak, 1, 2, "%s: 1-2 fraquezas" % id)
+		assert_eq(resist, 1, "%s: 1 resistencia" % id)
+		assert_eq(absorb, 1 if id == "guardiao_fatia" else 0, "%s: absorcao so no Guardiao" % id)
+		assert_eq(ElementMath.native_errors(e.id, e.elements).size(), 0, id)
+
+func test_slice_has_blood_and_radioactive_abilities_on_enemies() -> void:
+	var rules: Array[ElementDef.Rule] = []
+	var has_bleed: bool = false
+	for id: String in SLICE_ENEMIES:
+		var e: EnemyDef = load("%s/enemies/%s.tres" % [DATA, id]) as EnemyDef
+		for ab: AbilityDef in e.abilities:
+			if ab.element == null:
+				continue
+			rules.append(ab.element.rule)
+			for fx: EffectDef in ab.effects:
+				if fx.kind == EffectDef.Kind.APPLY_STATUS and fx.status != null and fx.status.kind == StatusDef.Kind.BLEED:
+					has_bleed = true
+	assert_true(rules.has(ElementDef.Rule.BLOOD), "habilidade de Sangue")
+	assert_true(rules.has(ElementDef.Rule.RADIOACTIVE), "habilidade radioativa")
+	assert_true(has_bleed, "a de Sangue aplica Sangramento")
+
+func test_shop_has_an_elemental_weapon_and_a_resistant_piece() -> void:
+	var shop: ShopDef = load(DATA + "/shops/loja_cidade.tres") as ShopDef
+	var weapon: bool = false
+	var resist: bool = false
+	for e: EquipmentDef in shop.equipment:
+		weapon = weapon or (e.slot == &"weapon" and e.element != null)
+		resist = resist or not e.element_resist.is_empty()
+	assert_true(weapon, "arma elemental na loja")
+	assert_true(resist, "peca com resistencia na loja")

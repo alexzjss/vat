@@ -42,7 +42,7 @@ static func _route_table(aggs: Array[RouteFatia.Aggregate]) -> String:
 	return "\n".join(lines)
 
 static func _hero_levels_table(aggs: Array[RouteFatia.Aggregate]) -> String:
-	var ids: Array[StringName] = [&"teste_a", &"teste_b", &"teste_c", &"teste_d"]
+	var ids: Array[StringName] = [&"teste_a_f", &"teste_b_f", &"teste_c_f", &"teste_d_f"]
 	var lines: Array[String] = ["| Perfil | Teste A | Teste B | Teste C | Teste D |", "|---|---|---|---|---|"]
 	for a: RouteFatia.Aggregate in aggs:
 		var cells: Array[String] = []

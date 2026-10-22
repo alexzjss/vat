@@ -20,7 +20,7 @@ Esta pasta guarda os dados da fatia vertical, o percurso que o **Novo jogo** abr
 | Eventos | `events/` (`morador_a` a `morador_f`, `pousadeiro`, `recruta_d`, `recruta_e`, `placa_dungeon_1`, `placa_dungeon_2`, `placa_saida`, `chefe_entrada`, `cena_final`) | Texto dos diálogos, flags e recrutamento |
 | Perfil de início | `start.tres` | Heróis do grupo inicial, itens, Moedas (50), mapa e ponto de entrada |
 
-Atenção: os **heróis** não têm cópia na fatia. `start.tres` e o recruta D usam `data/test/heroes/` (`teste_a` a `teste_d`), e o recruta E usa `teste_e`. Mudar um desses arquivos muda também as demos e os testes, que usam os mesmos heróis.
+Os **heróis** da fatia têm cópias próprias em `heroes/` (`teste_a_f` a `teste_e_f`, M13): `start.tres` e os recrutas D e E usam essas, com 1 elemento nativo e 1 técnica elemental (`abilities/`) cada. `data/test/heroes/` fica neutro para as demos e os testes antigos.
 
 Os valores gerais novos ficam em `game/core/defs/balance_config.gd`, com o comentário "valor de teste": `currency_name` (nome da moeda), `inn_price` (preço da pousada), `sell_ratio` (fração do preço que a venda rende) e `max_stack` (limite de pilha ao comprar).
 

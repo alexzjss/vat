@@ -90,7 +90,7 @@ func test_town_residents_shop_quest_accept_and_recruit_d() -> void:
 	assert_eq(s.inventory.available(&"eter_f"), 2, "comprou um Éter e achou outro no baú da casa 1")
 	assert_eq(s.inventory.available(&"pocao_f"), 2, "vendeu uma das 3 Poções")
 	assert_eq(s.roster().size(), 4, "recruta D")
-	assert_eq(s.heroes[3].def.id, &"teste_d")
+	assert_eq(s.heroes[3].def.id, &"teste_d_f")
 	assert_eq(game.current_map, &"cidade", "voltou da casa 2")
 	assert_false(game.shop_menu.is_open)
 
@@ -164,7 +164,7 @@ func test_floor_one_key_door_switch_traps_and_recruit_e() -> void:
 	await demo._drive()
 	assert_eq(s.roster().size(), 4, "A, B, C e o E")
 	assert_eq(s.heroes.size(), 4, "E entra nos ativos: havia vaga")
-	assert_eq(s.heroes[3].def.id, &"teste_e")
+	assert_eq(s.heroes[3].def.id, &"teste_e_f")
 	assert_true(await demo._go_link("EscadaLink", &"dungeon_2"))
 
 # --- andar 2, chefe e fim -----------------------------------------------------------------

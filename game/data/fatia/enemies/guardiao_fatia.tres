@@ -19,7 +19,7 @@
 script = ExtResource("s_stats")
 strength = 24
 speed = 8
-vitality = 3
+vitality = 6
 aura = 10
 
 [sub_resource type="Resource" id="sub_2"]
@@ -131,3 +131,9 @@ counter_chance = 0.5
 counter_only_basic = true
 role = 1
 shields_core = false
+element_resist = Dictionary[StringName, float]({
+&"susanoo": -0.5,
+&"amaterasu": -0.5,
+&"kagutsuchi": 0.5,
+&"indra": 1.5
+})

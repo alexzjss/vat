@@ -5,7 +5,7 @@ extends RefCounted
 ## (herois de teste A-D, alocacao `main`, itens da fatia), mais a rota completa (RouteFatia).
 ## Nao altera nenhum dado: os numeros que se ajustam vivem em `data/fatia/*.tres`. Valores de teste, nao canonicos.
 
-const HERO_IDS: Array[String] = ["teste_a", "teste_b", "teste_c", "teste_d"]
+const HERO_IDS: Array[String] = ["teste_a_f", "teste_b_f", "teste_c_f", "teste_d_f"]
 const POLICIES: Array[StringName] = [&"basic", &"smart"]
 const BOSS_ENC: String = "chefe_fatia"
 ## Nivel do grupo no chefe nos cenarios fixos (alvo do plano: Nv ~5; sensibilidade em +-1).
@@ -31,7 +31,7 @@ static func make_scenario(enc: String, level: int, policy: StringName, runs: int
 	var s := SimScenario.new()
 	s.label = label
 	for id: String in HERO_IDS:
-		s.heroes.append(load("res://data/test/heroes/%s.tres" % id) as CharacterDef)
+		s.heroes.append(load("res://data/fatia/heroes/%s.tres" % id) as CharacterDef)
 	s.hero_level = level
 	s.alloc_rule = &"main"
 	s.equipment = true
@@ -67,6 +67,39 @@ static func common_ok(policy: StringName, m: SimMetrics) -> bool:
 static func boss_ok(m: SimMetrics) -> bool:
 	return m.win_rate() >= BOSS_WIN_MIN and m.mean_duration() >= BOSS_DUR_MIN and m.mean_duration() <= BOSS_DUR_MAX
 
+## Cenario elemental (M13): dois copias de inimigo_f3 (neutras ou fracas aos 4 elementos dos herois A-D), nivel 3,
+## nas duas politicas. A `smart` usa a fraqueza; a `basic` ignora elementos (so a arma, que aqui e neutra).
+const ELEM_LEVEL: int = 3 # valor de teste (M13)
+const ELEM_WEAK: float = -0.5 # valor de teste (M13: fraqueza = +50% de dano)
+const ELEM_IDS: Array[StringName] = [&"kagutsuchi", &"susanoo", &"indra", &"amaterasu"]
+
+static func elemental_enemy(weak: bool) -> EnemyDef:
+	var e: EnemyDef = (load("res://data/fatia/enemies/inimigo_f3.tres") as EnemyDef).duplicate() as EnemyDef
+	# Sem as regras de Sangue e sem natives: so a afinidade muda entre as duas versoes.
+	e.elements = []
+	e.element_resist = {}
+	e.abilities = [load("res://data/test/abilities/golpe.tres") as AbilityDef]
+	var rule: AiRule = AiRule.new()
+	rule.ability = e.abilities[0]
+	e.ai_rules = [rule]
+	if weak:
+		for id: StringName in ELEM_IDS:
+			e.element_resist[id] = ELEM_WEAK
+	return e
+
+static func elemental_scenario(policy: StringName, weak: bool, runs: int) -> SimScenario:
+	var s: SimScenario = make_scenario("enc_f12", ELEM_LEVEL, policy, runs, "elemental %s %s" % [str(policy), "fraco" if weak else "neutro"])
+	s.enemies = [elemental_enemy(weak), elemental_enemy(weak)]
+	return s
+
+## Ordem: basic neutro, smart neutro, basic fraco, smart fraco.
+static func run_elemental(runs: int) -> Array[SimMetrics]:
+	var out: Array[SimMetrics] = []
+	for weak: bool in [false, true]:
+		for p: StringName in POLICIES:
+			out.append(SimRunner.run(elemental_scenario(p, weak, runs)))
+	return out
+
 ## Linha rapida para depuracao (`-fatia -quick`): imprime comuns e chefe sem escrever relatorio.
 static func quick(runs: int, route_runs: int) -> void:
 	for c: Dictionary in COMMON_CASES:
@@ -74,6 +107,10 @@ static func quick(runs: int, route_runs: int) -> void:
 		for i: int in POLICIES.size():
 			print("[fatia] N%d %-7s %-5s win %3.0f%% dur %5.1f s hp %3.0f%% %s" % [int(c["level"]), str(c["enc"]), str(POLICIES[i]), ms[i].win_rate() * 100.0,
 				ms[i].mean_duration(), ms[i].mean_party_hp_pct() * 100.0, "ok" if common_ok(POLICIES[i], ms[i]) else "FORA"])
+	var el: Array[SimMetrics] = run_elemental(runs)
+	var el_names: Array[String] = ["basic neutro", "smart neutro", "basic fraco", "smart fraco"]
+	for i: int in el.size():
+		print("[elemental] N%d %-12s win %3.0f%% dur %5.1f s hp %3.0f%%" % [ELEM_LEVEL, el_names[i], el[i].win_rate() * 100.0, el[i].mean_duration(), el[i].mean_party_hp_pct() * 100.0])
 	for lv: int in BOSS_LEVELS:
 		var bs: Array[SimMetrics] = run_case(BOSS_ENC, lv, runs)
 		for i: int in POLICIES.size():

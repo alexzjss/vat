@@ -28,7 +28,7 @@ static func _basic(session: SelectionSession, b: BattleState, avoid_shielded: bo
 				open.append(c)
 		if not open.is_empty():
 			cands = open
-	var target: Combatant = _lowest_hp(cands)
+	var target: Combatant = _best_element_target(session.actor, session.actor.basic_attack, cands) if avoid_shielded else _lowest_hp(cands)
 	if target == null:
 		session.back()
 		return null
@@ -48,8 +48,63 @@ static func _smart(session: SelectionSession, b: BattleState) -> PendingAction:
 	if a == null:
 		a = _area(session, b)
 	if a == null:
+		a = _weakness(session)
+	if a == null:
 		a = _status(session, b)
 	return a
+
+## Multiplicador elemental (M13) do alvo para a habilidade: 1 - afinidade total (neutro = 1.0, fraqueza > 1.0,
+## imune/absorve <= 0.0). Radioativo ignora afinidade. So a politica smart usa.
+static func elem_mult(actor: Combatant, ab: AbilityDef, target: Combatant) -> float:
+	var el: ElementDef = ElementMath.element_of(ab, actor)
+	if el == null or el.rule == ElementDef.Rule.RADIOACTIVE:
+		return 1.0
+	return 1.0 - ElementMath.total_resist(el, target)
+
+## Alvo de maior multiplicador (empate: menor HP). Nunca escolhe imune/absorve se houver outro alvo.
+static func _best_element_target(actor: Combatant, ab: AbilityDef, cands: Array[Combatant]) -> Combatant:
+	var best: Combatant = null
+	var best_m: float = 0.0
+	for c: Combatant in cands:
+		if c.is_down():
+			continue
+		var m: float = elem_mult(actor, ab, c)
+		if m <= 0.0 and best != null:
+			continue
+		if best == null or (best_m <= 0.0 and m > 0.0) or m > best_m or (is_equal_approx(m, best_m) and c.hp < best.hp):
+			best = c
+			best_m = m
+	return best
+
+## Tecnica elemental ofensiva no alvo mais fraco ao elemento (M13): so quando ha fraqueza (multiplicador > 1),
+## nunca com imune/absorve na area. Neutro/sem fraqueza: nao faz nada (as outras regras decidem).
+static func _weakness(session: SelectionSession) -> PendingAction:
+	var best_ab: AbilityDef = null
+	var best_c: Combatant = null
+	var best_m: float = 1.0
+	for ab: AbilityDef in session.actor.abilities:
+		if ab.side != AbilityDef.Side.ENEMIES or ab.ap_cost <= 0 or ElementMath.element_of(ab, session.actor) == null or not _has_effect(ab.effects, EffectDef.Kind.DAMAGE):
+			continue
+		if not session.can_use(ab) or not session.choose_ability(ab):
+			continue
+		for c: Combatant in session.target_candidates():
+			if c.is_down():
+				continue
+			session.set_center(c)
+			var ok: bool = true
+			for t: Combatant in session.preview_area():
+				if elem_mult(session.actor, ab, t) <= 0.0:
+					ok = false
+			var m: float = elem_mult(session.actor, ab, c)
+			if ok and m > best_m + 0.0001:
+				best_ab = ab
+				best_c = c
+				best_m = m
+		session.back()
+	if best_ab == null or not session.choose_ability(best_ab):
+		return null
+	session.set_center(best_c)
+	return session.confirm()
 
 ## Golpe de Limite assim que a barra enche (so a politica smart usa).
 static func _limit(session: SelectionSession) -> PendingAction:
@@ -182,6 +237,9 @@ static func _ether(session: SelectionSession, b: BattleState) -> PendingAction:
 	return session.confirm()
 
 static func _area(session: SelectionSession, _b: BattleState) -> PendingAction:
+	var best_ab: AbilityDef = null
+	var best_c: Combatant = null
+	var best_score: float = 0.0
 	for ab: AbilityDef in session.actor.abilities:
 		if ab.shape != AbilityDef.Shape.CIRCLE_TARGET and ab.shape != AbilityDef.Shape.LINE and ab.shape != AbilityDef.Shape.CIRCLE_SELF:
 			continue
@@ -191,17 +249,34 @@ static func _area(session: SelectionSession, _b: BattleState) -> PendingAction:
 			continue
 		var best: Combatant = null
 		var best_n: int = 0
+		var best_m: float = 0.0
 		for c: Combatant in session.target_candidates():
 			session.set_center(c)
-			var n: int = session.preview_area().size()
-			if n > best_n:
+			var area: Array[Combatant] = session.preview_area()
+			var n: int = area.size()
+			var m: float = 0.0
+			var blocked: bool = false
+			for t: Combatant in area:
+				var tm: float = elem_mult(session.actor, ab, t)
+				blocked = blocked or tm <= 0.0
+				m += tm
+			if blocked:
+				continue
+			m /= float(maxi(1, n))
+			if n > best_n or (n == best_n and m > best_m + 0.0001):
 				best_n = n
+				best_m = m
 				best = c
-		if best != null and best_n >= 2:
-			session.set_center(best)
-			return session.confirm()
 		session.back()
-	return null
+		# Neutro: todas as medias valem 1.0, entao vence a primeira habilidade que pega 2+ alvos (como antes).
+		if best != null and best_n >= 2 and (best_ab == null or best_m > best_score + 0.0001):
+			best_ab = ab
+			best_c = best
+			best_score = best_m
+	if best_ab == null or not session.choose_ability(best_ab):
+		return null
+	session.set_center(best_c)
+	return session.confirm()
 
 static func _status(session: SelectionSession, _b: BattleState) -> PendingAction:
 	for ab: AbilityDef in session.actor.abilities:

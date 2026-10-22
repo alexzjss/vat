@@ -55,3 +55,30 @@ func test_scenario_uses_fatia_data_and_the_kit() -> void:
 	assert_eq(s.heroes.size(), 4)
 	assert_eq(s.items.size(), SimFatia.BOSS_KIT.size())
 	assert_eq(SimFatia.make_scenario("enc_f1", 1, &"basic", 1, "t").items.size(), SimFatia.KIT.size())
+
+# --- elementos (M13, Task 5) -----------------------------------------------------------------
+
+func test_smart_beats_a_weak_enemy_faster_than_basic() -> void:
+	var weak_basic: SimMetrics = SimRunner.run(SimFatia.elemental_scenario(&"basic", true, 4))
+	var weak_smart: SimMetrics = SimRunner.run(SimFatia.elemental_scenario(&"smart", true, 4))
+	assert_lt(weak_smart.mean_duration(), weak_basic.mean_duration(), "smart explora a fraqueza")
+	var neutral_basic: SimMetrics = SimRunner.run(SimFatia.elemental_scenario(&"basic", false, 4))
+	assert_almost_eq(weak_basic.mean_duration(), neutral_basic.mean_duration(), 0.01, "basic ignora elementos")
+
+func test_smart_policy_never_picks_an_absorbing_target() -> void:
+	var el: ElementDef = load("res://data/elements/indra.tres") as ElementDef
+	var ab: AbilityDef = AbilityDef.new()
+	ab.element = el
+	var actor: Combatant = Combatant.new()
+	var weak: Combatant = Combatant.new()
+	weak.hp = 50
+	weak.element_resist = {el.id: -0.5}
+	var absorber: Combatant = Combatant.new()
+	absorber.hp = 1
+	absorber.element_resist = {el.id: 1.5}
+	var cands: Array[Combatant] = [absorber, weak]
+	assert_eq(SimPolicy._best_element_target(actor, ab, cands), weak, "fraco antes do absorve, mesmo com mais HP")
+	var only: Array[Combatant] = [absorber]
+	assert_eq(SimPolicy._best_element_target(actor, ab, only), absorber, "so ha o absorve: nao trava")
+	assert_almost_eq(SimPolicy.elem_mult(actor, ab, weak), 1.5, 0.001)
+	assert_lte(SimPolicy.elem_mult(actor, ab, absorber), 0.0)

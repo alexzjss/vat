@@ -47,7 +47,7 @@ func test_test_profile_matches_old_game_scene() -> void:
 func test_fatia_profile_has_three_heroes_and_fifty_coins() -> void:
 	var p: StartProfile = load(FATIA_PROFILE) as StartProfile
 	assert_not_null(p)
-	assert_eq(_ids(p.party), [&"teste_a", &"teste_b", &"teste_c"] as Array[StringName])
+	assert_eq(_ids(p.party), [&"teste_a_f", &"teste_b_f", &"teste_c_f"] as Array[StringName])
 	assert_eq(p.money, 50)
 	assert_eq(p.map, &"cidade", "começa na cidade")
 	assert_gt(p.items.size(), 0, "algumas poções")

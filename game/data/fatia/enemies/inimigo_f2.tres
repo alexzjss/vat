@@ -27,7 +27,7 @@ pick = 0
 script = ExtResource("4_r")
 strength = 20
 speed = 12
-vitality = 5
+vitality = 9
 aura = 6
 
 [sub_resource type="Resource" id="dr_0"]
@@ -48,3 +48,8 @@ drops = Array[ExtResource("dr_script")]([SubResource("dr_0")])
 abilities = Array[ExtResource("5_r")]([ExtResource("3_r"), ExtResource("1_r")])
 ai_rules = Array[ExtResource("2_r")]([SubResource("ai_rule_1"), SubResource("ai_rule_2")])
 immunities = Array[StringName]([&"sleep"])
+element_resist = Dictionary[StringName, float]({
+&"susanoo": -0.5,
+&"indra": -0.5,
+&"kagutsuchi": 0.5
+})

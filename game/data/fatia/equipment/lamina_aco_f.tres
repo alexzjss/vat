@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" path="res://core/defs/stats.gd" id="stats"]
 [ext_resource type="Script" path="res://core/defs/equipment_def.gd" id="def"]
+[ext_resource type="Resource" path="res://data/elements/kagutsuchi.tres" id="el"]
 
 [sub_resource type="Resource" id="stats_1"]
 script = ExtResource("stats")
@@ -18,3 +19,4 @@ slot = &"weapon"
 modifiers = SubResource("stats_1")
 weapon_type = &"blade"
 price = 80
+element = ExtResource("el")

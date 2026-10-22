@@ -2,9 +2,9 @@
 
 [ext_resource type="Script" path="res://core/defs/start_profile.gd" id="1_sp"]
 [ext_resource type="Script" path="res://core/defs/character_def.gd" id="3_cd"]
-[ext_resource type="Resource" path="res://data/test/heroes/teste_a.tres" id="4_ha"]
-[ext_resource type="Resource" path="res://data/test/heroes/teste_b.tres" id="5_hb"]
-[ext_resource type="Resource" path="res://data/test/heroes/teste_c.tres" id="6_hc"]
+[ext_resource type="Resource" path="res://data/fatia/heroes/teste_a_f.tres" id="4_ha"]
+[ext_resource type="Resource" path="res://data/fatia/heroes/teste_b_f.tres" id="5_hb"]
+[ext_resource type="Resource" path="res://data/fatia/heroes/teste_c_f.tres" id="6_hc"]
 [ext_resource type="Script" path="res://core/defs/item_def.gd" id="7_id"]
 [ext_resource type="Resource" path="res://data/fatia/items/pocao_f.tres" id="8_ip"]
 
