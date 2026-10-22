@@ -27,11 +27,17 @@ var defeated: Array[StringName] = []
 var flags: Dictionary[StringName, int] = {}
 ## Moeda do grupo (M12). Vai no save como campo opcional; o nome exibido é BalanceConfig.currency_name.
 var money: int = 0
+## Bestiario (M15), por EnemyDef.id: {seen: bool, defeated: int, scanned: bool}. Vai no save como campo opcional.
+var bestiary: Dictionary[StringName, Dictionary] = {}
+## Ids de reacao elemental ja disparadas por alguem numa batalha de verdade (M15). Vai no save como campo opcional.
+var seen_reactions: Array[StringName] = []
 ## Pixels andados desde o ultimo tique do Veneno no mapa (M15); nao vai no save.
 var poison_walk_px: float = 0.0
 var _saved_money: int = 0
 var _saved_defeated: Array[StringName] = []
 var _saved_flags: Dictionary[StringName, int] = {}
+var _saved_bestiary: Dictionary[StringName, Dictionary] = {}
+var _saved_seen_reactions: Array[StringName] = []
 var _saved_heroes: Array[Dictionary] = []
 var _saved_active_ids: Array[StringName] = []
 var _saved_reserve_ids: Array[StringName] = []
@@ -224,6 +230,17 @@ func to_dict() -> Dictionary:
 		for k: StringName in flags:
 			fl[String(k)] = flags[k]
 		out["flags"] = fl
+	if not bestiary.is_empty():
+		var bs: Dictionary = {}
+		for id: StringName in bestiary:
+			var e: Dictionary = bestiary[id]
+			bs[String(id)] = {"seen": bool(e.get("seen", false)), "defeated": int(e.get("defeated", 0)), "scanned": bool(e.get("scanned", false))}
+		out["bestiary"] = bs
+	if not seen_reactions.is_empty():
+		var rs2: Array = []
+		for id: StringName in seen_reactions:
+			rs2.append(String(id))
+		out["seen_reactions"] = rs2
 	return out
 
 ## Reconstroi o estado e grava o ponto de salvamento em memoria. Null se o formato for invalido
@@ -267,6 +284,18 @@ static func from_dict(d: Dictionary, registry: DefRegistry, p_cfg: BalanceConfig
 	var mv: Variant = d.get("money")
 	if mv is int or mv is float:
 		g.money = maxi(0, int(mv))
+	var bv: Variant = d.get("bestiary")
+	if bv is Dictionary:
+		for k: Variant in (bv as Dictionary):
+			var ev: Variant = (bv as Dictionary)[k]
+			if k is String and not (k as String).is_empty() and ev is Dictionary:
+				var dv2: Variant = (ev as Dictionary).get("defeated", 0)
+				g.bestiary[StringName(k as String)] = {"seen": bool((ev as Dictionary).get("seen", false)), "defeated": maxi(0, int(dv2)) if (dv2 is int or dv2 is float) else 0, "scanned": bool((ev as Dictionary).get("scanned", false))}
+	var rv: Variant = d.get("seen_reactions")
+	if rv is Array:
+		for e: Variant in (rv as Array):
+			if e is String and not (e as String).is_empty() and not g.seen_reactions.has(StringName(e as String)):
+				g.seen_reactions.append(StringName(e as String))
 	g.save(StringName(str(d.get("save_map", ""))), StringName(str(d.get("save_spawn", ""))), pos)
 	return g
 
@@ -299,6 +328,55 @@ func add_flag(id: StringName, delta: int) -> void:
 	if id != &"":
 		flags[id] = get_flag(id) + delta
 
+## Entrada do bestiario de `id` (copia; um inimigo nunca visto devolve {seen: false, defeated: 0, scanned: false}).
+func bestiary_entry(id: StringName) -> Dictionary:
+	var e: Dictionary = bestiary.get(id, {})
+	return {"seen": bool(e.get("seen", false)), "defeated": int(e.get("defeated", 0)), "scanned": bool(e.get("scanned", false))}
+
+func _bestiary_edit(id: StringName) -> Dictionary:
+	if not bestiary.has(id):
+		bestiary[id] = {"seen": false, "defeated": 0, "scanned": false}
+	return bestiary[id]
+
+## Inicio da batalha (M15): todo inimigo presente fica como visto (o mesmo id duas vezes conta uma entrada).
+func record_seen(enemies: Array[Combatant]) -> void:
+	for c: Combatant in enemies:
+		if c.enemy_def != null and c.enemy_def.id != &"":
+			_bestiary_edit(c.enemy_def.id)["seen"] = true
+
+## Vitoria (M15): +1 derrota por inimigo fora de combate (caido ou petrificado); o mesmo id duas vezes soma duas.
+## Fuga nao chama isto. Quem nao esta fora (ex.: batalha vencida antes) nao conta.
+func record_victory(enemies: Array[Combatant]) -> void:
+	for c: Combatant in enemies:
+		if c.enemy_def != null and c.enemy_def.id != &"" and c.is_out():
+			var e: Dictionary = _bestiary_edit(c.enemy_def.id)
+			e["seen"] = true
+			e["defeated"] = int(e["defeated"]) + 1
+
+## Marca o inimigo como visto e escaneado.
+func mark_scanned(id: StringName) -> void:
+	if id != &"":
+		var e: Dictionary = _bestiary_edit(id)
+		e["seen"] = true
+		e["scanned"] = true
+
+## Afinidades e resistencias reveladas: escaneado, ou derrotado `cfg.bestiary_reveal_kills` vezes ou mais.
+func bestiary_revealed(id: StringName) -> bool:
+	var e: Dictionary = bestiary_entry(id)
+	return bool(e["scanned"]) or int(e["defeated"]) >= cfg.bestiary_reveal_kills
+
+## Registra uma reacao vista (sem repeticao); vazio nao conta.
+func record_reaction(id: StringName) -> void:
+	if id != &"" and not seen_reactions.has(id):
+		seen_reactions.append(id)
+
+## Efeitos de uma acao de batalha de verdade (M15): reacoes disparadas (de quem for) e inimigos escaneados.
+func record_result(r: ActionResult) -> void:
+	for hit: Dictionary in r.hits:
+		record_reaction(hit.get("reaction", &""))
+	for id: StringName in r.scanned:
+		mark_scanned(id)
+
 func has_save_pos() -> bool:
 	return save_pos != NO_POS
 
@@ -319,6 +397,10 @@ func save(map: StringName, spawn: StringName, pos: Vector2 = NO_POS) -> void:
 	_saved_money = money
 	_saved_defeated = defeated.duplicate()
 	_saved_flags = flags.duplicate()
+	_saved_bestiary = {}
+	for id: StringName in bestiary:
+		_saved_bestiary[id] = (bestiary[id] as Dictionary).duplicate()
+	_saved_seen_reactions = seen_reactions.duplicate()
 	_saved_inventory = inventory.copy()
 	_saved_bag = bag.copy()
 
@@ -340,5 +422,9 @@ func restore_save() -> void:
 	money = _saved_money
 	defeated = _saved_defeated.duplicate()
 	flags = _saved_flags.duplicate()
+	bestiary = {}
+	for id: StringName in _saved_bestiary:
+		bestiary[id] = (_saved_bestiary[id] as Dictionary).duplicate()
+	seen_reactions = _saved_seen_reactions.duplicate()
 	inventory = _saved_inventory.copy()
 	bag = _saved_bag.copy()

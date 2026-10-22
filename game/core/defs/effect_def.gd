@@ -1,7 +1,7 @@
 class_name EffectDef
 extends Resource
 
-enum Kind { DAMAGE, HEAL, REVIVE, RESTORE_AP, APPLY_STATUS, REMOVE_STATUS }
+enum Kind { DAMAGE, HEAL, REVIVE, RESTORE_AP, APPLY_STATUS, REMOVE_STATUS, SCAN }
 enum Scale { STRENGTH, AURA, FIXED }
 
 @export var kind: Kind = Kind.DAMAGE

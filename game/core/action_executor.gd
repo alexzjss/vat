@@ -51,7 +51,8 @@ static func _hit(r: ActionResult, t: Combatant, kind: EffectDef.Kind, amount: in
 	# heal_attacker, heal_allies: [{target_id, amount}], removed}.
 	# Reflexo (M15): `reflected_from` (id de quem refletiu; vazio = golpe normal). Nesse caso `target_id` e o lancador, que
 	# recebe o golpe devolvido; a UI mostra "Refletiu" em quem refletiu.
-	var hit: Dictionary = {"target_id": t.id, "kind": kind, "amount": amount, "dodged": dodged, "status_result": status_result, "missed": missed, "shielded": shielded, "element": element, "affinity": affinity, "lifesteal": 0, "self_damage": 0, "contamination": 0, "burst": 0, "mark": MarkRules.id_of(t), "reaction": &"", "reaction_effects": {}, "reflected_from": &""}
+	# Scan (M15): `scan` (true no hit do Scan, kind SCAN, amount 0) e `scan_info` (ver scan_info; vazio fora do Scan).
+	var hit: Dictionary = {"target_id": t.id, "kind": kind, "amount": amount, "dodged": dodged, "status_result": status_result, "missed": missed, "shielded": shielded, "element": element, "affinity": affinity, "lifesteal": 0, "self_damage": 0, "contamination": 0, "burst": 0, "mark": MarkRules.id_of(t), "reaction": &"", "reaction_effects": {}, "reflected_from": &"", "scan": false, "scan_info": {}}
 	hit.merge(extra, true)
 	r.hits.append(hit)
 
@@ -180,6 +181,35 @@ static func _apply_effect(e: EffectDef, actor: Combatant, t: Combatant, b: Battl
 				if e.status != null and b.statuses.remove(t, e.status.id):
 					count += 1
 			_hit(r, t, e.kind, count, false, -1)
+		EffectDef.Kind.SCAN:
+			# Scan (M15): so informacao. Sem dado, dano, estado nem contribuicao. So inimigos em pe: heroi, caido e
+			# petrificado (que o alvo da acao ja exclui; nada o atinge) nao geram hit nem registro.
+			if t.is_out() or t.team != Combatant.Team.ENEMY or t.enemy_def == null:
+				return
+			if not r.scanned.has(t.enemy_def.id):
+				r.scanned.append(t.enemy_def.id)
+			_hit(r, t, e.kind, 0, false, -1, false, false, &"", ElementMath.Affinity.NEUTRAL, {"scan": true, "scan_info": scan_info(t.enemy_def)})
+
+## Dados que o popup do Scan mostra (M15): {natives: [ids], element_resist: {id: fracao} (so nao nulos; absorver > 1),
+## absorbs: [ids], immunities: [ids de estado], resistances: {id de estado: fracao}} do EnemyDef.
+static func scan_info(d: EnemyDef) -> Dictionary:
+	var natives: Array[StringName] = []
+	for el: ElementDef in d.elements:
+		if el != null:
+			natives.append(el.id)
+	var resist: Dictionary = {}
+	var absorbs: Array[StringName] = []
+	for id: StringName in d.element_resist:
+		if roundi(d.element_resist[id] * 100.0) == 0:
+			continue
+		resist[id] = d.element_resist[id]
+		if ElementMath.affinity_of(d.element_resist[id]) == ElementMath.Affinity.ABSORB:
+			absorbs.append(id)
+	var st_res: Dictionary = {}
+	for id: StringName in d.resistances:
+		if d.resistances[id] > 0.0:
+			st_res[id] = d.resistances[id]
+	return {"natives": natives, "element_resist": resist, "absorbs": absorbs, "immunities": d.immunities.duplicate(), "resistances": st_res}
 
 ## Regras especiais do elemento depois do dano efetivo `eff` (> 0): Sangue rouba vida; Radioativo contamina
 ## (estoura no limite) e fere o atacante. Devolve os campos extras do hit. Nao consome Dice.

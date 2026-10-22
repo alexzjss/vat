@@ -146,6 +146,9 @@ enum DurationMode { A, B }
 @export var max_stack: int = 99 # valor de teste (M12: limite de uma pilha de item/equipamento ao comprar)
 @export var inn_price: int = 20 # valor de teste (M12: preco da pousada)
 
+# Bestiario (M15).
+@export var bestiary_reveal_kills: int = 3 # valor de teste (M15: derrotas de um inimigo que revelam as afinidades sem Scan)
+
 ## O estado persistente (`persistent_statuses`) com esse id; nulo se desconhecido.
 func persistent_status(id: StringName) -> StatusDef:
 	for d: StatusDef in persistent_statuses:

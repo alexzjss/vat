@@ -158,6 +158,9 @@ func start_with(heroes: Array[HeroState], enemies: Array[EnemyDef], hero_pos: Ar
 		# No mapa o encontro pode repetir um inimigo: id indexado. Standalone mantém def.id (testes do M1).
 		var id: StringName = d.id if mode == Mode.STANDALONE else StringName("%s_%d" % [d.id, i])
 		enemy_cs.append(Combatant.from_enemy(d, id, enemy_pos[i], balance))
+	# Bestiario (M15): todo inimigo presente fica visto.
+	if game_state != null:
+		game_state.record_seen(enemy_cs)
 	var b: BattleState = BattleState.create(balance, Dice.new(dice_seed), hero_cs, enemy_cs)
 	b.inventory = inventory
 	b.terrain = terrain
@@ -456,6 +459,9 @@ func _on_action_impact(a: PendingAction, r: ActionResult) -> void:
 	var lifesteal: int = 0
 	var self_damage: int = 0
 	var reflectors: Array[StringName] = []
+	# Bestiario (M15): reacoes vistas e inimigos escaneados.
+	if game_state != null:
+		game_state.record_result(r)
 	for hit: Dictionary in r.hits:
 		var v: CombatantView = views.get(hit["target_id"])
 		if v != null:
@@ -569,6 +575,7 @@ func _grant_victory(b: BattleState) -> void:
 	last_rewards = BattleRewards.roll(b.enemies, b.dice)
 	if game_state != null:
 		last_rewards.apply(game_state)
+		game_state.record_victory(b.enemies)
 	phase = Phase.RESULT
 	_result.show_for(last_xp, before, hero_states, last_rewards, balance.currency_name)
 

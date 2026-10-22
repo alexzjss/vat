@@ -9,3 +9,6 @@ var targets: Array[Combatant] = []
 ## `element` = id do elemento (&"" = neutro); `affinity` = ElementMath.Affinity. Absorver gera um hit HEAL.
 var hits: Array[Dictionary] = []
 var downed: Array[Combatant] = []
+## Scan (M15): ids (EnemyDef.id) dos inimigos que o Scan revelou nesta acao, sem repeticao. Quem hospeda o
+## GameState os grava em `bestiary` (GameState.record_result); o executor nao conhece o GameState.
+var scanned: Array[StringName] = []
