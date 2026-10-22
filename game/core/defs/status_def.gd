@@ -2,7 +2,7 @@ class_name StatusDef
 extends Resource
 
 ## Novos tipos sempre no fim: os .tres guardam o indice do enum.
-enum Kind { POISON, SLEEP, PARALYSIS, HASTE, SLOW, BARRIER, ATTR_MOD, STOP, CONFUSION, SILENCE, BLIND, REGEN, BLEED, BURN, FREEZE, WET, PETRIFY, DOOM }
+enum Kind { POISON, SLEEP, PARALYSIS, HASTE, SLOW, BARRIER, ATTR_MOD, STOP, CONFUSION, SILENCE, BLIND, REGEN, BLEED, BURN, FREEZE, WET, PETRIFY, DOOM, TAUNT, BERSERK, REFLECT }
 
 @export var id: StringName
 @export var kind: Kind = Kind.POISON

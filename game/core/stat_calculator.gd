@@ -33,6 +33,9 @@ static func effective(c: Combatant, attr: StringName, cfg: BalanceConfig) -> int
 	# Queimadura (M15): a Forca efetiva cai enquanto queima.
 	if attr == &"strength" and total > 0 and c.has_kind(StatusDef.Kind.BURN):
 		total = maxi(1, floori(float(total) * maxf(0.0, 1.0 - cfg.burn_str_pct)))
+	# Berserk (M15): a Forca efetiva sobe enquanto em Berserk.
+	if attr == &"strength" and total > 0 and c.has_kind(StatusDef.Kind.BERSERK):
+		total = floori(float(total) * (1.0 + cfg.berserk_str_pct))
 	# Buff/debuff nunca zera o atributo (minimo 1); sem estado, o valor base segue como era.
 	return maxi(1 if modded else 0, total)
 

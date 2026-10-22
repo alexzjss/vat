@@ -48,6 +48,9 @@ const STATUS_LABELS: Dictionary[StatusDef.Kind, String] = {
 	StatusDef.Kind.WET: "MOLH",
 	StatusDef.Kind.PETRIFY: "PEDRA",
 	StatusDef.Kind.DOOM: "DOOM",
+	StatusDef.Kind.TAUNT: "PROV",
+	StatusDef.Kind.BERSERK: "BERS",
+	StatusDef.Kind.REFLECT: "REFL",
 }
 ## Buff/debuff: abreviação do atributo + sinal da potência (FOR+, VEL-...).
 const ATTR_LABELS: Dictionary[StringName, String] = {

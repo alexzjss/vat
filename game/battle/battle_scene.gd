@@ -380,10 +380,13 @@ func _on_session_cancelled(_s: SelectionSession) -> void:
 func _on_session_reset(_s: SelectionSession) -> void:
 	_menu.reset_to_root()
 
-## Confusão: o combatente age sozinho; sem menu e sem IA.
+## Confusão ou Berserk (M15): o combatente age sozinho; sem menu e sem IA.
 func _on_confused_act(c: Combatant) -> void:
 	if views.has(c.id):
-		views[c.id].float_text("Confuso", Color(0.95, 0.6, 0.9))
+		if c.is_confused():
+			views[c.id].float_text("Confuso", Color(0.95, 0.6, 0.9))
+		else:
+			views[c.id].float_text("Berserk", Color(1.0, 0.35, 0.3))
 
 func _on_menu_submitted(_a: PendingAction) -> void:
 	_set_highlight_off()
@@ -425,10 +428,18 @@ func support_view_visible() -> bool:
 func _on_action_impact(a: PendingAction, r: ActionResult) -> void:
 	var lifesteal: int = 0
 	var self_damage: int = 0
+	var reflectors: Array[StringName] = []
 	for hit: Dictionary in r.hits:
 		var v: CombatantView = views.get(hit["target_id"])
 		if v != null:
 			v.show_hit(hit)
+		# Reflexo (M15): "Refletiu" em quem devolveu o golpe, uma vez por refletor.
+		var rid: StringName = hit.get("reflected_from", &"")
+		if rid != &"" and not reflectors.has(rid):
+			reflectors.append(rid)
+			var rv: CombatantView = views.get(rid)
+			if rv != null:
+				rv.float_text("Refletiu", Color(0.6, 0.85, 1.0))
 		lifesteal += int(hit.get("lifesteal", 0))
 		self_damage += int(hit.get("self_damage", 0))
 	_debug.record_impact(r, ctrl.b)

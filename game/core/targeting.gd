@@ -28,6 +28,20 @@ static func cures_petrify(effects: Array[EffectDef]) -> bool:
 				return true
 	return false
 
+## Provocar (M15): entre `cands`, o provocador vivo do lado inimigo de `actor` (estado TAUNT, nao petrificado) com
+## mais duracao restante em turnos; empate: o primeiro. Nulo sem provocador. So a IA usa: a escolha do jogador nunca e forcada.
+static func taunter(cands: Array[Combatant], actor: Combatant) -> Combatant:
+	var best: Combatant = null
+	var best_left: int = -1
+	for c: Combatant in cands:
+		if c.team == actor.team or c.is_out():
+			continue
+		for s: ActiveStatus in c.statuses:
+			if s.def.kind == StatusDef.Kind.TAUNT and s.remaining > best_left:
+				best = c
+				best_left = s.remaining
+	return best
+
 static func _valid(arr: Array[Combatant], effects: Array[EffectDef]) -> Array[Combatant]:
 	var downed: bool = wants_downed(effects)
 	var petrified_ok: bool = cures_petrify(effects)

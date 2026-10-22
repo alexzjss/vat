@@ -30,7 +30,10 @@ static func decide(actor: Combatant, b: BattleState) -> PendingAction:
 		push_error("EnemyAI: %s sem ataque basico" % actor.id)
 		return null
 	# Assume-se que basic_attack nao custa AP (custo 0).
-	var target: Combatant = _lowest_hp(b.living(b.foes_of(actor)))
+	var foes: Array[Combatant] = b.living(b.foes_of(actor))
+	var target: Combatant = Targeting.taunter(foes, actor)
+	if target == null:
+		target = _lowest_hp(foes)
 	if target == null:
 		return null
 	return _make(actor, actor.basic_attack, target)
@@ -46,9 +49,24 @@ static func confused_action(actor: Combatant, b: BattleState) -> PendingAction:
 			cands.append(c)
 	if cands.is_empty():
 		return null
-	var pa: PendingAction = _make(actor, actor.basic_attack, cands[b.dice.pick_index(cands.size())])
+	# Provocar (M15): havendo um provocador do outro lado, o golpe vai para ele (nao sorteia).
+	var forced: Combatant = Targeting.taunter(cands, actor)
+	var center: Combatant = forced if forced != null else cands[b.dice.pick_index(cands.size())]
+	var pa: PendingAction = _make(actor, actor.basic_attack, center)
 	pa.confused = true
 	return pa
+
+## Berserk (M15): ataque basico num inimigo vivo sorteado (o provocador, se houver, e o alvo). Nulo se nao ha ataque
+## basico nem alvo. Nao e `confused`: o lado da acao continua sendo o do ataque basico.
+static func berserk_action(actor: Combatant, b: BattleState) -> PendingAction:
+	if actor.basic_attack == null:
+		return null
+	var cands: Array[Combatant] = Targeting.candidates(AbilityDef.Shape.SINGLE, AbilityDef.Side.ENEMIES, actor.basic_attack.effects, actor, b)
+	if cands.is_empty():
+		return null
+	var forced: Combatant = Targeting.taunter(cands, actor)
+	var center: Combatant = forced if forced != null else cands[b.dice.pick_index(cands.size())]
+	return _make(actor, actor.basic_attack, center)
 
 static func _make(actor: Combatant, ability: AbilityDef, center: Combatant) -> PendingAction:
 	var pa := PendingAction.new()
@@ -82,6 +100,15 @@ static func _pick_center(rule: AiRule, actor: Combatant, b: BattleState) -> Comb
 	var cands: Array[Combatant] = Targeting.candidates(a.shape, a.side, a.effects, actor, b)
 	if cands.is_empty():
 		return null
+	# Provocar (M15): golpe hostil escolhido pela IA vai para o provocador; as areas centram nele.
+	if a.side == AbilityDef.Side.ENEMIES and a.shape != AbilityDef.Shape.CIRCLE_SELF:
+		var forced: Combatant = Targeting.taunter(cands, actor)
+		if forced != null:
+			return forced
+	return _pick_free(rule, cands, actor, b)
+
+static func _pick_free(rule: AiRule, cands: Array[Combatant], actor: Combatant, b: BattleState) -> Combatant:
+	var a: AbilityDef = rule.ability
 	match rule.pick:
 		AiRule.TargetPick.SELF:
 			return actor if cands.has(actor) else null

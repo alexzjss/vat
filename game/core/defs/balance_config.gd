@@ -107,6 +107,7 @@ enum DurationMode { A, B }
 @export var wet_indra_bonus: float = 0.3 # valor de teste (M15: Molhado soma isto de fraqueza a Indra na afinidade do alvo)
 @export var wet_element_id: StringName = &"indra" # valor de teste (M15: elemento que o Molhado enfraquece)
 @export var fire_element_id: StringName = &"kagutsuchi" # valor de teste (M15: elemento que derrete o gelo e seca o Molhado)
+@export var berserk_str_pct: float = 0.5 # valor de teste (M15: aumento da Forca efetiva de quem esta em Berserk)
 # Chefes (M11).
 @export var core_shield_mult: float = 0.25 # valor de teste (M11: multiplicador de dano no nucleo enquanto uma parte protetora esta de pe)
 @export var same_element_bonus: float = 1.2 # valor de teste (M13: multiplicador de dano quando o elemento efetivo e nativo do atacante)

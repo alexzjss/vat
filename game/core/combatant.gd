@@ -103,6 +103,13 @@ func is_silenced() -> bool:
 func is_confused() -> bool:
 	return has_kind(StatusDef.Kind.CONFUSION)
 
+## Berserk (M15): age sozinho com o ataque basico num inimigo vivo.
+func is_berserk() -> bool:
+	return has_kind(StatusDef.Kind.BERSERK)
+
+func is_reflecting() -> bool:
+	return has_kind(StatusDef.Kind.REFLECT)
+
 func is_blind() -> bool:
 	return has_kind(StatusDef.Kind.BLIND)
 

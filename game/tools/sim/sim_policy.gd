@@ -11,6 +11,15 @@ static func decide(session: SelectionSession, b: BattleState, policy: StringName
 			return a
 	return _basic(session, b, policy == &"smart")
 
+## Alvos da habilidade escolhida na sessao, ja com Provocar (M15): havendo um provocador entre eles (so do lado inimigo
+## do ator), ele e o unico alvo. A politica e IA: o jogador nunca passa por aqui.
+static func _cands(session: SelectionSession) -> Array[Combatant]:
+	var cands: Array[Combatant] = session.target_candidates()
+	var t: Combatant = Targeting.taunter(cands, session.actor)
+	if t != null:
+		return [t] as Array[Combatant]
+	return cands
+
 static func _reset(session: SelectionSession) -> void:
 	if session.step == SelectionSession.Step.TARGET or session.step == SelectionSession.Step.CONFIRM:
 		session.back()
@@ -20,7 +29,7 @@ static func _basic(session: SelectionSession, b: BattleState, avoid_shielded: bo
 	_reset(session)
 	if not session.choose_ability(session.actor.basic_attack):
 		return null
-	var cands: Array[Combatant] = session.target_candidates()
+	var cands: Array[Combatant] = _cands(session)
 	if avoid_shielded:
 		var open: Array[Combatant] = []
 		for c: Combatant in cands:
@@ -92,7 +101,7 @@ static func _reaction(session: SelectionSession, b: BattleState) -> PendingActio
 			continue
 		if not session.can_use(ab) or not session.choose_ability(ab):
 			continue
-		for c: Combatant in session.target_candidates():
+		for c: Combatant in _cands(session):
 			if c.is_down() or b.core_shielded(c) or not MarkRules.has_other(c, el) or ReactionRules.find(b.reactions, c.mark, el) == null:
 				continue
 			var m: float = elem_mult(session.actor, ab, c)
@@ -124,7 +133,7 @@ static func _weakness(session: SelectionSession) -> PendingAction:
 			continue
 		if not session.can_use(ab) or not session.choose_ability(ab):
 			continue
-		for c: Combatant in session.target_candidates():
+		for c: Combatant in _cands(session):
 			if c.is_down():
 				continue
 			session.set_center(c)
@@ -149,7 +158,7 @@ static func _limit(session: SelectionSession) -> PendingAction:
 		return null
 	var best: Combatant = null
 	var best_n: int = 0
-	for c: Combatant in session.target_candidates():
+	for c: Combatant in _cands(session):
 		session.set_center(c)
 		var n: int = session.preview_area().size()
 		if best == null or n > best_n or (n == best_n and c.hp < best.hp):
@@ -196,7 +205,7 @@ static func _revive(session: SelectionSession, b: BattleState) -> PendingAction:
 	var it: ItemDef = _item_with(b, EffectDef.Kind.REVIVE)
 	if it == null or not session.choose_item(it):
 		return null
-	var cands: Array[Combatant] = session.target_candidates()
+	var cands: Array[Combatant] = _cands(session)
 	if cands.is_empty():
 		session.back()
 		return null
@@ -212,7 +221,7 @@ static func _cleanse(session: SelectionSession, b: BattleState) -> PendingAction
 			var it: ItemDef = _cure_for(b, s.def)
 			if it == null or not session.choose_item(it):
 				continue
-			if not session.target_candidates().has(h):
+			if not _cands(session).has(h):
 				session.back()
 				continue
 			session.set_center(h)
@@ -242,7 +251,7 @@ static func _heal(session: SelectionSession, b: BattleState) -> PendingAction:
 			continue
 		if not session.choose_ability(ab):
 			continue
-		var cands: Array[Combatant] = session.target_candidates()
+		var cands: Array[Combatant] = _cands(session)
 		var target: Combatant = needy if cands.has(needy) else null
 		if target == null:
 			session.back()
@@ -265,7 +274,7 @@ static func _ether(session: SelectionSession, b: BattleState) -> PendingAction:
 	var it: ItemDef = _item_with(b, EffectDef.Kind.RESTORE_AP)
 	if it == null or not session.choose_item(it):
 		return null
-	var cands: Array[Combatant] = session.target_candidates()
+	var cands: Array[Combatant] = _cands(session)
 	var target: Combatant = session.actor if cands.has(session.actor) else null
 	if target == null:
 		session.back()
@@ -287,7 +296,7 @@ static func _area(session: SelectionSession, _b: BattleState) -> PendingAction:
 		var best: Combatant = null
 		var best_n: int = 0
 		var best_m: float = 0.0
-		for c: Combatant in session.target_candidates():
+		for c: Combatant in _cands(session):
 			session.set_center(c)
 			var area: Array[Combatant] = session.preview_area()
 			var n: int = area.size()
@@ -323,7 +332,7 @@ static func _status(session: SelectionSession, _b: BattleState) -> PendingAction
 		if st == null or not session.choose_ability(ab):
 			continue
 		var target: Combatant = null
-		for c: Combatant in session.target_candidates():
+		for c: Combatant in _cands(session):
 			if c.immunities.has(st.id) or _has_status(c, st.id):
 				continue
 			if target == null or c.hp > target.hp:

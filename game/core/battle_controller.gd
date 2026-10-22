@@ -334,7 +334,8 @@ func _enforce_statuses() -> void:
 	for c: Combatant in b.all():
 		if c.is_stopped() and not c.is_down():
 			b.queue.remove(c)
-	if session != null and session.actor.is_stopped():
+	# Berserk (M15) no meio da escolha (modo Ativo): a sessao cai e o heroi age sozinho na proxima vez da fila.
+	if session != null and (session.actor.is_stopped() or session.actor.is_berserk()):
 		_drop_session()
 	if _queued != null and _queued.turn_owner().is_stopped():
 		_discard_queued()
@@ -365,6 +366,17 @@ func _start_next() -> void:
 			return
 		confused_act.emit(c)
 		_begin(ca)
+		return
+	if c.is_berserk():
+		# Berserk (M15): mesmo caminho da Confusao (sem menu, sem IA), mas so o ataque basico num inimigo.
+		c.charging = null
+		var ba: PendingAction = EnemyAI.berserk_action(c, b)
+		if ba == null:
+			c.atb = 0.0
+			turn_lost.emit(c)
+			return
+		confused_act.emit(c)
+		_begin(ba)
 		return
 	if c.team == Combatant.Team.ENEMY:
 		# Preparacao (chefe): o ataque anunciado sai agora, sem passar pela IA.

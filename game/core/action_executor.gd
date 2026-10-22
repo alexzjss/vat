@@ -16,13 +16,31 @@ static func apply(a: PendingAction, b: BattleState) -> ActionResult:
 	# O ATB do atacante so vale depois da acao se ela zera a barra dele no fim (nao e contra-ataque nem Suporte).
 	var defer_atb: bool = a.actor == a.turn_owner() and not a.is_counter
 	for t: Combatant in r.targets:
+		# Reflexo (M15): cada alvo refletido devolve a sua parte; o golpe devolvido nao reflete de novo.
+		var bounced: bool = reflects(a, t)
+		var hit_from: int = r.hits.size()
 		for e: EffectDef in effects:
-			_apply_effect(e, a.actor, t, b, r, credit, a.ability, handled, defer_atb)
+			if bounced:
+				_apply_effect(e, a.actor, a.actor, b, r, credit, a.ability, handled, defer_atb, true)
+			else:
+				_apply_effect(e, a.actor, t, b, r, credit, a.ability, handled, defer_atb)
+		if bounced:
+			for i: int in range(hit_from, r.hits.size()):
+				r.hits[i]["reflected_from"] = t.id
 	# Chefe com nucleo: a queda do ultimo nucleo derruba as partes junto.
 	for p: Combatant in b.collapse_parts():
 		if not r.downed.has(p):
 			r.downed.append(p)
 	return r
+
+## Reflexo (M15): a habilidade tem elemento proprio (`AbilityDef.element`; o ataque basico nunca reflete, mesmo com
+## elemento de arma ou de definicao), mira um oponente do lado do refletido, que esta vivo e com o estado REFLECT.
+## Regra de cura: o Reflexo so devolve golpes de quem e inimigo de quem reflete; uma tecnica elemental que cura um
+## aliado atravessa o Reflexo dele (nao volta para o curandeiro). Item nunca reflete.
+static func reflects(a: PendingAction, t: Combatant) -> bool:
+	if a.ability == null or a.item != null or a.ability.element == null or a.ability == a.actor.basic_attack:
+		return false
+	return t != a.actor and t.team != a.actor.team and not t.is_out() and t.is_reflecting()
 
 static func _hit(r: ActionResult, t: Combatant, kind: EffectDef.Kind, amount: int, dodged: bool, status_result: int, missed: bool = false, shielded: bool = false, element: StringName = &"", affinity: int = ElementMath.Affinity.NEUTRAL, extra: Dictionary = {}) -> void:
 	# Campos de elemento para a UI (M13): `lifesteal` (HP que o atacante roubou), `self_damage` (HP que o atacante
@@ -31,7 +49,9 @@ static func _hit(r: ActionResult, t: Combatant, kind: EffectDef.Kind, amount: in
 	# reacao disparada; vazio = nenhuma) e `reaction_effects` (o que a reacao fez, para a UI; vazio sem reacao):
 	# {extra_damage, area: [{target_id, amount, blocked}], statuses: [{target_id, status_id, result}], atb: {target, attacker},
 	# heal_attacker, heal_allies: [{target_id, amount}], removed}.
-	var hit: Dictionary = {"target_id": t.id, "kind": kind, "amount": amount, "dodged": dodged, "status_result": status_result, "missed": missed, "shielded": shielded, "element": element, "affinity": affinity, "lifesteal": 0, "self_damage": 0, "contamination": 0, "burst": 0, "mark": MarkRules.id_of(t), "reaction": &"", "reaction_effects": {}}
+	# Reflexo (M15): `reflected_from` (id de quem refletiu; vazio = golpe normal). Nesse caso `target_id` e o lancador, que
+	# recebe o golpe devolvido; a UI mostra "Refletiu" em quem refletiu.
+	var hit: Dictionary = {"target_id": t.id, "kind": kind, "amount": amount, "dodged": dodged, "status_result": status_result, "missed": missed, "shielded": shielded, "element": element, "affinity": affinity, "lifesteal": 0, "self_damage": 0, "contamination": 0, "burst": 0, "mark": MarkRules.id_of(t), "reaction": &"", "reaction_effects": {}, "reflected_from": &""}
 	hit.merge(extra, true)
 	r.hits.append(hit)
 
@@ -60,7 +80,7 @@ static func _scaled(e: EffectDef, actor: Combatant, attr: StringName, cfg: Balan
 	return EffectMath.heal_amount(e, StatCalculator.effective(actor, attr, cfg))
 
 ## `credit` e quem recebe a contribuicao (o chamador, no Suporte; senao o ator).
-static func _apply_effect(e: EffectDef, actor: Combatant, t: Combatant, b: BattleState, r: ActionResult, credit: StringName, ability: AbilityDef = null, handled: Dictionary = {}, defer_atb: bool = false) -> void:
+static func _apply_effect(e: EffectDef, actor: Combatant, t: Combatant, b: BattleState, r: ActionResult, credit: StringName, ability: AbilityDef = null, handled: Dictionary = {}, defer_atb: bool = false, reflected: bool = false) -> void:
 	var enemies_alive: Array[Combatant] = b.living(b.enemies)
 	match e.kind:
 		EffectDef.Kind.DAMAGE:
@@ -101,7 +121,8 @@ static func _apply_effect(e: EffectDef, actor: Combatant, t: Combatant, b: Battl
 				extra = _element_rules(element, actor, t, eff, b, credit)
 			# Marca e reacao (M14): so o primeiro golpe da habilidade que chegou ao alvo; quem caiu nao marca nem reage.
 			var area_downed: Array = []
-			if not handled.has(t) and MarkRules.marks(element, affinity):
+			# Golpe devolvido (M15): quem recebe de volta nao e marcado nem reage.
+			if not reflected and not handled.has(t) and MarkRules.marks(element, affinity):
 				handled[t] = true
 				if not t.is_down():
 					var rdef: ReactionDef = ReactionRules.find(b.reactions, t.mark, element) if MarkRules.has_other(t, element) else null
