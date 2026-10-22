@@ -19,7 +19,7 @@
 script = ExtResource("s_stats")
 strength = 24
 speed = 8
-vitality = 28
+vitality = 3
 aura = 10
 
 [sub_resource type="Resource" id="sub_2"]

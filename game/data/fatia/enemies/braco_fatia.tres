@@ -11,7 +11,7 @@
 script = ExtResource("s_stats")
 strength = 16
 speed = 8
-vitality = 17
+vitality = 2
 aura = 2
 
 [sub_resource type="Resource" id="sub_2"]
@@ -27,7 +27,7 @@ chance = 1.0
 script = ExtResource("s_def")
 id = &"braco_fatia"
 display_name = "Braço (fatia)"
-level = 5
+level = 4
 base = SubResource("sub_1")
 xp_base = 150
 money = 20

@@ -87,6 +87,10 @@ static func make_hero(def: CharacterDef, s: SimScenario) -> HeroState:
 	h.rest(s.cfg)
 	return h
 
+## Gasta os pontos pendentes do heroi conforme a regra (usado tambem pela rota da fatia).
+static func allocate(h: HeroState, rule: StringName) -> void:
+	_allocate(h, rule)
+
 static func _allocate(h: HeroState, rule: StringName) -> void:
 	if rule == &"main":
 		var best: StringName = Stats.ATTRS[0]

@@ -1,10 +1,11 @@
 extends SceneTree
 
-## Executa o relatorio comparativo: godot --headless --path game -s tools/sim/run_sim.gd -- [-runs N] [-out caminho.md] [-hard fator] [-hardruns N] [-search] [-final] [-meta]
+## Executa o relatorio comparativo: godot --headless --path game -s tools/sim/run_sim.gd -- [-runs N] [-out caminho.md] [-hard fator] [-hardruns N] [-search] [-final] [-meta] [-fatia] [-quick] [-routeruns N]
 
 const DEFAULT_RUNS: int = 30
 const DEFAULT_OUT: String = "docs/balance/2026-10-19-relatorio-opcoes.md"
 const DEFAULT_FINAL: String = "docs/balance/2026-10-19-relatorio-final.md"
+const DEFAULT_FATIA: String = "docs/balance/2026-10-20-relatorio-fatia.md"
 
 func _init() -> void:
 	var runs: int = DEFAULT_RUNS
@@ -15,6 +16,9 @@ func _init() -> void:
 	var search: bool = false
 	var final_report: bool = false
 	var meta: bool = false
+	var fatia: bool = false
+	var quick: bool = false
+	var route_runs: int = 30
 	var i: int = 0
 	while i < args.size():
 		var a: String = args[i].lstrip("-").to_lower()
@@ -33,6 +37,13 @@ func _init() -> void:
 			final_report = true
 		elif a == "meta":
 			meta = true
+		elif a == "fatia":
+			fatia = true
+		elif a == "quick":
+			quick = true
+		elif a == "routeruns" and i + 1 < args.size():
+			route_runs = maxi(0, args[i + 1].to_int())
+			i += 1
 		elif a == "out" and i + 1 < args.size():
 			out = args[i + 1]
 			i += 1
@@ -45,6 +56,20 @@ func _init() -> void:
 		quit(0)
 		return
 	var t0: int = Time.get_ticks_msec()
+	if fatia:
+		if quick:
+			SimFatia.quick(runs, route_runs)
+			print("[fatia] %.1f s" % (float(Time.get_ticks_msec() - t0) / 1000.0))
+			quit(0)
+			return
+		var fa_out: String = out
+		if fa_out.ends_with(DEFAULT_OUT):
+			fa_out = fa_out.replace(DEFAULT_OUT, DEFAULT_FATIA)
+		var fres: Dictionary = FatiaReport.build(runs, route_runs, true)
+		var fok: bool = SimReport.write_files(fres, fa_out)
+		print("[sim] fatia %s em %.1f s -> %s" % ["ok" if fok else "FALHA", float(Time.get_ticks_msec() - t0) / 1000.0, fa_out])
+		quit(0 if fok else 1)
+		return
 	if meta:
 		# Varredura rapida: so imprime as metricas dos cenarios-meta com o padrao escolhido.
 		var cs: Array[Dictionary] = SimReport.target_cases()

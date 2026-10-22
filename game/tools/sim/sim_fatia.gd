@@ -1,0 +1,88 @@
+class_name SimFatia
+extends RefCounted
+
+## Cenarios e relatorio da fatia vertical (M12, Task 5): lutas comuns e chefe com o grupo e o nivel da fatia
+## (herois de teste A-D, alocacao `main`, itens da fatia), mais a rota completa (RouteFatia).
+## Nao altera nenhum dado: os numeros que se ajustam vivem em `data/fatia/*.tres`. Valores de teste, nao canonicos.
+
+const HERO_IDS: Array[String] = ["teste_a", "teste_b", "teste_c", "teste_d"]
+const POLICIES: Array[StringName] = [&"basic", &"smart"]
+const BOSS_ENC: String = "chefe_fatia"
+## Nivel do grupo no chefe nos cenarios fixos (alvo do plano: Nv ~5; sensibilidade em +-1).
+const BOSS_LEVELS: Array[int] = [3, 4, 5, 6]
+const BOSS_MAIN_LEVEL: int = 5 # valor de teste (M12: nivel do grupo no chefe da fatia)
+## Kit de itens dos cenarios fixos (ids de data/fatia/items): comuns e chefe (valores de teste do simulador).
+const KIT: Array[Array] = [["pocao_f", 3], ["eter_f", 2], ["reviver_f", 1]]
+const BOSS_KIT: Array[Array] = [["pocao_f", 3], ["eter_f", 2], ["reviver_f", 1], ["remedio_f", 2]]
+## Encontros comuns e o nivel do grupo em que aparecem na rota tipica (media do grupo ao chegar, arredondada para baixo):
+## a 1a vez de cada encontro e, quando o mesmo encontro volta bem mais tarde, tambem esse nivel.
+const COMMON_CASES: Array[Dictionary] = [
+	{"enc": "enc_f1", "level": 1}, {"enc": "enc_f2", "level": 1}, {"enc": "enc_f12", "level": 2}, {"enc": "enc_f12", "level": 3},
+	{"enc": "enc_f2", "level": 3}, {"enc": "enc_f3", "level": 4}, {"enc": "enc_f4", "level": 4}, {"enc": "enc_f34", "level": 5},
+]
+## Metas (plano M12, item 17): comuns = metas classicas; chefe = smart 15-20 s e vitoria >= 90%.
+const BOSS_DUR_MIN: float = 15.0 # valor de teste (M12)
+const BOSS_DUR_MAX: float = 20.0 # valor de teste (M12)
+const BOSS_WIN_MIN: float = 0.90 # valor de teste (M12)
+const ROUTE_LEVEL_MIN: float = 4.0 # valor de teste (M12: Nv na chegada ao chefe, perfil tipico)
+const ROUTE_LEVEL_MAX: float = 6.0
+
+static func make_scenario(enc: String, level: int, policy: StringName, runs: int, label: String) -> SimScenario:
+	var s := SimScenario.new()
+	s.label = label
+	for id: String in HERO_IDS:
+		s.heroes.append(load("res://data/test/heroes/%s.tres" % id) as CharacterDef)
+	s.hero_level = level
+	s.alloc_rule = &"main"
+	s.equipment = true
+	s.enemies = (load("res://data/fatia/encounters/%s.tres" % enc) as EncounterDef).enemies.duplicate()
+	s.policy = policy
+	s.runs = runs
+	s.base_seed = 1
+	s.cfg = SimScenario.config_chosen()
+	s.baseline = SimScenario.BASELINE_CHOSEN
+	var kit: Array[Array] = BOSS_KIT if enc == BOSS_ENC else KIT
+	for pair: Array in kit:
+		s.items.append(load("res://data/fatia/items/%s.tres" % str(pair[0])) as ItemDef)
+		s.item_counts.append(int(pair[1]))
+	return s
+
+static func case_label(enc: String, level: int, policy: StringName) -> String:
+	return "N%d %s %s" % [level, enc, str(policy)]
+
+## Roda um encontro nos dois tipos de politica; devolve as metricas na ordem de POLICIES.
+static func run_case(enc: String, level: int, runs: int) -> Array[SimMetrics]:
+	var out: Array[SimMetrics] = []
+	for p: StringName in POLICIES:
+		out.append(SimRunner.run(make_scenario(enc, level, p, runs, case_label(enc, level, p))))
+	return out
+
+## Meta de luta comum (smart: vitoria >= 95% e 10-60 s, pois os encontros da fatia tem 1-2 inimigos; basic: vitoria >= 75%).
+static func common_ok(policy: StringName, m: SimMetrics) -> bool:
+	if policy == &"smart":
+		return m.win_rate() >= 0.95 and m.mean_duration() >= 10.0 and m.mean_duration() <= 60.0
+	return m.win_rate() >= 0.75
+
+## Meta do chefe (so smart; basic e apenas relatado).
+static func boss_ok(m: SimMetrics) -> bool:
+	return m.win_rate() >= BOSS_WIN_MIN and m.mean_duration() >= BOSS_DUR_MIN and m.mean_duration() <= BOSS_DUR_MAX
+
+## Linha rapida para depuracao (`-fatia -quick`): imprime comuns e chefe sem escrever relatorio.
+static func quick(runs: int, route_runs: int) -> void:
+	for c: Dictionary in COMMON_CASES:
+		var ms: Array[SimMetrics] = run_case(str(c["enc"]), int(c["level"]), runs)
+		for i: int in POLICIES.size():
+			print("[fatia] N%d %-7s %-5s win %3.0f%% dur %5.1f s hp %3.0f%% %s" % [int(c["level"]), str(c["enc"]), str(POLICIES[i]), ms[i].win_rate() * 100.0,
+				ms[i].mean_duration(), ms[i].mean_party_hp_pct() * 100.0, "ok" if common_ok(POLICIES[i], ms[i]) else "FORA"])
+	for lv: int in BOSS_LEVELS:
+		var bs: Array[SimMetrics] = run_case(BOSS_ENC, lv, runs)
+		for i: int in POLICIES.size():
+			print("[fatia] N%d chefe   %-5s win %3.0f%% dur %5.1f s hp %3.0f%%" % [lv, str(POLICIES[i]), bs[i].win_rate() * 100.0, bs[i].mean_duration(), bs[i].mean_party_hp_pct() * 100.0])
+	if route_runs > 0:
+		for pr: RouteFatia.Profile in [RouteFatia.Profile.MINIMUM, RouteFatia.Profile.TYPICAL, RouteFatia.Profile.FULL]:
+			var agg: RouteFatia.Aggregate = RouteFatia.run(pr, route_runs)
+			print("[rota] %-8s no chefe %d/%d nivel %.2f (%.1f-%.1f) moeda %.0f lutas %.1f (%.0f s) voltas %.1f chefe %d/%d em %.1f s falhas %s" % [
+				RouteFatia.profile_name(pr), agg.reached_boss, agg.runs, agg.mean(agg.avg_levels), agg.min_of(agg.avg_levels), agg.max_of(agg.avg_levels),
+				agg.mean(agg.money_at_boss), agg.mean(agg.fights), agg.mean(agg.fight_seconds), agg.mean(agg.rests), agg.boss_wins, agg.reached_boss,
+				agg.mean(agg.boss_seconds), str(agg.failures)])
+			print("       ganhou %.0f gastou %.0f; lojas: %s" % [agg.mean(agg.money_earned), agg.mean(agg.money_spent), str(agg.shop_visits.slice(0, 2 if pr == RouteFatia.Profile.MINIMUM else 4))])
