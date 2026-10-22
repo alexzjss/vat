@@ -2,7 +2,7 @@
 
 Prototipo de um RPG com combate em tempo real por barra de ATB, feito em Godot 4 com GDScript tipado e placeholders geometricos. Nao ha conteudo narrativo; personagens, inimigos e lugares sao genericos.
 
-O marco atual e o M12, a fatia vertical: o **Novo jogo** agora percorre uma demo jogável de ponta a ponta (cidade, mapa-múndi, estrada com encontros, dungeon de dois andares, chefe e tela de fim), com moeda, loja, pousada paga e recrutamento. Tudo na fatia é placeholder; veja a seção [Fatia vertical](#fatia-vertical-m12).
+O marco atual e o M13, elementos (seção [Elementos (M13)](#elementos-m13)). Antes dele, o M12 entregou a fatia vertical: o **Novo jogo** agora percorre uma demo jogável de ponta a ponta (cidade, mapa-múndi, estrada com encontros, dungeon de dois andares, chefe e tela de fim), com moeda, loja, pousada paga e recrutamento. Tudo na fatia é placeholder; veja a seção [Fatia vertical](#fatia-vertical-m12).
 
 Antes disso, o M11 acrescenta ao M10 o catálogo completo de estados (Pare, Confusão, buffs e debuffs, Silêncio, Cegueira, Regeneração e Barreira), os itens Remédio e Panaceia e um chefe de teste na dungeon de teste (fases por HP, ataque anunciado, contra-ataque e partes). Antes disso, o M10 acrescentou ao M9 o sistema de eventos (caixa de diálogo com nome e escolhas, flags de história, NPCs e placas, cenas roteirizadas e XP narrativa), os objetos de dungeon (baús, portas e chaves, interruptores e armadilhas) e uma dungeon de teste ligada ao mapa-mundi. Antes disso, o M9 acrescentou as técnicas por personagem, mantendo a barra de Limite (M8), o Suporte da reserva (M8.5), fuga, iniciativa por contato, corrida e inimigos com comportamento no mapa: o jogo abre numa tela de título (Novo jogo / Continuar), de onde se chega a um mapa-mundi de teste com áreas locais e inimigos de mapa; tocar um inimigo inicia a batalha no próprio mapa. Há save em disco com 3 slots, gravado só em pontos de descanso e no mapa-mundi, e a página Config do menu de campo. Na derrota (Game Over), o jogo volta ao título e o progresso desde o último save em disco se perde.
 
@@ -71,6 +71,44 @@ Tudo na fatia é placeholder: nomes são "Teste", "Morador A" etc., e os textos 
 - **Recrutamento.** Dois heróis entram no grupo durante a fatia: o recruta D na cidade e o recruta E no andar 1. Se o grupo ativo (4 heróis) estiver cheio, o recruta vai para a reserva. Quem chega ao grupo entra no nível médio dos ativos, arredondado para baixo. Recrutar o mesmo herói de novo não tem efeito.
 
 O relatório de balanceamento da fatia está em [`docs/balance/2026-10-20-relatorio-fatia.md`](docs/balance/2026-10-20-relatorio-fatia.md).
+
+## Elementos (M13)
+
+Habilidades, armas, heróis, inimigos e equipamentos podem ter elemento. São 9 elementos, um `.tres` cada em [`game/data/elements/`](game/data/elements/README.md). Os nomes são os do usuário; o nome curto é o que a UI mostra. O elemento radioativo ainda não tem nome próprio e aparece como "Radioativo".
+
+| Nome | Nome curto | Regra |
+|---|---|---|
+| Kagutsuchi | Fogo | normal |
+| Susanoo | Água | normal |
+| Fuhaku | Vento | normal |
+| Atlas | Terra | normal |
+| Indra | Raio | normal |
+| Tsukuyomi | Trevas | normal |
+| Amaterasu | Luz | normal |
+| Shukketsu | Sangue | Sangue |
+| Radioativo | Radioativo | Radioativo |
+
+**Onde entra:**
+- **Habilidade:** um elemento (`AbilityDef.element`). Vale para todo efeito de dano da habilidade; cura, reviver e estados não são elementais.
+- **Ataque básico:** o elemento da arma equipada (`EquipmentDef.element`). Habilidade com elemento próprio ignora a arma.
+- **Heróis e inimigos:** até dois elementos nativos (`elements`). Eles dão só o bônus de mesmo elemento.
+- **Equipamento:** afinidade defensiva (`element_resist`), somada à do herói.
+
+**Fórmula:** o dano depois de defesa e variação é multiplicado por 1,2 se o elemento é nativo do atacante, depois pelo bônus de Sangue (só Shukketsu), e por fim por `1 − afinidade total`. A afinidade total é a base mais os equipamentos vestidos, aplicada uma vez. O dano mínimo é 1, exceto em Imune (0). 100% é imunidade; acima de 100% o alvo absorve, e a cura é `dano × (total − 1)`. Radioativo não usa afinidade.
+
+**Sangue (Shukketsu):**
+- Rouba 25% do dano efetivo como HP do atacante, até o máximo. Não rouba quando o golpe causa 0 de dano (imune ou absorvido), e não conta como contribuição de cura.
+- Causa mais dano com HP baixo: até +50% com HP perto de zero.
+- O Sangramento (estado `bleed`, 5% do HP máximo por ação, 4 turnos) é aplicado só pelas habilidades que o colocam. Ele cobra quando o afetado age e deixa no mínimo 1 HP.
+
+**Radioativo:**
+- Ignora afinidade (fraqueza, resistência, imunidade e absorção); o bônus de mesmo elemento continua valendo. Não reage com outros elementos (reações são do M14).
+- Cada golpe que causa dano soma 1 de contaminação no alvo. Em 3, estoura: 15% do HP máximo do alvo como dano extra, e zera. O alvo perde 1 a cada 2 ações.
+- Cada nível de contaminação corrói 10% da Vitalidade efetiva do alvo. O atacante perde 10% do dano efetivo, sem cair (mínimo 1 HP).
+
+Os valores estão em `BalanceConfig` e são valores de teste. O relatório do M13 está em [`docs/balance/2026-10-22-relatorio-elementos.md`](docs/balance/2026-10-22-relatorio-elementos.md).
+
+**Textos na batalha:** além do número, aparecem "Fraco!", "Resistiu", "Imune" e "Absorveu" (este com o número em verde), na cor do elemento. Neutro não mostra rótulo. Quando o Radioativo estoura, aparece "Contaminação! -N". Nos menus, o nome curto do elemento aparece no comando de batalha, nas Técnicas, em Equipar (com a prévia de resistência) e em Status (nativos e tabela de afinidade). Itens ainda não têm elemento.
 
 ## Controles
 
@@ -210,7 +248,7 @@ Passadas depois de `--` (argumentos de usuario), roteirizam entradas para verifi
 & "<Godot_v4.x-stable_win64_console.exe>" --path game -- --demo-m8   # herói sofre dano até encher a barra, usa Limite, enche de novo e chama o Suporte
 & "<Godot_v4.x-stable_win64_console.exe>" --path game -- --demo-m10  # dungeon de teste: lê a placa, fala com o guia (Sim), abre os baús e a porta, aciona o interruptor, pisa nas armadilhas e assiste à cena final
 & "<Godot_v4.x-stable_win64_console.exe>" --path game -- --demo-m11  # chefe de teste da dungeon: começa direto na batalha, com o grupo forte e auto_battle; mostra a troca de fase, o anúncio, o contra-ataque, a parte revivida e os estados no HUD (--seed=N troca a semente)
-& "<Godot_v4.x-stable_win64_console.exe>" --headless --path game --fixed-fps 60 --quit-after 4000 -- --demo-fatia   # fatia inteira, do título à tela de fim (--seed=N e --speed=1 aceitos)
+& "<Godot_v4.x-stable_win64_console.exe>" --headless --path game --fixed-fps 60 --quit-after 6000 -- --demo-fatia   # fatia inteira, do título à tela de fim (--seed=N e --speed=1 aceitos)
 ```
 
 O `--demo-fatia` (M12) percorre a fatia inteira sozinho, do título à tela de fim: cidade, loja, recrutas, pousada com save e load, estrada, dungeon de dois andares, chefe e título. Ele roda na cena principal (`game_fatia.tscn`) com o perfil da fatia; os saves vão para `user://demo_saves/`, nunca para os slots reais.
@@ -234,6 +272,7 @@ As fórmulas do jogo foram escolhidas no M5 (ver [decisões do M5b](.claude/spec
 - [Relatório final](docs/balance/2026-10-19-relatorio-final.md): padrão escolhido, com as metas de vitória e duração.
 - [Relatório de opções](docs/balance/2026-10-19-relatorio-opcoes.md): as opções A/B/C de cada fórmula lado a lado (M5a).
 - [Relatório da fatia](docs/balance/2026-10-20-relatorio-fatia.md): ritmo de XP, moeda e metas do chefe da fatia vertical (M12).
+- [Relatório dos elementos](docs/balance/2026-10-22-relatorio-elementos.md): cenário elemental smart × basic e os ajustes de Vitalidade da fatia (M13).
 
 Para gerar os relatórios de novo, na raiz do repositório:
 

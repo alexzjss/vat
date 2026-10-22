@@ -1,6 +1,6 @@
 # Roteiro de desenvolvimento — núcleo, mecânicas e gameplay
 
-> **Data:** 2026-10-18 · **Estado:** M1 a M12 prontos (M12 é a fatia vertical, concluída em 2026-10-21). A base de mecânicas vem do M1 ao M11; o M12 junta tudo numa fatia jogável.
+> **Data:** 2026-10-18 · **Estado:** M1 a M13 prontos (M13 são os elementos, concluídos em 2026-10-22; M12 é a fatia vertical, concluída em 2026-10-21). A base de mecânicas vem do M1 ao M11; o M12 junta tudo numa fatia jogável.
 > **Foco:** continuar construindo **sistemas** (regras, mecânicas, ciclo de jogo) com formas simples, sem arte nem conteúdo narrativo. Cada item vira um marco com design → plano → implementação → revisão, como no M1 e no M2.
 > **Como usar:** escolha os itens que quer; a ordem recomendada está no fim. Itens marcados **(spec)** já existem como regra confirmada ou proposta na spec do jogo e só faltam implementar; **(novo)** são ideias que ainda não estão na spec.
 
@@ -128,6 +128,25 @@ Entregue: corrida e grupo em fila (Shift/X), fuga segurando Q (barra, sem XP, ch
 - O chefe deve ser mais longo ou mais difícil depois?
 - A diferença de nível entre os heróis (o Teste C fica para trás) deve ser corrigida?
 - A rota mínima (chegar ao chefe no nível 3) é aceitável?
+
+**M13 — Elementos** · **Concluído** (2026-10-22) · plano [`m13-elementos`](../.claude/plans/2026-10-22-m13-elementos.md) · relatório [`2026-10-22-relatorio-elementos`](balance/2026-10-22-relatorio-elementos.md)
+- Entregue:
+  - 9 elementos em `game/data/elements/` (`ElementDef`), com afinidade em %, em habilidades (um elemento), no ataque básico pela arma, em heróis e inimigos (até dois nativos) e no equipamento defensivo.
+  - Um único ponto de cálculo (`ElementMath`): bônus de mesmo elemento (×1,2), afinidade com Imune (0) e Absorveu (cura).
+  - Shukketsu (Sangue): roubo de vida, bônus com HP baixo e Sangramento. Radioativo: ignora afinidade, contaminação que estoura, corrói a Vitalidade e fere quem usa.
+  - Interface: popups Fraco!/Resistiu/Imune/Absorveu e "Contaminação!", elemento nos menus de comando, Técnicas, Equipar e Status, e painel de debug com elemento e multiplicador.
+  - Fatia: heróis com elemento próprio, inimigos com fraquezas e resistências, arma e acessório elementais, habilidade de Sangue e uma radioativa. O simulador `smart` prefere a fraqueza.
+- Todo número é valor de teste no `BalanceConfig`; o relatório mostra que o `smart` contra o inimigo fraco vence mais rápido que o `basic`.
+
+**Desvios e notas (M13):**
+- Os heróis da fatia são cópias `_f` (`teste_a_f` a `teste_e_f`), para a fatia ter elementos próprios; `data/test` fica neutro.
+- A corrosão da contaminação reduz o HP máximo sem cortar o HP atual; a tela corta o que passa do máximo.
+- Itens ainda não têm elemento.
+- A entrada Limite não mostra elemento (é criada sem ele), e as páginas de Técnicas e Equipar mostram o elemento em texto, sem cor.
+
+**Vai para o M14 (Marcas e reações):** marcas elementais que duram N turnos ATB do alvo (o mesmo elemento só renova), reações (matriz de 28 pares, com nomes e efeitos placeholder para revisão), ícone de marca no alvo, popup com o nome da reação e IA que busca combos. O gancho já existe: todo dano elemental passa por `ElementMath.resolve`, e cada hit grava `element` e `affinity`.
+
+**Vai para o M15 (Estados e efeitos fora da batalha):** Queimadura, Congelado, Molhado/Encharcado, Petrificação, Provocar, Berserk, Contagem (Doom) e Reflexo; resistência a estados em % por herói, inimigo e equipamento; veneno no mapa, puzzles elementais, terreno e clima elemental na batalha; bestiário e Scan.
 
 ## Ordem recomendada (original)
 
