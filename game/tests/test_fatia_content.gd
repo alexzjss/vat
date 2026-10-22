@@ -133,6 +133,7 @@ func test_shops_and_inn_are_wired() -> void:
 	assert_eq(keepers.size(), 1)
 	var shop: ShopDef = (keepers[0] as ShopKeeper).shop
 	assert_not_null(shop)
+	assert_eq((keepers[0] as ShopKeeper).greeting, PackedStringArray(["Texto de teste"]), "o lojista cumprimenta antes da loja")
 	assert_gt(shop.items.size(), 3)
 	assert_gt(shop.equipment.size(), 3)
 	for it: ItemDef in shop.items:

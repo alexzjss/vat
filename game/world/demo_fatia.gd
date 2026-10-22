@@ -324,7 +324,11 @@ func _at_shop(work: Callable) -> bool:
 	if not _check(keeper != null, "lojista"):
 		return false
 	await _stand_by(keeper)
-	if not _check(_map().try_interact() and game.shop_menu.is_open, "abrir a loja"):
+	# O lojista cumprimenta antes (fala na caixa de diálogo); a loja abre quando o evento termina.
+	if not _check(_map().try_interact() and not game.shop_menu.is_open and game.event_player.active, "lojista cumprimenta antes da loja"):
+		return false
+	await _drive()
+	if not _check(game.shop_menu.is_open, "abrir a loja"):
 		return false
 	await _milestone("loja aberta: %s" % game.shop_menu.title_text())
 	var ok: bool = await work.call()

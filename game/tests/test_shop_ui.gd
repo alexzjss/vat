@@ -314,6 +314,86 @@ func test_shop_ignores_second_request_while_open() -> void:
 	map.shop_requested.emit(shop)
 	assert_eq(m.stage, ShopMenu.Stage.BUY, "pedido repetido é ignorado e não reinicia a loja")
 
+# --- fala do lojista antes da loja --------------------------------------------------
+
+func _greeting_keeper(lines: PackedStringArray) -> ShopKeeper:
+	var k := ShopKeeper.new()
+	k.shop = shop
+	k.display_name = "Lojista"
+	k.greeting = lines
+	k.position = map.player.position + Vector2(30, 0)
+	map.add_interactable(k)
+	return k
+
+func test_keeper_with_greeting_talks_first_then_opens_the_shop() -> void:
+	await _enter_area()
+	_greeting_keeper(PackedStringArray(["Olá", "Veja"]))
+	assert_true(map.try_interact())
+	assert_false(game.shop_menu.is_open, "a loja só abre depois da fala")
+	assert_true(game.event_player.active)
+	var d: DialogueBox = game.event_player.dialogue
+	assert_true(d.is_open)
+	d.accept()
+	d.accept()
+	await _press(KEY_ENTER)
+	assert_true(d.is_open, "segunda linha")
+	await _press(KEY_ENTER)
+	assert_false(d.is_open)
+	assert_false(game.event_player.active)
+	assert_true(game.shop_menu.is_open, "a loja abriu ao fim da fala")
+	assert_eq(game.shop_menu.stage, ShopMenu.Stage.MAIN, "o Enter da fala não passou para a loja")
+	assert_eq(map.process_mode, Node.PROCESS_MODE_DISABLED)
+
+func test_greeting_enter_does_not_double_open_or_leak() -> void:
+	await _enter_area()
+	_greeting_keeper(PackedStringArray(["Texto de teste"]))
+	var p0: Vector2 = map.player.global_position
+	assert_true(map.try_interact())
+	await get_tree().process_frame
+	game.event_player.dialogue.accept()
+	game.event_player.dialogue.accept()
+	await get_tree().process_frame
+	assert_true(game.shop_menu.is_open)
+	var m: ShopMenu = game.shop_menu
+	m.accept()
+	m.cancel()
+	m.cancel()
+	assert_false(m.is_open)
+	await get_tree().process_frame
+	assert_false(m.is_open, "fechar não reabre")
+	assert_false(game.event_player.active)
+	assert_eq(map.player.global_position, p0)
+
+func test_escape_during_the_greeting_does_not_open_the_field_menu_nor_strand_the_player() -> void:
+	await _enter_area()
+	_greeting_keeper(PackedStringArray(["Olá"]))
+	assert_true(map.try_interact())
+	await _press(KEY_ESCAPE)
+	assert_false(game.menu.is_open, "Esc não abre o menu de campo na fala")
+	assert_false(game.shop_menu.is_open, "Esc não pula a fala")
+	assert_true(game.event_player.active)
+	await _press(KEY_ENTER)
+	await _press(KEY_ENTER)
+	assert_true(game.shop_menu.is_open)
+	await _press(KEY_ESCAPE)
+	assert_false(game.shop_menu.is_open)
+	assert_false(game.event_player.active)
+	assert_eq(map.process_mode, Node.PROCESS_MODE_INHERIT, "mapa livre de novo")
+	assert_true(map.player.enabled)
+
+func test_greeting_does_not_open_the_shop_if_the_event_is_cancelled() -> void:
+	await _enter_area()
+	_greeting_keeper(PackedStringArray(["Olá"]))
+	assert_true(map.try_interact())
+	map.locked = true
+	game.event_player.cancel()
+	assert_false(game.shop_menu.is_open)
+
+func test_keeper_without_greeting_still_opens_straight_away() -> void:
+	var m: ShopMenu = await _open_shop()
+	assert_true(m.is_open)
+	assert_false(game.event_player.active)
+
 # --- pousada ------------------------------------------------------------------------
 
 func _inn() -> Inn:

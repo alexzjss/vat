@@ -399,6 +399,7 @@ position = Vector2(1100, 520)
 script = ExtResource("e12")
 prompt = "Comprar"
 shop = ExtResource("e11")
+greeting = PackedStringArray("Texto de teste")
 display_name = "Lojista"
 
 [node name="Pousada" type="Area2D" parent="."]

@@ -20,6 +20,8 @@ signal inn_requested
 signal link_requested(target_map: StringName, target_spawn: StringName)
 ## Fim da batalha iniciada por um evento (StartBattle) com vitória ou fuga; derrota vira `game_over`.
 signal event_battle_finished(outcome: int)
+## Um evento terminou (ou foi cancelado) e o mapa foi descongelado; usado, por exemplo, pelo lojista para abrir a loja depois da fala.
+signal event_finished
 
 const BATTLE_SCENE: PackedScene = preload("res://battle/battle_scene.tscn")
 const MAP_RECT: Rect2 = Rect2(0, 0, 2400, 720)
@@ -208,6 +210,7 @@ func set_event_frozen(on: bool) -> void:
 	_event_end_frame = Engine.get_process_frames()
 	if battle == null and not locked:
 		_resume_world()
+	event_finished.emit()
 
 ## Desliza a câmera para `pos` durante um evento (volta ao jogador no fim).
 func event_camera_to(pos: Vector2, time: float) -> void:
