@@ -38,6 +38,23 @@ var resistances: Dictionary[StringName, float]:
 		return enemy_def.resistances if enemy_def != null else _resistances
 	set(v):
 		_resistances = v
+## Elementos (M13). Herois: guardados aqui (def + equipamento). Inimigos: leitura viva do EnemyDef.
+var _elements: Array[ElementDef] = []
+var _element_resist: Dictionary[StringName, float] = {}
+## Elemento da arma equipada (ataque basico sem elemento proprio); inimigos nao tem.
+var weapon_element: ElementDef
+## inimigo: leitura viva de enemy_def; o setter é ignorado
+var elements: Array[ElementDef]:
+	get:
+		return enemy_def.elements if enemy_def != null else _elements
+	set(v):
+		_elements = v
+## Afinidade total por id de elemento (heroi: base + equipamentos; inimigo: leitura viva do def).
+var element_resist: Dictionary[StringName, float]:
+	get:
+		return enemy_def.element_resist if enemy_def != null else _element_resist
+	set(v):
+		_element_resist = v
 var start_statuses: Array[StatusDef] = []
 var damage_taken_from: Dictionary[StringName, int] = {}
 ## Chefe (M11): ataque anunciado em preparacao (sai no proximo ATB cheio); nulo = nao esta preparando.
@@ -112,6 +129,10 @@ static func from_hero(h: HeroState, pos: Vector2) -> Combatant:
 	c.immunities = EquipmentRules.immunities(h.equipment)
 	c.resistances = EquipmentRules.resistances(h.equipment)
 	c.start_statuses = EquipmentRules.start_statuses(h.equipment)
+	c.elements = h.def.elements.duplicate()
+	c.element_resist = EquipmentRules.element_resist(h.def, h.equipment)
+	var w: EquipmentDef = h.equipment.get(&"weapon")
+	c.weapon_element = w.element if w != null else null
 	return c
 
 static func from_enemy(d: EnemyDef, enemy_id: StringName, pos: Vector2, cfg: BalanceConfig) -> Combatant:

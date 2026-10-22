@@ -12,3 +12,7 @@ extends Resource
 ## Tipos de arma que o herói usa; vazio = não usa armas com tipo.
 @export var weapon_types: Array[StringName] = []
 @export var starting_equipment: Array[EquipmentDef] = []
+## Elementos nativos (M13), no maximo 2: so dao o bonus de mesmo elemento.
+@export var elements: Array[ElementDef] = []
+## Afinidade base por id de elemento (ver EquipmentDef.element_resist).
+@export var element_resist: Dictionary[StringName, float] = {}

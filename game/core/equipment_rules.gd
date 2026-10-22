@@ -50,6 +50,16 @@ static func resistances(equipment: Dictionary[StringName, EquipmentDef]) -> Dict
 		out[id] = minf(1.0, out[id])
 	return out
 
+## Afinidade elemental total do heroi: base do def + soma dos equipamentos, sem limite (acima de 1.0 absorve).
+static func element_resist(d: CharacterDef, equipment: Dictionary[StringName, EquipmentDef]) -> Dictionary[StringName, float]:
+	var out: Dictionary[StringName, float] = d.element_resist.duplicate()
+	for e: EquipmentDef in equipment.values():
+		if e == null:
+			continue
+		for id: StringName in e.element_resist:
+			out[id] = float(out.get(id, 0.0)) + float(e.element_resist[id])
+	return out
+
 static func start_statuses(equipment: Dictionary[StringName, EquipmentDef]) -> Array[StatusDef]:
 	var out: Array[StatusDef] = []
 	var seen: Array[StringName] = []

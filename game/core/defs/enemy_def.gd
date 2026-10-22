@@ -27,3 +27,7 @@ enum Role { NORMAL, CORE, PART }
 ## Partes múltiplas: CORE vence a batalha ao cair (as PART caem junto); PART com `shields_core` protege o CORE.
 @export var role: Role = Role.NORMAL
 @export var shields_core: bool = false
+## Elementos nativos (M13), no maximo 2: so dao o bonus de mesmo elemento.
+@export var elements: Array[ElementDef] = []
+## Afinidade por id de elemento: 0.3 = sofre 30% menos, -0.5 = sofre 50% mais, 1.0 = imune, >1 absorve.
+@export var element_resist: Dictionary[StringName, float] = {}

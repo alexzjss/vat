@@ -14,3 +14,5 @@ enum Side { ENEMIES, ALLIES, BOTH }
 @export var cast_time: float = 1.0
 @export var impact_time: float = 0.5
 @export var effects: Array[EffectDef] = []
+## Elemento dos efeitos DAMAGE (M13); nulo = neutro (o ataque basico usa o da arma).
+@export var element: ElementDef

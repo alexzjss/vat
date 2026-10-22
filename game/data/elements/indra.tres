@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="ElementDef" format=3]
+
+[ext_resource type="Script" path="res://core/defs/element_def.gd" id="1_r"]
+
+[resource]
+script = ExtResource("1_r")
+id = &"indra"
+display_name = "Indra"
+short_name = "Raio"
+color = Color(0.949, 0.835, 0.188, 1)

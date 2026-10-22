@@ -103,6 +103,7 @@ enum DurationMode { A, B }
 @export var regen_pct: float = 0.05 # valor de teste (M11: fracao do HP maximo curada por ATB cheio, minimo 1)
 # Chefes (M11).
 @export var core_shield_mult: float = 0.25 # valor de teste (M11: multiplicador de dano no nucleo enquanto uma parte protetora esta de pe)
+@export var same_element_bonus: float = 1.2 # valor de teste (M13: multiplicador de dano quando o elemento efetivo e nativo do atacante)
 @export var sim_tick: float = 0.1 # valor de teste (simulador: passo de tempo por tick)
 @export var sim_max_seconds: float = 600.0 # valor de teste (simulador: limite de uma batalha, em segundos de jogo)
 

@@ -13,15 +13,15 @@ static func apply(a: PendingAction, b: BattleState) -> ActionResult:
 	var credit: StringName = a.turn_owner().id
 	for t: Combatant in r.targets:
 		for e: EffectDef in effects:
-			_apply_effect(e, a.actor, t, b, r, credit)
+			_apply_effect(e, a.actor, t, b, r, credit, a.ability)
 	# Chefe com nucleo: a queda do ultimo nucleo derruba as partes junto.
 	for p: Combatant in b.collapse_parts():
 		if not r.downed.has(p):
 			r.downed.append(p)
 	return r
 
-static func _hit(r: ActionResult, t: Combatant, kind: EffectDef.Kind, amount: int, dodged: bool, status_result: int, missed: bool = false, shielded: bool = false) -> void:
-	r.hits.append({"target_id": t.id, "kind": kind, "amount": amount, "dodged": dodged, "status_result": status_result, "missed": missed, "shielded": shielded})
+static func _hit(r: ActionResult, t: Combatant, kind: EffectDef.Kind, amount: int, dodged: bool, status_result: int, missed: bool = false, shielded: bool = false, element: StringName = &"", affinity: int = ElementMath.Affinity.NEUTRAL) -> void:
+	r.hits.append({"target_id": t.id, "kind": kind, "amount": amount, "dodged": dodged, "status_result": status_result, "missed": missed, "shielded": shielded, "element": element, "affinity": affinity})
 
 static func _scaled(e: EffectDef, actor: Combatant, attr: StringName, cfg: BalanceConfig) -> int:
 	if e.scale == EffectDef.Scale.FIXED:
@@ -29,7 +29,7 @@ static func _scaled(e: EffectDef, actor: Combatant, attr: StringName, cfg: Balan
 	return EffectMath.heal_amount(e, StatCalculator.effective(actor, attr, cfg))
 
 ## `credit` e quem recebe a contribuicao (o chamador, no Suporte; senao o ator).
-static func _apply_effect(e: EffectDef, actor: Combatant, t: Combatant, b: BattleState, r: ActionResult, credit: StringName) -> void:
+static func _apply_effect(e: EffectDef, actor: Combatant, t: Combatant, b: BattleState, r: ActionResult, credit: StringName, ability: AbilityDef = null) -> void:
 	var enemies_alive: Array[Combatant] = b.living(b.enemies)
 	match e.kind:
 		EffectDef.Kind.DAMAGE:
@@ -44,6 +44,16 @@ static func _apply_effect(e: EffectDef, actor: Combatant, t: Combatant, b: Battl
 				return
 			var attr: StringName = &"aura" if e.scale == EffectDef.Scale.AURA else &"strength"
 			var dmg: int = EffectMath.damage(e, StatCalculator.effective(actor, attr, b.cfg), StatCalculator.effective(t, &"vitality", b.cfg), t.equipment_mods.vitality, b.cfg, b.dice)
+			# Elemento (M13): bonus de mesmo elemento e afinidade, depois da variacao e antes do escudo do nucleo e da barreira.
+			var element: ElementDef = ElementMath.element_of(ability, actor)
+			var el_id: StringName = element.id if element != null else &""
+			var res: Dictionary = ElementMath.resolve(dmg, element, actor, t, b.cfg)
+			dmg = res["damage"]
+			var affinity: int = res["affinity"]
+			if affinity == ElementMath.Affinity.ABSORB:
+				# Absorver cura o alvo: sem barreira, Limite nem contribuicao.
+				_hit(r, t, EffectDef.Kind.HEAL, _restore(int(res["heal"]), t, b), false, -1, false, false, el_id, affinity)
+				return
 			# Nucleo protegido por uma parte: dano reduzido (minimo 1 se havia dano).
 			var shielded: bool = dmg > 0 and b.core_shielded(t)
 			if shielded:
@@ -58,7 +68,7 @@ static func _apply_effect(e: EffectDef, actor: Combatant, t: Combatant, b: Battl
 			if eff > 0:
 				t.gain_limit(eff, StatCalculator.hp_max(t, b.cfg), b.cfg)
 				b.statuses.on_hp_damage(t)
-			_hit(r, t, e.kind, eff, false, -1, false, shielded)
+			_hit(r, t, e.kind, eff, false, -1, false, shielded, el_id, affinity)
 			if t.is_down():
 				b.statuses.clear_all(t)
 				t.atb = 0.0

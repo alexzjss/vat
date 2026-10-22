@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="ElementDef" format=3]
+
+[ext_resource type="Script" path="res://core/defs/element_def.gd" id="1_r"]
+
+[resource]
+script = ExtResource("1_r")
+id = &"shukketsu"
+display_name = "Shukketsu"
+short_name = "Sangue"
+color = Color(0.702, 0.071, 0.180, 1)
+rule = 1

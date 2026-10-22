@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="ElementDef" format=3]
+
+[ext_resource type="Script" path="res://core/defs/element_def.gd" id="1_r"]
+
+[resource]
+script = ExtResource("1_r")
+id = &"radioativo"
+display_name = "Radioativo"
+short_name = "Radioativo"
+color = Color(0.608, 0.878, 0.165, 1)
+reacts = false
+rule = 2

@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="ElementDef" format=3]
+
+[ext_resource type="Script" path="res://core/defs/element_def.gd" id="1_r"]
+
+[resource]
+script = ExtResource("1_r")
+id = &"tsukuyomi"
+display_name = "Tsukuyomi"
+short_name = "Trevas"
+color = Color(0.478, 0.310, 0.710, 1)

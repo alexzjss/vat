@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="ElementDef" format=3]
+
+[ext_resource type="Script" path="res://core/defs/element_def.gd" id="1_r"]
+
+[resource]
+script = ExtResource("1_r")
+id = &"amaterasu"
+display_name = "Amaterasu"
+short_name = "Luz"
+color = Color(1.000, 0.941, 0.651, 1)
