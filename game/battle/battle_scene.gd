@@ -439,11 +439,17 @@ func _on_action_impact(a: PendingAction, r: ActionResult) -> void:
 
 ## Popups das reacoes (M14): nome acima do numero, dano extra, area, estados, ATB, curas e remocoes.
 func _show_reactions(a: PendingAction, r: ActionResult, attacker_slot: int) -> void:
+	# Um so mapa de andares para a acao inteira: alvos dos golpes e atacante ja comecam ocupados.
+	var slots: Dictionary = {}
+	for hit: Dictionary in r.hits:
+		var tid: StringName = hit["target_id"]
+		slots[tid] = maxi(int(slots.get(tid, 0)), CombatantView.popup_slots(hit))
+	slots[a.actor.id] = maxi(int(slots.get(a.actor.id, 0)), attacker_slot)
 	for hit: Dictionary in r.hits:
 		var def: ReactionDef = ReactionText.find_by_id(ctrl.b.reactions, hit.get("reaction", &""))
 		if def == null:
 			continue
-		for p: Dictionary in ReactionText.plan(hit, def, a.actor.id, CombatantView.popup_slots(hit), attacker_slot):
+		for p: Dictionary in ReactionText.plan(hit, def, a.actor.id, CombatantView.popup_slots(hit), attacker_slot, slots):
 			var pv: CombatantView = views.get(p["id"], _support_view if p["id"] == a.actor.id else null)
 			if pv != null:
 				pv.float_text(p["text"], p["color"], p["lift"], p["size"])

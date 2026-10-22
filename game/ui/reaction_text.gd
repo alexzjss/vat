@@ -39,14 +39,16 @@ static func removed_text(def: ReactionDef) -> String:
 
 ## Lista de popups da reacao do `hit` (vazia sem reacao). `target_slot`: andares ja usados no alvo pelo proprio golpe
 ## (CombatantView.popup_slots); `attacker_slot`: andares ja usados no atacante (roubo de vida, dano proprio).
-## O nome da reacao fica no topo da pilha do alvo.
-static func plan(hit: Dictionary, def: ReactionDef, attacker_id: StringName, target_slot: int, attacker_slot: int) -> Array[Dictionary]:
+## `slots` (id -> andares usados) pode ser compartilhado entre os hits da mesma acao: o plano o atualiza, e os ids
+## ja presentes mantem o valor. O nome da reacao fica no topo da pilha do alvo.
+static func plan(hit: Dictionary, def: ReactionDef, attacker_id: StringName, target_slot: int, attacker_slot: int, slots: Dictionary = {}) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	var fx: Dictionary = hit.get("reaction_effects", {})
 	if def == null or fx.is_empty():
 		return out
 	var target_id: StringName = hit["target_id"]
-	var slots: Dictionary = {target_id: target_slot}
+	if not slots.has(target_id):
+		slots[target_id] = target_slot
 	if not slots.has(attacker_id):
 		slots[attacker_id] = attacker_slot
 	var push: Callable = func(id: StringName, text: String, color: Color) -> void:
@@ -57,7 +59,10 @@ static func plan(hit: Dictionary, def: ReactionDef, attacker_id: StringName, tar
 	if extra > 0:
 		push.call(target_id, "Extra -%d" % extra, DAMAGE_COLOR)
 	for entry: Dictionary in fx.get("area", []):
-		push.call(entry["target_id"], "-%d" % int(entry["amount"]), DAMAGE_COLOR)
+		if int(entry["amount"]) > 0:
+			push.call(entry["target_id"], "-%d" % int(entry["amount"]), DAMAGE_COLOR)
+		elif bool(entry.get("blocked", false)):
+			push.call(entry["target_id"], "Bloqueado", Color.WHITE)
 	for entry: Dictionary in fx.get("statuses", []):
 		push.call(entry["target_id"], _status_text(def, entry), Color.WHITE)
 	var atb: Dictionary = fx.get("atb", {})

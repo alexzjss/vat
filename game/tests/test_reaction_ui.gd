@@ -137,6 +137,53 @@ func test_area_damage_goes_to_each_area_target() -> void:
 	assert_eq(_plan_texts(plan, &"z"), ["-7"] as Array[String])
 	assert_eq(_plan_texts(plan, &"x"), ["Sobrecarga"] as Array[String])
 
+func test_area_entry_with_zero_damage_shows_no_popup() -> void:
+	var fx: Dictionary = _fx({"area": [{"target_id": &"y", "amount": 0, "blocked": false}, {"target_id": &"z", "amount": 5, "blocked": false}]})
+	var plan: Array[Dictionary] = ReactionText.plan(_hit({"reaction_effects": fx}), _def(), &"a", 1, 0)
+	assert_eq(_plan_texts(plan, &"y"), [] as Array[String], "sem popup -0")
+	assert_eq(_plan_texts(plan, &"z"), ["-5"] as Array[String])
+
+func test_area_entry_absorbed_by_a_barrier_shows_blocked() -> void:
+	var fx: Dictionary = _fx({"area": [{"target_id": &"y", "amount": 0, "blocked": true}]})
+	var plan: Array[Dictionary] = ReactionText.plan(_hit({"reaction_effects": fx}), _def(), &"a", 1, 0)
+	assert_eq(_plan_texts(plan, &"y"), ["Bloqueado"] as Array[String])
+
+func test_shared_slots_keep_popups_of_several_hits_apart() -> void:
+	# Dois golpes (x e y) e a area do primeiro tambem pega y: com um so mapa de andares, os lifts de y diferem.
+	var slots: Dictionary = {&"x": 1, &"y": 1, &"a": 0}
+	var h1: Dictionary = _hit({"target_id": &"x", "reaction_effects": _fx({"extra_damage": 10, "area": [{"target_id": &"y", "amount": 7, "blocked": false}]})})
+	var h2: Dictionary = _hit({"target_id": &"y", "reaction_effects": _fx({"extra_damage": 9})})
+	var p1: Array[Dictionary] = ReactionText.plan(h1, _def(), &"a", 1, 0, slots)
+	var p2: Array[Dictionary] = ReactionText.plan(h2, _def(), &"a", 1, 0, slots)
+	var lifts: Array[float] = []
+	for p: Dictionary in p1 + p2:
+		if p["id"] == &"y" and p["size"] == 0:
+			lifts.append(p["lift"])
+	assert_eq(lifts.size(), 2)
+	assert_ne(lifts[0], lifts[1], "a area em y e o extra do segundo golpe nao se sobrepoem")
+	assert_eq(lifts[0], 1.0 * CombatantView.LABEL_LIFT)
+	assert_eq(lifts[1], 2.0 * CombatantView.LABEL_LIFT)
+
+func test_scene_stacks_popups_across_hits_of_one_action() -> void:
+	var s: BattleScene = _scene()
+	var t1: Combatant = s.ctrl.b.enemies[0]
+	var t2: Combatant = s.ctrl.b.enemies[1]
+	var table := ReactionTable.new()
+	table.reactions = [_def()] as Array[ReactionDef]
+	s.ctrl.b.reactions = table
+	var r := ActionResult.new()
+	r.hits.append(_hit({"target_id": t1.id, "reaction_effects": _fx({"area": [{"target_id": t2.id, "amount": 4, "blocked": false}]})}))
+	r.hits.append(_hit({"target_id": t2.id, "reaction_effects": _fx({"extra_damage": 9})}))
+	var pa := PendingAction.new()
+	pa.actor = s.ctrl.b.heroes[0]
+	s._show_reactions(pa, r, 0)
+	var ys: Array[float] = []
+	for n: Node in s.views[t2.id].get_children():
+		if n is Label and ((n as Label).text == "-4" or (n as Label).text == "Extra -9"):
+			ys.append((n as Label).position.y)
+	assert_eq(ys.size(), 2)
+	assert_ne(ys[0], ys[1])
+
 func test_status_results_use_the_status_popup_style() -> void:
 	var slow := StatusDef.new()
 	slow.id = &"slow"
