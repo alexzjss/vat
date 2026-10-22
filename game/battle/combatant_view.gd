@@ -24,6 +24,8 @@ const BLEED_COLOR: Color = Color(0.85, 0.12, 0.2)
 const SELF_DAMAGE_COLOR: Color = Color(1.0, 0.55, 0.45)
 ## Altura (acima do numero) do rotulo de afinidade / nome do efeito.
 const LABEL_LIFT: float = 22.0
+## Os numeros comecam acima do nome e da linha Protegido/Preparando (valor de teste).
+const POPUP_RISE: float = 26.0
 const STATUS_LABELS: Dictionary[StatusDef.Kind, String] = {
 	StatusDef.Kind.POISON: "VEN",
 	StatusDef.Kind.SLEEP: "SONO",
@@ -37,6 +39,7 @@ const STATUS_LABELS: Dictionary[StatusDef.Kind, String] = {
 	StatusDef.Kind.SILENCE: "SIL",
 	StatusDef.Kind.BLIND: "CEG",
 	StatusDef.Kind.REGEN: "REG",
+	StatusDef.Kind.BLEED: "SANG",
 }
 ## Buff/debuff: abreviação do atributo + sinal da potência (FOR+, VEL-...).
 const ATTR_LABELS: Dictionary[StringName, String] = {
@@ -206,7 +209,7 @@ func float_text(text: String, color: Color, lift: float = 0.0) -> void:
 	var label := Label.new()
 	label.text = text
 	label.modulate = color
-	label.position = Vector2(-20.0, -SIZE - lift)
+	label.position = Vector2(-20.0, -SIZE - POPUP_RISE - lift)
 	add_child(label)
 	var tw: Tween = label.create_tween()
 	tw.tween_property(label, "position:y", label.position.y - 40.0, 0.8)

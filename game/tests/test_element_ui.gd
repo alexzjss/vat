@@ -139,6 +139,12 @@ func test_bleed_tick_shows_number_and_label() -> void:
 	v.show_bleed(6)
 	assert_eq(_texts(v), ["-6", "Sangramento"] as Array[String])
 
+func test_bleed_status_has_a_short_hud_label_and_a_menu_name() -> void:
+	var s: StatusDef = Fixtures.status_def(StatusDef.Kind.BLEED, 4, 20)
+	s.id = &"bleed"
+	assert_eq(CombatantView.status_label(ActiveStatus.create(s, &"x", 0)), "SANG")
+	assert_eq(EquipPage.STATUS_NAMES.get(&"bleed"), "Sangramento")
+
 func test_contamination_indicator_hidden_at_zero() -> void:
 	var v: CombatantView = _view()
 	assert_eq(v.contamination_text(), "")
