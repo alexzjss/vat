@@ -60,7 +60,7 @@
 17. **Debug:** a marca de cada combatente, a última reação e o cálculo do dano extra.
 18. **Menu de campo:** fica para o M15, junto com o bestiário (uma página "Reações" com as que o jogador já viu).
 
-## Matriz das 28 reações (proposta para revisão)
+## Matriz das 28 reações (aprovada pelo usuário em 2026-10-22)
 
 Elementos que reagem: **Kagutsuchi (Fogo)**, **Susanoo (Água)**, **Fuhaku (Vento)**, **Atlas (Terra)**, **Indra (Raio)**, **Tsukuyomi (Trevas)**, **Amaterasu (Luz)**, **Shukketsu (Sangue)**. O Radioativo fica de fora.
 
@@ -80,7 +80,7 @@ Leitura das colunas:
 | 5 | Fogo + Trevas | Chama Negra | +20% | Veneno (70%) → M15 Queimadura | — | — | — | Trevas |
 | 6 | Fogo + Luz | Supernova | +80% | — | — | — | — | — |
 | 7 | Fogo + Sangue | Ferver | +20% | Sangramento (100%) | — | — | — | Sangue |
-| 8 | Água + Vento | Tempestade | — | — | 30% G | A −15% (e na área) | — | — |
+| 8 | Água + Vento | Tempestade | — | — | 30% G | A −15% | — | — |
 | 9 | Água + Terra | Lama | — | Lentidão (100%) | — | — | — | Terra |
 | 10 | Água + Raio | Eletrocutar | +30% | Paralisia (60%) | — | — | — | — |
 | 11 | Água + Trevas | Abismo | +10% | Silêncio (60%) | — | — | — | Trevas |
