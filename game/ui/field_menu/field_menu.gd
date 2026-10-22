@@ -11,14 +11,14 @@ signal closed
 ## Alguma configuração mudou (página Config): quem hospeda persiste e aplica.
 signal settings_changed
 
-const COMMANDS: Array[String] = ["Itens", "Técnicas", "Equipar", "Status", "Atributos", "Formação", "Salvar", "Config", "Fechar"]
-const COMMAND_PAGES: Array[StringName] = [&"items", &"techniques", &"equip", &"status", &"attributes", &"formation", &"save", &"config", &""]
+const COMMANDS: Array[String] = ["Itens", "Técnicas", "Equipar", "Status", "Bestiário", "Reações", "Atributos", "Formação", "Salvar", "Config", "Fechar"]
+const COMMAND_PAGES: Array[StringName] = [&"items", &"techniques", &"equip", &"status", &"bestiary", &"reactions", &"attributes", &"formation", &"save", &"config", &""]
 const PAGE_TITLES: Dictionary[StringName, String] = {
-	&"items": "Itens", &"techniques": "Técnicas", &"equip": "Equipar", &"status": "Status",
+	&"items": "Itens", &"techniques": "Técnicas", &"equip": "Equipar", &"status": "Status", &"bestiary": "Bestiário", &"reactions": "Reações",
 	&"attributes": "Atributos", &"formation": "Formação", &"save": "Salvar", &"config": "Config",
 }
-const ATTRIBUTES_INDEX: int = 4
-const SAVE_INDEX: int = 6
+const ATTRIBUTES_INDEX: int = 6
+const SAVE_INDEX: int = 8
 const ENABLED_COLOR: Color = Color(1.0, 1.0, 1.0)
 const DISABLED_COLOR: Color = Color(0.45, 0.45, 0.5)
 const CURSOR_COLOR: Color = Color(1.0, 0.85, 0.3)
@@ -37,6 +37,8 @@ var item_page: ItemPage
 var technique_page: TechniquePage
 var equip_page: EquipPage
 var status_page: StatusPage
+var bestiary_page: BestiaryPage
+var reactions_page: ReactionsPage
 var attributes_page: AttributesPage
 var formation_page: FormationPage
 var config_page: ConfigPage
@@ -260,12 +262,15 @@ func _build() -> void:
 	technique_page = TechniquePage.new()
 	equip_page = EquipPage.new()
 	status_page = StatusPage.new()
+	bestiary_page = BestiaryPage.new()
+	reactions_page = ReactionsPage.new()
 	attributes_page = AttributesPage.new()
 	formation_page = FormationPage.new()
 	save_page = SavePage.new()
 	config_page = ConfigPage.new()
 	var pages: Dictionary[StringName, FieldPage] = {
 		&"items": item_page, &"techniques": technique_page, &"equip": equip_page, &"status": status_page,
+		&"bestiary": bestiary_page, &"reactions": reactions_page,
 		&"attributes": attributes_page, &"formation": formation_page,
 		&"save": save_page, &"config": config_page,
 	}

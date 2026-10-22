@@ -27,6 +27,11 @@ const MARK_RADIUS: float = 10.0
 const MARK_CENTER: Vector2 = Vector2(SIZE / 2.0 + 18.0, -4.0)
 ## Altura (acima do numero) do rotulo de afinidade / nome do efeito.
 const LABEL_LIFT: float = 22.0
+const SCAN_COLOR: Color = Color(0.6, 0.9, 1.0)
+const SCAN_SECONDS: float = 3.0
+## Linha de estados: tamanho da fonte e largura maxima antes de quebrar (centrada na barra).
+const STATUS_SIZE: int = 12
+const STATUS_MAX_W: float = 150.0
 ## Os numeros comecam acima do nome e da linha Protegido/Preparando (valor de teste).
 const POPUP_RISE: float = 26.0
 const STATUS_LABELS: Dictionary[StatusDef.Kind, String] = {
@@ -116,7 +121,9 @@ func _draw() -> void:
 		y += BAR_H + 4.0
 		_bar(Vector2(x0, y), clampf(combatant.limit, 0.0, 1.0), limit_color())
 	y += BAR_H + 16.0
-	draw_string(font, Vector2(x0, y), status_text(), HORIZONTAL_ALIGNMENT_CENTER, BAR_W, 12)
+	for line: String in status_lines(font, STATUS_SIZE, STATUS_MAX_W):
+		draw_string(font, Vector2(-STATUS_MAX_W / 2.0, y), line, HORIZONTAL_ALIGNMENT_CENTER, STATUS_MAX_W, STATUS_SIZE)
+		y += STATUS_SIZE + 2.0
 
 ## HP exibido: a corrosao da contaminacao pode deixar o HP acima do maximo por instantes; so a vista limita.
 func hp_shown() -> int:
@@ -167,6 +174,22 @@ func _bar(origin: Vector2, ratio: float, color: Color) -> void:
 	draw_rect(Rect2(origin, Vector2(BAR_W, BAR_H)), Color(0.15, 0.15, 0.15))
 	draw_rect(Rect2(origin, Vector2(BAR_W * ratio, BAR_H)), color)
 
+## Estados em linhas de no maximo `max_w` de largura (varios estados nao saem cortados; quebra entre rotulos).
+func status_lines(font: Font, size: int, max_w: float) -> PackedStringArray:
+	var lines: PackedStringArray = PackedStringArray()
+	var cur: String = ""
+	for s: ActiveStatus in combatant.statuses:
+		var part: String = status_label(s)
+		var tryline: String = part if cur == "" else cur + " " + part
+		if cur != "" and font.get_string_size(tryline, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x > max_w:
+			lines.append(cur)
+			cur = part
+		else:
+			cur = tryline
+	if cur != "":
+		lines.append(cur)
+	return lines
+
 func status_text() -> String:
 	var parts: PackedStringArray = []
 	for s: ActiveStatus in combatant.statuses:
@@ -201,6 +224,9 @@ static func popup_slots(hit: Dictionary) -> int:
 func show_hit(hit: Dictionary) -> void:
 	var kind: EffectDef.Kind = hit["kind"]
 	var amount: int = hit["amount"]
+	if hit.get("scan", false):
+		show_scan(hit.get("scan_info", {}))
+		return
 	if hit.get("petrified", false):
 		float_text("Pedra", Color.WHITE)
 		return
@@ -240,6 +266,33 @@ func show_hit(hit: Dictionary) -> void:
 				float_text("Imune", Color.WHITE)
 			elif res == StatusSystem.ApplyResult.RESISTED:
 				float_text("Resistiu", Color.WHITE)
+
+## Popup do Scan (M15): painel de varias linhas (uma por afinidade) acima do alvo; some depois de `SCAN_SECONDS`.
+func show_scan(info: Dictionary) -> void:
+	var lines: Array[String] = BestiaryText.scan_parts(info)
+	lines.insert(0, "Scan")
+	var panel := PanelContainer.new()
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.05, 0.07, 0.14, 0.92)
+	style.border_color = SCAN_COLOR
+	style.set_border_width_all(1)
+	style.set_corner_radius_all(4)
+	style.set_content_margin_all(5.0)
+	panel.add_theme_stylebox_override("panel", style)
+	var label := Label.new()
+	label.text = "\n".join(lines)
+	label.add_theme_font_size_override("font_size", 13)
+	label.add_theme_color_override("font_color", SCAN_COLOR)
+	panel.add_child(label)
+	add_child(panel)
+	var size: Vector2 = panel.get_combined_minimum_size()
+	panel.position = Vector2(-size.x / 2.0, -SIZE - POPUP_RISE - size.y - 14.0)
+	# Nao sai pelo topo da tela (alvo na fileira de cima).
+	panel.position.y = maxf(panel.position.y, 4.0 - global_position.y)
+	var tw: Tween = panel.create_tween()
+	tw.tween_interval(SCAN_SECONDS)
+	tw.tween_property(panel, "modulate:a", 0.0, 0.5)
+	tw.tween_callback(panel.queue_free)
 
 ## Efeitos do golpe sobre o atacante: roubo de vida (verde) e dano que o proprio golpe causa nele.
 func show_attacker_effects(lifesteal: int, self_damage: int) -> void:

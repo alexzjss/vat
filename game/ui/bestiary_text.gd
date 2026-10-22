@@ -121,6 +121,50 @@ static func reaction_summary(def: ReactionDef) -> String:
 		parts.append("fica %s" % ElementText.tag(def.keep))
 	return SEP.join(parts) if not parts.is_empty() else NONE
 
+## Segmentos do popup do Scan a partir de `scan_info` (ActionExecutor.scan_info): "Fraco a Fogo, Água", "Resiste Terra",
+## "Absorve Raio", "Imune Sono" (elementos e estados anulados juntos) e "Estados Veneno 30%". Sem nada: ["Sem fraquezas"].
+static func scan_parts(info: Dictionary) -> Array[String]:
+	var weak: PackedStringArray = PackedStringArray()
+	var resist: PackedStringArray = PackedStringArray()
+	var immune: PackedStringArray = PackedStringArray()
+	var absorb: PackedStringArray = PackedStringArray()
+	var er: Dictionary = info.get("element_resist", {})
+	for id: StringName in ElementText.nonzero_ids(er):
+		var name: String = ElementText.short_name_of(id)
+		match ElementMath.affinity_of(float(er[id])):
+			ElementMath.Affinity.WEAK:
+				weak.append(name)
+			ElementMath.Affinity.RESIST:
+				resist.append(name)
+			ElementMath.Affinity.IMMUNE:
+				immune.append(name)
+			ElementMath.Affinity.ABSORB:
+				absorb.append(name)
+	for id: StringName in info.get("absorbs", []):
+		if not absorb.has(ElementText.short_name_of(id)):
+			absorb.append(ElementText.short_name_of(id))
+	for id: StringName in info.get("immunities", []):
+		immune.append(EquipPage.status_name(id))
+	var out: Array[String] = []
+	if not weak.is_empty():
+		out.append("Fraco a " + ", ".join(weak))
+	if not resist.is_empty():
+		out.append("Resiste " + ", ".join(resist))
+	if not absorb.is_empty():
+		out.append("Absorve " + ", ".join(absorb))
+	if not immune.is_empty():
+		out.append("Imune " + ", ".join(immune))
+	var st: String = status_resist_text(info.get("resistances", {}), info.get("immunities", [] as Array[StringName]))
+	if st != "":
+		out.append("Estados " + st)
+	if out.is_empty():
+		out.append("Sem fraquezas")
+	return out
+
+## Popup do Scan numa linha: "Scan: Fraco a Fogo, Água · Resiste Terra · Absorve Raio · Imune Sono".
+static func scan_text(info: Dictionary) -> String:
+	return "Scan: " + SEP.join(scan_parts(info))
+
 ## "P", "M" ou "G" pelo raio da area.
 static func area_size(radius: float) -> String:
 	if radius <= AREA_SMALL:

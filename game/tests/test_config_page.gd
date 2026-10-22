@@ -51,4 +51,4 @@ func test_left_right_change_values() -> void:
 func test_cancel_returns_to_root() -> void:
 	menu.cancel()
 	assert_eq(menu.page, &"root")
-	assert_eq(menu.cursor, 7)
+	assert_eq(menu.cursor, 9)

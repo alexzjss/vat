@@ -29,7 +29,7 @@ func _run(game: Game) -> void:
 	for path: String in DEMO_BAG:
 		state.bag.add(load(path) as EquipmentDef)
 	state.heroes[0].equipment[&"accessory"] = load(DEMO_BAG[2]) as EquipmentDef
-	# Raiz → Itens com alvo → Equipar (espaços, itens com prévia) → Status → Formação.
+	# Raiz → Itens com alvo → Equipar (espaços, itens com prévia) → Status → Bestiário → Reações → Formação.
 	await get_tree().create_timer(1.5, true).timeout
 	menu.cursor = 0
 	menu.accept()
@@ -51,6 +51,16 @@ func _run(game: Game) -> void:
 	menu.status_page.accept()
 	await get_tree().create_timer(1.5, true).timeout
 	menu.cancel()
+	menu.cancel()
+	menu.cursor = FieldMenu.COMMAND_PAGES.find(&"bestiary")
+	menu.accept()
+	menu.bestiary_page.move(1)
+	await get_tree().create_timer(1.5, true).timeout
+	menu.cancel()
+	menu.cursor = FieldMenu.COMMAND_PAGES.find(&"reactions")
+	menu.accept()
+	menu.reactions_page.move(1)
+	await get_tree().create_timer(1.5, true).timeout
 	menu.cancel()
 	menu.cursor = FieldMenu.COMMAND_PAGES.find(&"formation")
 	menu.accept()
