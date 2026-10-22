@@ -100,6 +100,24 @@ static func run_elemental(runs: int) -> Array[SimMetrics]:
 			out.append(SimRunner.run(elemental_scenario(p, weak, runs)))
 	return out
 
+## Cenario de reacoes (M14): o grupo da fatia contra um encontro da fatia, em tres versoes:
+## smart com reacoes, smart sem reacoes (tabela vazia) e basic (que ignora marcas; os inimigos reagem normalmente).
+const REACTION_CASES: Array[Dictionary] = [{"enc": "enc_f34", "level": 5}, {"enc": "chefe_fatia", "level": 5}]
+const REACTION_VARIANTS: Array[String] = ["smart com reacoes", "smart sem reacoes", "basic com reacoes"]
+
+static func reaction_scenario(enc: String, level: int, variant: int, runs: int) -> SimScenario:
+	var policy: StringName = &"basic" if variant == 2 else &"smart"
+	var s: SimScenario = make_scenario(enc, level, policy, runs, "N%d %s %s" % [level, enc, REACTION_VARIANTS[variant]])
+	s.no_reactions = variant == 1
+	return s
+
+## Ordem de REACTION_VARIANTS.
+static func run_reactions(enc: String, level: int, runs: int) -> Array[SimMetrics]:
+	var out: Array[SimMetrics] = []
+	for v: int in REACTION_VARIANTS.size():
+		out.append(SimRunner.run(reaction_scenario(enc, level, v, runs)))
+	return out
+
 ## Linha rapida para depuracao (`-fatia -quick`): imprime comuns e chefe sem escrever relatorio.
 static func quick(runs: int, route_runs: int) -> void:
 	for c: Dictionary in COMMON_CASES:
@@ -111,6 +129,10 @@ static func quick(runs: int, route_runs: int) -> void:
 	var el_names: Array[String] = ["basic neutro", "smart neutro", "basic fraco", "smart fraco"]
 	for i: int in el.size():
 		print("[elemental] N%d %-12s win %3.0f%% dur %5.1f s hp %3.0f%%" % [ELEM_LEVEL, el_names[i], el[i].win_rate() * 100.0, el[i].mean_duration(), el[i].mean_party_hp_pct() * 100.0])
+	for rc: Dictionary in REACTION_CASES:
+		var rs: Array[SimMetrics] = run_reactions(str(rc["enc"]), int(rc["level"]), runs)
+		for i: int in rs.size():
+			print("[reacoes] N%d %-11s %-18s win %3.0f%% dur %5.1f s hp %3.0f%%" % [int(rc["level"]), str(rc["enc"]), REACTION_VARIANTS[i], rs[i].win_rate() * 100.0, rs[i].mean_duration(), rs[i].mean_party_hp_pct() * 100.0])
 	for lv: int in BOSS_LEVELS:
 		var bs: Array[SimMetrics] = run_case(BOSS_ENC, lv, runs)
 		for i: int in POLICIES.size():

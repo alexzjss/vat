@@ -82,3 +82,11 @@ func test_smart_policy_never_picks_an_absorbing_target() -> void:
 	assert_eq(SimPolicy._best_element_target(actor, ab, only), absorber, "so ha o absorve: nao trava")
 	assert_almost_eq(SimPolicy.elem_mult(actor, ab, weak), 1.5, 0.001)
 	assert_lte(SimPolicy.elem_mult(actor, ab, absorber), 0.0)
+
+func test_reaction_scenario_runs_three_variants() -> void:
+	var ms: Array[SimMetrics] = SimFatia.run_reactions("enc_f34", 5, 2)
+	assert_eq(ms.size(), SimFatia.REACTION_VARIANTS.size())
+	for m: SimMetrics in ms:
+		assert_eq(m.runs, 2)
+	assert_true(SimFatia.reaction_scenario("enc_f34", 5, 1, 1).no_reactions)
+	assert_false(SimFatia.reaction_scenario("enc_f34", 5, 0, 1).no_reactions)

@@ -48,6 +48,8 @@ static func _smart(session: SelectionSession, b: BattleState) -> PendingAction:
 	if a == null:
 		a = _area(session, b)
 	if a == null:
+		a = _reaction(session, b)
+	if a == null:
 		a = _weakness(session)
 	if a == null:
 		a = _status(session, b)
@@ -75,6 +77,41 @@ static func _best_element_target(actor: Combatant, ab: AbilityDef, cands: Array[
 			best = c
 			best_m = m
 	return best
+
+## Reacao (M14): tecnica elemental ofensiva num alvo cuja marca reage com o elemento dela (e o golpe marcaria).
+## Prefere o maior multiplicador elemental (fraqueza), depois o menor HP; nunca com imune/absorve na area.
+## Nao mira o nucleo de chefe protegido por uma parte. Fica depois da area e antes da fraqueza.
+## Sem marca reagente, tabela vazia ou dados neutros: nao faz nada (a fraqueza e as outras regras decidem).
+static func _reaction(session: SelectionSession, b: BattleState) -> PendingAction:
+	var best_ab: AbilityDef = null
+	var best_c: Combatant = null
+	var best_m: float = 0.0
+	for ab: AbilityDef in session.actor.abilities:
+		var el: ElementDef = ElementMath.element_of(ab, session.actor)
+		if el == null or ab.side != AbilityDef.Side.ENEMIES or ab.ap_cost <= 0 or not _has_effect(ab.effects, EffectDef.Kind.DAMAGE):
+			continue
+		if not session.can_use(ab) or not session.choose_ability(ab):
+			continue
+		for c: Combatant in session.target_candidates():
+			if c.is_down() or b.core_shielded(c) or not MarkRules.has_other(c, el) or ReactionRules.find(b.reactions, c.mark, el) == null:
+				continue
+			var m: float = elem_mult(session.actor, ab, c)
+			if m <= 0.0 or not MarkRules.marks(el, ElementMath.affinity_of(ElementMath.total_resist(el, c))):
+				continue
+			session.set_center(c)
+			var ok: bool = true
+			for t: Combatant in session.preview_area():
+				if elem_mult(session.actor, ab, t) <= 0.0:
+					ok = false
+			if ok and (best_c == null or m > best_m + 0.0001 or (is_equal_approx(m, best_m) and c.hp < best_c.hp)):
+				best_ab = ab
+				best_c = c
+				best_m = m
+		session.back()
+	if best_ab == null or not session.choose_ability(best_ab):
+		return null
+	session.set_center(best_c)
+	return session.confirm()
 
 ## Tecnica elemental ofensiva no alvo mais fraco ao elemento (M13): so quando ha fraqueza (multiplicador > 1),
 ## nunca com imune/absorve na area. Neutro/sem fraqueza: nao faz nada (as outras regras decidem).

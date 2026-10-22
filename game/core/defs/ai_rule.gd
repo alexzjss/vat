@@ -2,9 +2,11 @@ class_name AiRule
 extends Resource
 
 ## Novos valores sempre no fim (os .tres guardam o índice).
-enum Condition { ALWAYS, ALLY_HP_BELOW, PART_DOWN }
+## CAN_REACT (M14): algum alvo vivo da habilidade da regra tem uma marca que reage com o elemento dela.
+enum Condition { ALWAYS, ALLY_HP_BELOW, PART_DOWN, CAN_REACT }
 ## NEAREST/FARTHEST: pela distância ao ator; CLUSTER: o centro que pega mais alvos na área da habilidade (empate: o primeiro).
-enum TargetPick { LOWEST_HP_ENEMY, RANDOM_ENEMY, LOWEST_HP_ALLY, SELF, NEAREST, FARTHEST, CLUSTER }
+## REACTION_TARGET (M14): o alvo com marca reagente (empate: menor HP); em area, o centro que pega um alvo reagente.
+enum TargetPick { LOWEST_HP_ENEMY, RANDOM_ENEMY, LOWEST_HP_ALLY, SELF, NEAREST, FARTHEST, CLUSTER, REACTION_TARGET }
 
 @export var condition: Condition = Condition.ALWAYS
 ## Fração do HP máx.

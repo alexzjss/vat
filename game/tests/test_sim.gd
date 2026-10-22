@@ -347,3 +347,62 @@ func test_statuses_applied_and_resisted_counts() -> void:
 	var m2: SimMetrics = SimRunner.run(s)
 	assert_eq(m2.statuses_applied, m.statuses_applied)
 	assert_eq(m2.statuses_resisted, m.statuses_resisted)
+
+# --- smart e reacoes (M14, Task 4) -----------------------------------------------------------
+
+func _reaction_setup(basic_policy: bool = false) -> Array:
+	var cfg := Fixtures.cfg()
+	var fire := ElementDef.new()
+	fire.id = &"fire"
+	var water := ElementDef.new()
+	water.id = &"water"
+	var d := Fixtures.hero_def(&"a", Stats.make(10, 5, 5, 3))
+	var wave := Fixtures.hit(1.0)
+	wave.id = &"wave"
+	wave.ap_cost = 2
+	wave.element = water
+	Fixtures.set_abilities(d, [wave])
+	var hero := Combatant.from_hero(HeroState.create(d, cfg), Vector2(300, 135))
+	var weak: Combatant = _foe(&"x", Vector2(900, 200), cfg)
+	weak.element_resist[&"water"] = -0.5
+	var marked: Combatant = _foe(&"y", Vector2(900, 360), cfg)
+	MarkRules.set_mark(marked, fire, 3)
+	var b := BattleState.create(cfg, Dice.new(1), [hero] as Array[Combatant], [weak, marked] as Array[Combatant])
+	var rd := ReactionDef.new()
+	rd.id = &"steam"
+	rd.a = fire
+	rd.b = water
+	var t := ReactionTable.new()
+	t.reactions = [rd] as Array[ReactionDef]
+	b.reactions = t
+	return [b, hero, weak, marked, wave]
+
+func test_smart_prefers_reaction_over_weakness() -> void:
+	var s := _reaction_setup()
+	var b: BattleState = s[0]
+	var a: PendingAction = SimPolicy.decide(SelectionSession.new(s[1], b), b, &"smart")
+	assert_eq(a.ability, s[4])
+	assert_eq(a.center, s[3])
+
+func test_smart_falls_back_to_weakness_without_a_reaction() -> void:
+	var s := _reaction_setup()
+	var b: BattleState = s[0]
+	b.reactions = ReactionTable.new()
+	var a: PendingAction = SimPolicy.decide(SelectionSession.new(s[1], b), b, &"smart")
+	assert_eq(a.ability, s[4])
+	assert_eq(a.center, s[2])
+
+func test_smart_never_reacts_into_immunity() -> void:
+	var s := _reaction_setup()
+	var b: BattleState = s[0]
+	(s[3] as Combatant).element_resist[&"water"] = 1.0
+	var a: PendingAction = SimPolicy.decide(SelectionSession.new(s[1], b), b, &"smart")
+	assert_eq(a.center, s[2])
+
+func test_basic_ignores_marks() -> void:
+	var s := _reaction_setup()
+	var b: BattleState = s[0]
+	(s[2] as Combatant).hp = 1
+	var a: PendingAction = SimPolicy.decide(SelectionSession.new(s[1], b), b, &"basic")
+	assert_eq(a.ability, (s[1] as Combatant).basic_attack)
+	assert_eq(a.center, s[2])

@@ -66,6 +66,8 @@ static func _condition_holds(rule: AiRule, actor: Combatant, b: BattleState) -> 
 			if c.is_down() and c.enemy_def != null and c.enemy_def.role == EnemyDef.Role.PART:
 				return true
 		return false
+	if rule.condition == AiRule.Condition.CAN_REACT:
+		return not _reacting_targets(rule.ability, actor, b).is_empty()
 	return true
 
 static func _below(arr: Array[Combatant], threshold: float, b: BattleState) -> Array[Combatant]:
@@ -91,6 +93,8 @@ static func _pick_center(rule: AiRule, actor: Combatant, b: BattleState) -> Comb
 			return _by_distance(cands, actor, true)
 		AiRule.TargetPick.CLUSTER:
 			return _cluster(rule.ability, cands, actor, b)
+		AiRule.TargetPick.REACTION_TARGET:
+			return _reaction_center(a, cands, actor, b)
 	if rule.condition == AiRule.Condition.ALLY_HP_BELOW:
 		# [P-plano] 19: o alvo é um aliado abaixo do limiar, o de menor fração de HP.
 		return _lowest_hp_ratio(_below(cands, rule.threshold, b), b)
@@ -137,3 +141,23 @@ static func _lowest_hp(arr: Array[Combatant]) -> Combatant:
 		if best == null or c.hp < best.hp:
 			best = c
 	return best
+
+## Alvos validos (vivos) da habilidade cuja marca reage com o elemento efetivo dela (M14): o golpe marcaria
+## (nao e imune nem absorve) e a tabela tem o par. Sem elemento, sem marca ou tabela vazia: nenhum.
+static func _reacting_targets(a: AbilityDef, actor: Combatant, b: BattleState) -> Array[Combatant]:
+	var out: Array[Combatant] = []
+	var el: ElementDef = ElementMath.element_of(a, actor)
+	if el == null:
+		return out
+	for c: Combatant in Targeting.candidates(a.shape, a.side, a.effects, actor, b):
+		if c.is_down() or not MarkRules.has_other(c, el):
+			continue
+		var aff: int = ElementMath.affinity_of(ElementMath.total_resist(el, c))
+		if MarkRules.marks(el, aff) and ReactionRules.find(b.reactions, c.mark, el) != null:
+			out.append(c)
+	return out
+
+## REACTION_TARGET: o alvo reagente de menor HP (empate: o primeiro). Em area o centro tambem e o alvo reagente
+## (nao se compara quantos a area pega: simples). Sem alvo reagente: nulo, e a regra e pulada.
+static func _reaction_center(a: AbilityDef, _cands: Array[Combatant], actor: Combatant, b: BattleState) -> Combatant:
+	return _lowest_hp(_reacting_targets(a, actor, b))

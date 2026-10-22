@@ -25,6 +25,8 @@ var runs: int = 1
 var base_seed: int = 1
 var items: Array[ItemDef] = []
 var item_counts: Array[int] = []
+## M14: true = a batalha usa uma tabela de reacoes vazia (nada reage), para comparar com a tabela real.
+var no_reactions: bool = false
 
 ## Baseline M5a: todos os modos na opcao A (reproduz a comparacao do M5a). Coeficientes ficam nos valores do codigo.
 static func config_all_a() -> BalanceConfig:

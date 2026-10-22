@@ -114,6 +114,8 @@ static func _run_one(s: SimScenario, m: SimMetrics, index: int) -> void:
 		var d: EnemyDef = s.enemies[i]
 		enemies.append(Combatant.from_enemy(d, StringName("%s_%d" % [d.id, i]), Vector2(ENEMY_X, ENEMY_Y0 + ENEMY_DY * i), s.cfg))
 	var b: BattleState = BattleState.create(s.cfg, Dice.new(s.base_seed + index), heroes, enemies)
+	if s.no_reactions:
+		b.reactions = ReactionTable.new()
 	for i: int in s.items.size():
 		var n: int = s.item_counts[i] if i < s.item_counts.size() else 0
 		if n > 0:

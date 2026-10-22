@@ -647,3 +647,44 @@ func test_shop_has_an_elemental_weapon_and_a_resistant_piece() -> void:
 		resist = resist or not e.element_resist.is_empty()
 	assert_true(weapon, "arma elemental na loja")
 	assert_true(resist, "peca com resistencia na loja")
+
+# --- IA de combo (M14, Task 4) -------------------------------------------------------------
+
+func _combo_rules(rules: Array[AiRule]) -> Array[AiRule]:
+	var out: Array[AiRule] = []
+	for r: AiRule in rules:
+		if r.condition == AiRule.Condition.CAN_REACT:
+			out.append(r)
+	return out
+
+func test_slice_guardian_has_a_combo_rule_in_every_phase() -> void:
+	var g: EnemyDef = load(DATA + "/enemies/guardiao_fatia.tres") as EnemyDef
+	var sets: Array = [g.ai_rules]
+	for p: BossPhase in g.phases:
+		sets.append(p.ai_rules)
+	for rules: Array in sets:
+		var combos: Array[AiRule] = _combo_rules(rules)
+		assert_eq(combos.size(), 1)
+		assert_eq(combos[0].pick, AiRule.TargetPick.REACTION_TARGET)
+		assert_not_null(combos[0].ability.element)
+		assert_true(g.abilities.has(combos[0].ability))
+
+func test_slice_has_a_common_enemy_that_closes_combos() -> void:
+	var e: EnemyDef = load(DATA + "/enemies/inimigo_f4.tres") as EnemyDef
+	var combos: Array[AiRule] = _combo_rules(e.ai_rules)
+	assert_eq(combos.size(), 1)
+	assert_eq(combos[0].pick, AiRule.TargetPick.REACTION_TARGET)
+	assert_not_null(combos[0].ability.element)
+	assert_true(e.abilities.has(combos[0].ability))
+	assert_true(combos[0].ability.ap_cost > 0, "a regra nao vira o ataque basico")
+
+func test_slice_has_an_enemy_that_marks_heroes_before_the_combo() -> void:
+	# inimigo_f3 (Sangue) marca; inimigo_f4 fecha o combo no encontro enc_f34.
+	var f3: EnemyDef = load(DATA + "/enemies/inimigo_f3.tres") as EnemyDef
+	var marker: AbilityDef = null
+	for a: AbilityDef in f3.abilities:
+		if a.ap_cost == 0 and a.element != null and a.element.reacts:
+			marker = a
+	assert_not_null(marker, "ataque basico elemental que reage")
+	var enc: EncounterDef = load(DATA + "/encounters/enc_f34.tres") as EncounterDef
+	assert_true(enc.enemies.has(f3))

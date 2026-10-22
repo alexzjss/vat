@@ -136,3 +136,142 @@ func test_ally_hp_below_picks_lowest_ratio_among_below() -> void:
 	# X 30/85 = 0.353; Y 28/75 = 0.373: ambos abaixo; menor fração é X.
 	var s := _healer_setup(30, 28)
 	assert_eq(EnemyAI.decide(s[0], s[1]).center, s[2])
+
+# --- IA de combo (M14, Task 4) ---------------------------------------------------------------
+
+func _el(id: StringName, reacts: bool = true) -> ElementDef:
+	var e := ElementDef.new()
+	e.id = id
+	e.reacts = reacts
+	return e
+
+func _table(a: ElementDef, b: ElementDef) -> ReactionTable:
+	var d := ReactionDef.new()
+	d.id = &"r"
+	d.a = a
+	d.b = b
+	var t := ReactionTable.new()
+	t.reactions = [d] as Array[ReactionDef]
+	return t
+
+func _elemental(el: ElementDef, shape: AbilityDef.Shape = AbilityDef.Shape.SINGLE) -> AbilityDef:
+	var a: AbilityDef = Fixtures.hit(1.0, shape)
+	a.element = el
+	a.radius = 200.0
+	return a
+
+func _combo_rule(ab: AbilityDef, pick: AiRule.TargetPick = AiRule.TargetPick.REACTION_TARGET) -> AiRule:
+	var r := _rule(ab, pick)
+	r.condition = AiRule.Condition.CAN_REACT
+	return r
+
+## Inimigo com `rules` contra `heroes`, com a tabela fogo + agua.
+func _combo_setup(rules: Array[AiRule], heroes: Array[Combatant], table: ReactionTable) -> Array:
+	var s := _setup(rules, heroes)
+	(s[1] as BattleState).reactions = table
+	return s
+
+func test_new_enum_values_are_appended() -> void:
+	assert_eq(AiRule.Condition.CAN_REACT, 3)
+	assert_eq(AiRule.TargetPick.REACTION_TARGET, 7)
+
+func test_can_react_picks_the_marked_hero_over_lower_hp() -> void:
+	var fire := _el(&"fire")
+	var water := _el(&"water")
+	var h1 := _hero(&"a", 5)
+	var h2 := _hero(&"b", 20)
+	MarkRules.set_mark(h2, fire, 3)
+	var fallback := Fixtures.hit(1.0)
+	var s := _combo_setup([_combo_rule(_elemental(water)), _rule(fallback, AiRule.TargetPick.LOWEST_HP_ENEMY)], [h1, h2], _table(fire, water))
+	var pa := EnemyAI.decide(s[0], s[1])
+	assert_eq(pa.center, h2)
+	assert_eq(pa.ability.element, water)
+
+func test_reaction_target_ties_go_to_the_lowest_hp() -> void:
+	var fire := _el(&"fire")
+	var water := _el(&"water")
+	var h1 := _hero(&"a", 15)
+	var h2 := _hero(&"b", 9)
+	var h3 := _hero(&"c", 4)
+	MarkRules.set_mark(h1, fire, 3)
+	MarkRules.set_mark(h2, fire, 3)
+	var s := _combo_setup([_combo_rule(_elemental(water))], [h1, h2, h3], _table(fire, water))
+	assert_eq(EnemyAI.decide(s[0], s[1]).center, h2)
+
+func test_can_react_is_false_without_a_mark_and_the_next_rule_runs() -> void:
+	var fire := _el(&"fire")
+	var water := _el(&"water")
+	var h1 := _hero(&"a", 20)
+	var fallback := Fixtures.hit(1.0)
+	var s := _combo_setup([_combo_rule(_elemental(water)), _rule(fallback, AiRule.TargetPick.LOWEST_HP_ENEMY)], [h1], _table(fire, water))
+	assert_eq(EnemyAI.decide(s[0], s[1]).ability, fallback)
+
+func test_can_react_is_false_when_the_pair_does_not_react() -> void:
+	var fire := _el(&"fire")
+	var water := _el(&"water")
+	var earth := _el(&"earth")
+	var h1 := _hero(&"a", 20)
+	MarkRules.set_mark(h1, earth, 3)
+	var fallback := Fixtures.hit(1.0)
+	var s := _combo_setup([_combo_rule(_elemental(water)), _rule(fallback, AiRule.TargetPick.LOWEST_HP_ENEMY)], [h1], _table(fire, water))
+	assert_eq(EnemyAI.decide(s[0], s[1]).ability, fallback)
+
+func test_can_react_is_false_for_the_same_element_and_for_a_neutral_ability() -> void:
+	var fire := _el(&"fire")
+	var water := _el(&"water")
+	var h1 := _hero(&"a", 20)
+	MarkRules.set_mark(h1, fire, 3)
+	var fallback := Fixtures.hit(1.0)
+	var same := _combo_setup([_combo_rule(_elemental(fire)), _rule(fallback, AiRule.TargetPick.LOWEST_HP_ENEMY)], [h1], _table(fire, water))
+	assert_eq(EnemyAI.decide(same[0], same[1]).ability, fallback)
+	var neutral := _combo_setup([_combo_rule(Fixtures.hit(1.0)), _rule(fallback, AiRule.TargetPick.LOWEST_HP_ENEMY)], [h1], _table(fire, water))
+	assert_eq(EnemyAI.decide(neutral[0], neutral[1]).ability, fallback)
+
+func test_can_react_is_false_with_an_empty_table() -> void:
+	var fire := _el(&"fire")
+	var water := _el(&"water")
+	var h1 := _hero(&"a", 20)
+	MarkRules.set_mark(h1, fire, 3)
+	var fallback := Fixtures.hit(1.0)
+	var s := _combo_setup([_combo_rule(_elemental(water)), _rule(fallback, AiRule.TargetPick.LOWEST_HP_ENEMY)], [h1], ReactionTable.new())
+	assert_eq(EnemyAI.decide(s[0], s[1]).ability, fallback)
+
+func test_can_react_ignores_a_hero_that_absorbs_or_is_immune() -> void:
+	var fire := _el(&"fire")
+	var water := _el(&"water")
+	var h1 := _hero(&"a", 20)
+	MarkRules.set_mark(h1, fire, 3)
+	h1.element_resist[&"water"] = 1.0
+	var fallback := Fixtures.hit(1.0)
+	var s := _combo_setup([_combo_rule(_elemental(water)), _rule(fallback, AiRule.TargetPick.LOWEST_HP_ENEMY)], [h1], _table(fire, water))
+	assert_eq(EnemyAI.decide(s[0], s[1]).ability, fallback)
+
+func test_reaction_target_without_can_react_skips_when_nobody_reacts() -> void:
+	var fire := _el(&"fire")
+	var water := _el(&"water")
+	var h1 := _hero(&"a", 20)
+	var fallback := Fixtures.hit(1.0)
+	var rule := _rule(_elemental(water), AiRule.TargetPick.REACTION_TARGET)
+	var s := _combo_setup([rule, _rule(fallback, AiRule.TargetPick.LOWEST_HP_ENEMY)], [h1], _table(fire, water))
+	assert_eq(EnemyAI.decide(s[0], s[1]).ability, fallback)
+
+func test_area_combo_is_centered_on_the_reacting_hero() -> void:
+	var fire := _el(&"fire")
+	var water := _el(&"water")
+	var h1 := _hero(&"a", 20)
+	var h2 := _hero(&"b", 20)
+	h2.position = Vector2(50, 0)
+	MarkRules.set_mark(h1, fire, 3)
+	var s := _combo_setup([_combo_rule(_elemental(water, AbilityDef.Shape.CIRCLE_TARGET))], [h1, h2], _table(fire, water))
+	assert_eq(EnemyAI.decide(s[0], s[1]).center, h1)
+
+func test_combo_rule_with_full_chance_consumes_no_dice() -> void:
+	var fire := _el(&"fire")
+	var water := _el(&"water")
+	var h1 := _hero(&"a", 20)
+	MarkRules.set_mark(h1, fire, 3)
+	var dice := ScriptedDice.new([0.5] as Array[float])
+	var s := _setup([_combo_rule(_elemental(water))], [h1], dice)
+	(s[1] as BattleState).reactions = _table(fire, water)
+	assert_eq(EnemyAI.decide(s[0], s[1]).center, h1)
+	assert_eq(dice.roll(), 0.5, "o primeiro sorteio continua intacto")
