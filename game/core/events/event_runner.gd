@@ -90,7 +90,7 @@ func _abort() -> void:
 func _exec(step: EventStep) -> void:
 	if step is SayStep:
 		var s: SayStep = step
-		_present(EventRequest.say(s.speaker, s.text))
+		_present(EventRequest.say(s.speaker, s.text, s.portrait))
 	elif step is ChoiceStep:
 		var c: ChoiceStep = step
 		if c.options.is_empty():
@@ -111,6 +111,10 @@ func _exec(step: EventStep) -> void:
 		var f: IfFlagStep = step
 		if not IfFlagStep.compare(state.get_flag(f.flag), f.op, f.value):
 			_jump(f.else_label)
+	elif step is IfMoneyStep:
+		var im: IfMoneyStep = step
+		if not IfFlagStep.compare(state.money, im.op, im.amount):
+			_jump(im.else_label)
 	elif step is IfItemStep:
 		var ii: IfItemStep = step
 		if ii.item == null or state.inventory.available(ii.item.id) < maxi(1, ii.count):

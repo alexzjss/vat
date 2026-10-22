@@ -429,3 +429,33 @@ func test_take_item_without_enough_takes_nothing_and_stays_quiet() -> void:
 	var r: EventRunner = _run([_take(herb, 2)] as Array[EventStep])
 	assert_true(r.finished)
 	assert_eq(g.inventory.count(&"erva"), 1)
+
+func _if_money(op: IfFlagStep.Op, amount: int, else_label: StringName) -> IfMoneyStep:
+	var s := IfMoneyStep.new()
+	s.op = op
+	s.amount = amount
+	s.else_label = else_label
+	return s
+
+func test_if_money_every_operator_and_else_jump() -> void:
+	g.money = 50
+	var cases: Array = [
+		[IfFlagStep.Op.EQ, 50, true], [IfFlagStep.Op.EQ, 49, false],
+		[IfFlagStep.Op.NE, 49, true], [IfFlagStep.Op.GE, 50, true], [IfFlagStep.Op.GE, 51, false],
+		[IfFlagStep.Op.GT, 50, false], [IfFlagStep.Op.LT, 51, true], [IfFlagStep.Op.LE, 49, false],
+	]
+	for c: Array in cases:
+		var r: EventRunner = _run([_if_money(c[0], c[1], &"fim"), _say("passou"), _label(&"fim")] as Array[EventStep])
+		assert_eq(r.current() != null, c[2], "op %d valor %d" % [c[0], c[1]])
+
+func test_if_money_false_without_label_ends_event() -> void:
+	var r: EventRunner = _run([_if_money(IfFlagStep.Op.GE, 10, &""), _say("nao")] as Array[EventStep])
+	assert_true(r.finished)
+	assert_null(r.current())
+
+func test_say_step_portrait_goes_into_request() -> void:
+	var s := _say("oi", "Ana")
+	s.portrait = &"feliz"
+	var r: EventRunner = _run([s] as Array[EventStep])
+	assert_eq(r.current().portrait, &"feliz")
+	assert_eq(EventRequest.say("x", "y").portrait, &"")
