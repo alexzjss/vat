@@ -51,6 +51,7 @@ func build_text(b: BattleState, ctrl: BattleController) -> String:
 		var c: Combatant = order[i]
 		lines.append("  %d. %s (Vel %d)" % [i + 1, c.id, StatCalculator.effective(c, &"speed", b.cfg)])
 	lines.append(_executing_line(ctrl))
+	lines.append_array(_element_lines(ctrl))
 	lines.append("Estados")
 	var any_status: bool = false
 	for c: Combatant in b.all():
@@ -82,6 +83,7 @@ func build_text(b: BattleState, ctrl: BattleController) -> String:
 		for hid: StringName in hero_ids:
 			lines.append("    %s: %.1f" % [hid, float(per[hid])])
 		lines.append("    total: %.1f" % b.ledger.total_against(eid))
+	lines.append_array(_contamination_lines(b))
 	lines.append("Wait: %s" % ("sim" if ctrl.is_paused() else "não"))
 	lines.append("ATB: %s" % ("Ativo" if ctrl.active_mode else "Espera"))
 	return "\n".join(lines)
@@ -92,3 +94,29 @@ func _executing_line(ctrl: BattleController) -> String:
 		return "Executando: -"
 	var cmd_name: String = a.item.display_name if a.item != null else a.ability.display_name
 	return "Executando: %s -> %s %.2f/%.2f" % [a.actor.id, cmd_name, a.elapsed, a.cast_time(ctrl.b.cfg)]
+
+## Elemento efetivo da acao em execucao e o multiplicador de afinidade contra o alvo central (M13); nada se neutro.
+func _element_lines(ctrl: BattleController) -> PackedStringArray:
+	var out: PackedStringArray = PackedStringArray()
+	var a: PendingAction = ctrl.executing
+	if a == null or a.item != null:
+		return out
+	var el: ElementDef = ElementMath.element_of(a.ability, a.actor)
+	if el == null:
+		return out
+	out.append("Elemento: %s" % ElementText.tag(el))
+	if a.center != null:
+		var m: float = ElementText.multiplier(el, a.center)
+		var aff: String = ElementText.affinity_label(ElementMath.affinity_of(ElementMath.total_resist(el, a.center)))
+		out.append("  x%.2f em %s%s" % [m, a.center.id, " (%s)" % aff if aff != "" and el.rule != ElementDef.Rule.RADIOACTIVE else ""])
+	return out
+
+## Nivel de contaminacao de quem esta contaminado (so aparece se alguem estiver).
+func _contamination_lines(b: BattleState) -> PackedStringArray:
+	var out: PackedStringArray = PackedStringArray()
+	for c: Combatant in b.all():
+		if c.contamination > 0:
+			out.append("  %s: %d" % [c.id, c.contamination])
+	if not out.is_empty():
+		out.insert(0, "Contaminação")
+	return out

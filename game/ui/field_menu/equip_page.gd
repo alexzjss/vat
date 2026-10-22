@@ -99,7 +99,10 @@ func preview_color(i: int) -> Color:
 ## Item do espaço `s` em "Arma: Nome" / "Arma: —".
 static func slot_line(h: HeroState, s: StringName) -> String:
 	var e: EquipmentDef = h.equipment.get(s)
-	return "%s: %s" % [EquipmentRules.SLOT_LABELS[s], e.display_name if e != null else EMPTY_SLOT]
+	var line: String = "%s: %s" % [EquipmentRules.SLOT_LABELS[s], e.display_name if e != null else EMPTY_SLOT]
+	if e != null and e.element != null:
+		line += " (%s)" % ElementText.tag(e.element)
+	return line
 
 static func status_name(id: StringName) -> String:
 	return STATUS_NAMES.get(id, String(id).capitalize())
@@ -148,7 +151,10 @@ func _open_slot(s: StringName) -> void:
 	var texts: Array[String] = []
 	var enabled: Array[bool] = []
 	for e: EquipmentDef in _options:
-		texts.append(REMOVE_TEXT if e == null else "%s x%d" % [e.display_name, state.bag.count(e.id)])
+		var opt: String = REMOVE_TEXT if e == null else "%s x%d" % [e.display_name, state.bag.count(e.id)]
+		if e != null and e.element != null:
+			opt += " · " + ElementText.tag(e.element)
+		texts.append(opt)
 		enabled.append(true)
 	_set_entries(texts, enabled)
 	_say("")
@@ -195,7 +201,40 @@ func _update_preview() -> void:
 		eq.erase(slot)
 	else:
 		eq[slot] = e
+	_add_element_preview(e, eq)
 	_add_preview(passives_line(eq), TEXT_COLOR)
+
+## Prévia elemental: elemento da arma (antes → depois) e as afinidades que mudam; nada se tudo segue neutro.
+func _add_element_preview(e: EquipmentDef, after_equipment: Dictionary[StringName, EquipmentDef]) -> void:
+	if slot == &"weapon":
+		var cur: EquipmentDef = hero.equipment.get(slot)
+		var before_el: ElementDef = cur.element if cur != null else null
+		var after_el: ElementDef = e.element if e != null else null
+		if before_el != null or after_el != null:
+			var same: bool = before_el == after_el
+			_add_preview("Elemento da arma: %s → %s" % [_el_or_dash(before_el), _el_or_dash(after_el)], TEXT_COLOR if same else UP_COLOR)
+	var before: Dictionary[StringName, float] = EquipmentRules.element_resist(hero.def, hero.equipment)
+	var after: Dictionary[StringName, float] = EquipmentRules.element_resist(hero.def, after_equipment)
+	var keys: Dictionary = {}
+	for k: StringName in before:
+		keys[k] = true
+	for k: StringName in after:
+		keys[k] = true
+	for id: StringName in ElementText.nonzero_ids(keys_to_deltas(keys, before, after)):
+		var b: float = before.get(id, 0.0)
+		var a: float = after.get(id, 0.0)
+		_add_preview("Resistência %s: %s → %s" % [ElementText.short_name_of(id), ElementText.pct(b), ElementText.pct(a)],
+				UP_COLOR if a > b else DOWN_COLOR)
+
+## Mapa id → mudança (depois − antes) só dos ids passados; serve para listar apenas o que muda.
+static func keys_to_deltas(keys: Dictionary, before: Dictionary[StringName, float], after: Dictionary[StringName, float]) -> Dictionary:
+	var out: Dictionary = {}
+	for id: StringName in keys:
+		out[id] = float(after.get(id, 0.0)) - float(before.get(id, 0.0))
+	return out
+
+static func _el_or_dash(el: ElementDef) -> String:
+	return ElementText.tag(el) if el != null else EMPTY_SLOT
 
 func _add_preview(text: String, color: Color) -> void:
 	var l := Label.new()

@@ -194,6 +194,7 @@ func start_with(heroes: Array[HeroState], enemies: Array[EnemyDef], hero_pos: Ar
 	ctrl.action_finished.connect(_on_action_finished)
 	ctrl.action_impact.connect(_on_action_impact)
 	ctrl.status_tick.connect(_on_status_tick)
+	ctrl.bleed_tick.connect(_on_bleed_tick)
 	ctrl.phase_changed.connect(_on_phase_changed)
 	ctrl.charge_started.connect(_on_charge_started)
 	ctrl.counter_fired.connect(_on_counter_fired)
@@ -419,11 +420,24 @@ func _remove_support_view() -> void:
 func support_view_visible() -> bool:
 	return _support_view != null
 
-func _on_action_impact(_a: PendingAction, r: ActionResult) -> void:
+func _on_action_impact(a: PendingAction, r: ActionResult) -> void:
+	var lifesteal: int = 0
+	var self_damage: int = 0
 	for hit: Dictionary in r.hits:
 		var v: CombatantView = views.get(hit["target_id"])
 		if v != null:
 			v.show_hit(hit)
+		lifesteal += int(hit.get("lifesteal", 0))
+		self_damage += int(hit.get("self_damage", 0))
+	if lifesteal > 0 or self_damage > 0:
+		# O reserva do Suporte nao esta em `views`: usa a vista dele.
+		var av: CombatantView = views.get(a.actor.id, _support_view)
+		if av != null:
+			av.show_attacker_effects(lifesteal, self_damage)
+
+func _on_bleed_tick(c: Combatant, amount: int) -> void:
+	if views.has(c.id):
+		views[c.id].show_bleed(amount)
 
 func _on_status_tick(c: Combatant, out: StatusSystem.AtbFullOutcome) -> void:
 	if out.poison_damage > 0 and views.has(c.id):

@@ -80,6 +80,14 @@ func _build_text(h: HeroState) -> String:
 		if base + alloc + equip != eff:
 			line += " (retornos decrescentes)"
 		lines.append(line)
+	var natives: String = ElementText.natives_text(h.def.elements)
+	var resist: String = ElementText.resist_text(EquipmentRules.element_resist(h.def, h.equipment))
+	if natives != "" or resist != "":
+		lines.append("")
+		if natives != "":
+			lines.append("Elementos: " + natives)
+		if resist != "":
+			lines.append("Resistência (%s = fraqueza): %s" % [ElementText.MINUS, resist])
 	lines.append("")
 	lines.append("Equipamento:")
 	for s: StringName in EquipmentRules.SLOTS:

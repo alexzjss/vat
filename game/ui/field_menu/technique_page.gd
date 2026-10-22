@@ -114,7 +114,10 @@ func _show_techs() -> void:
 	var texts: Array[String] = []
 	var enabled: Array[bool] = []
 	for ab: AbilityDef in _techs:
-		texts.append("%s — %d AP" % [ab.display_name, ab.ap_cost])
+		var tech_text: String = "%s — %d AP" % [ab.display_name, ab.ap_cost]
+		if ab.element != null:
+			tech_text += " · " + ElementText.tag(ab.element)
+		texts.append(tech_text)
 		enabled.append(user.hp > 0 and user.ap >= ab.ap_cost)
 	var nxt: LearnEntry = user.next_learn()
 	if nxt != null:

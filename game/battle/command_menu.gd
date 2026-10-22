@@ -22,6 +22,8 @@ class Entry:
 	var ability: AbilityDef
 	var item: ItemDef
 	var hero: HeroState
+	## Elemento a exibir ao lado do rotulo (null = neutro, nada aparece).
+	var element: ElementDef
 
 	func _init(p_label: String, p_enabled: bool, p_kind: CommandMenu.Kind) -> void:
 		label = p_label
@@ -107,6 +109,17 @@ func entry_labels() -> PackedStringArray:
 
 func entry_enabled(i: int) -> bool:
 	return i >= 0 and i < _entries.size() and _entries[i].enabled
+
+## Nome curto do elemento da entrada `i` ("Fogo"); vazio se neutro.
+func entry_element_text(i: int) -> String:
+	if i < 0 or i >= _entries.size():
+		return ""
+	return ElementText.tag(_entries[i].element)
+
+func entry_element_color(i: int) -> Color:
+	if i < 0 or i >= _entries.size() or _entries[i].element == null:
+		return ENABLED_COLOR
+	return _entries[i].element.color
 
 func header_text() -> String:
 	return _header.text
@@ -227,7 +240,9 @@ func _show_root(at: int) -> void:
 	if session.actor.limit_ready():
 		_entries.append(Entry.new("Limite", true, Kind.LIMIT))
 	else:
-		_entries.append(Entry.new("Atacar", session.actor.basic_attack != null, Kind.ATTACK))
+		var atk := Entry.new("Atacar", session.actor.basic_attack != null, Kind.ATTACK)
+		atk.element = ElementMath.element_of(session.actor.basic_attack, session.actor)
+		_entries.append(atk)
 	_entries.append(Entry.new("Habilidade", session.techniques_available(), Kind.ABILITIES))
 	_entries.append(Entry.new("Item", _has_items(), Kind.ITEMS))
 	_entries.append(Entry.new("Suporte", session.can_support(), Kind.SUPPORT))
@@ -248,6 +263,7 @@ func _show_abilities(at: int = 0) -> void:
 	for ab: AbilityDef in session.actor.abilities:
 		var e := Entry.new("%s — %d AP" % [ab.display_name, ab.ap_cost], session.can_use(ab), Kind.ABILITY)
 		e.ability = ab
+		e.element = ElementMath.element_of(ab, session.actor)
 		_entries.append(e)
 	cursor = at
 	_render()
@@ -271,6 +287,7 @@ func _show_support_actions(at: int = 0) -> void:
 		var label: String = "Atacar" if ab == session.support.basic_attack else "%s — %d AP" % [ab.display_name, ab.ap_cost]
 		var e := Entry.new(label, session.can_use(ab), Kind.ABILITY)
 		e.ability = ab
+		e.element = ElementMath.element_of(ab, session.support)
 		_entries.append(e)
 	cursor = at
 	_render()
@@ -380,11 +397,23 @@ func _render() -> void:
 		var e: Entry = _entries[i]
 		var prefix: String = "> " if i == cursor else "  "
 		var color: Color = DISABLED_COLOR if not e.enabled else (CURSOR_COLOR if i == cursor else ENABLED_COLOR)
-		_add_line(prefix + e.label, color)
+		_add_line(prefix + e.label, color, e.element)
 
-func _add_line(text: String, color: Color) -> void:
+## Uma linha da lista; com elemento, o nome curto dele aparece ao lado, na cor do elemento.
+func _add_line(text: String, color: Color, element: ElementDef = null) -> void:
 	var l := Label.new()
 	l.text = text
 	l.add_theme_font_size_override("font_size", 18)
 	l.add_theme_color_override("font_color", color)
-	_list.add_child(l)
+	if element == null:
+		_list.add_child(l)
+		return
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 8)
+	row.add_child(l)
+	var t := Label.new()
+	t.text = ElementText.tag(element)
+	t.add_theme_font_size_override("font_size", 14)
+	t.add_theme_color_override("font_color", element.color if color != DISABLED_COLOR else element.color.darkened(0.5))
+	row.add_child(t)
+	_list.add_child(row)
