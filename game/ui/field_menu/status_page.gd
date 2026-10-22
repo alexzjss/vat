@@ -80,6 +80,9 @@ func _build_text(h: HeroState) -> String:
 		if base + alloc + equip != eff:
 			line += " (retornos decrescentes)"
 		lines.append(line)
+	var status_line: String = status_resist_line(EquipmentRules.hero_status_resist(h.def, h.equipment))
+	if status_line != "":
+		lines.append(status_line)
 	var natives: String = ElementText.natives_text(h.def.elements)
 	var resist: String = ElementText.resist_text(EquipmentRules.element_resist(h.def, h.equipment))
 	if natives != "" or resist != "":
@@ -101,3 +104,16 @@ func _build_text(h: HeroState) -> String:
 	for ab: AbilityDef in known:
 		lines.append("  %s — %d AP" % [ab.display_name, ab.ap_cost])
 	return "\n".join(lines)
+
+## "Resistência a estados: Veneno 30%, Sono imune" so com as entradas diferentes de 0; "" se nao ha nenhuma.
+static func status_resist_line(res: Dictionary[StringName, float]) -> String:
+	var parts: PackedStringArray = PackedStringArray()
+	for id: StringName in res:
+		var r: float = res[id]
+		if is_zero_approx(r):
+			continue
+		var text: String = "imune" if r >= 1.0 else "%d%%" % roundi(r * 100.0)
+		parts.append("%s %s" % [EquipPage.status_name(id), text])
+	if parts.is_empty():
+		return ""
+	return "Resistência a estados: " + ", ".join(parts)

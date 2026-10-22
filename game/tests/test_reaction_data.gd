@@ -142,5 +142,5 @@ func test_keep_and_special_rows() -> void:
 	assert_almost_eq(_r(&"bencao_do_vento").attacker_atb, 0.3, 0.0001)
 	assert_eq(_ids(_r(&"cristalizar").attacker_statuses), [&"barrier"])
 	assert_almost_eq(_r(&"arco_iris").heal_allies_pct, 0.2, 0.0001)
-	assert_eq(_ids(_r(&"chama_negra").target_statuses), [&"poison"])
-	assert_eq(_ids(_r(&"sepultura").target_statuses), [&"stop"])
+	assert_eq(_ids(_r(&"chama_negra").target_statuses), [&"burn"])
+	assert_eq(_ids(_r(&"sepultura").target_statuses), [&"petrify"])

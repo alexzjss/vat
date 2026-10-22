@@ -49,9 +49,8 @@ static func confused_action(actor: Combatant, b: BattleState) -> PendingAction:
 			cands.append(c)
 	if cands.is_empty():
 		return null
-	# Provocar (M15): havendo um provocador do outro lado, o golpe vai para ele (nao sorteia).
-	var forced: Combatant = Targeting.taunter(cands, actor)
-	var center: Combatant = forced if forced != null else cands[b.dice.pick_index(cands.size())]
+	# Provocar (M15) nao vale aqui: o confuso sorteia entre todos, aliados inclusos.
+	var center: Combatant = cands[b.dice.pick_index(cands.size())]
 	var pa: PendingAction = _make(actor, actor.basic_attack, center)
 	pa.confused = true
 	return pa

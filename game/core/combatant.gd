@@ -155,8 +155,8 @@ static func from_hero(h: HeroState, pos: Vector2) -> Combatant:
 	c.abilities = h.abilities()
 	c.basic_attack = h.def.basic_attack
 	c.hero_state = h
-	c.immunities = EquipmentRules.immunities(h.equipment)
-	c.resistances = EquipmentRules.resistances(h.equipment)
+	c.immunities = EquipmentRules.hero_immunities(h.def, h.equipment)
+	c.resistances = EquipmentRules.hero_status_resist(h.def, h.equipment)
 	c.start_statuses = EquipmentRules.start_statuses(h.equipment)
 	c.elements = h.def.elements.duplicate()
 	c.element_resist = EquipmentRules.element_resist(h.def, h.equipment)

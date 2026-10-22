@@ -100,3 +100,21 @@ static func preview(h: HeroState, slot: StringName, e: EquipmentDef, cfg: Balanc
 	for k: StringName in PREVIEW_KEYS:
 		out[k] = [cur[k], nxt[k]]
 	return out
+
+## Resistencia total a estados do heroi (M15): base do def + passivas RESIST, limitada a 1.0 em cima (negativo = vulneravel).
+static func hero_status_resist(d: CharacterDef, equipment: Dictionary[StringName, EquipmentDef]) -> Dictionary[StringName, float]:
+	var out: Dictionary[StringName, float] = _sum_resist(equipment)
+	for id: StringName in d.status_resist:
+		out[id] = float(out.get(id, 0.0)) + float(d.status_resist[id])
+	for id: StringName in out:
+		out[id] = minf(1.0, out[id])
+	return out
+
+## Imunidades do heroi: passivas IMMUNE mais qualquer estado com resistencia total >= 1.
+static func hero_immunities(d: CharacterDef, equipment: Dictionary[StringName, EquipmentDef]) -> Array[StringName]:
+	var out: Array[StringName] = immunities(equipment)
+	var total: Dictionary[StringName, float] = hero_status_resist(d, equipment)
+	for id: StringName in total:
+		if total[id] >= 1.0 and not out.has(id):
+			out.append(id)
+	return out

@@ -192,17 +192,17 @@ func test_taunt_forces_sim_smart_area_on_the_taunter() -> void:
 	var pa: PendingAction = SimPolicy.decide(SelectionSession.new(h, b), b, &"smart")
 	assert_eq(pa.center, x)
 
-func test_taunt_forces_confusion_target() -> void:
+func test_confusion_ignores_taunt_and_keeps_random_pick() -> void:
 	b = BattleState.create(cfg, ScriptedDice.new([0.0, 0.0]), [h, h2], [x, x2])
 	_give(x, StatusDef.Kind.TAUNT)
 	var pa: PendingAction = EnemyAI.confused_action(h, b)
 	assert_true(pa.confused)
-	assert_eq(pa.center, x, "sem Provocar o sorteio 0.0 pegaria o aliado")
+	assert_eq(pa.center, h2, "o sorteio 0.0 pega o primeiro candidato (o aliado), sem forcar o provocador")
 
-func test_taunt_forces_confused_enemy_onto_a_hero_taunter() -> void:
+func test_confused_enemy_ignores_a_hero_taunter() -> void:
 	b = BattleState.create(cfg, ScriptedDice.new([0.0]), [h, h2], [x, x2])
 	_give(h2, StatusDef.Kind.TAUNT)
-	assert_eq(EnemyAI.confused_action(x, b).center, h2)
+	assert_eq(EnemyAI.confused_action(x, b).center, h, "primeiro candidato do sorteio, nao o provocador h2")
 
 func test_taunt_lasts_in_turns_and_expires() -> void:
 	_give(h, StatusDef.Kind.TAUNT, 2)

@@ -19,6 +19,9 @@ const STATUS_NAMES: Dictionary[StringName, String] = {
 	&"paralysis": "Paralisia", &"paralisia": "Paralisia", &"haste": "Pressa", &"pressa": "Pressa",
 	&"slow": "Lentidão", &"lentidao": "Lentidão", &"barrier": "Barreira", &"barreira": "Barreira",
 	&"bleed": "Sangramento", &"sangramento": "Sangramento",
+	&"burn": "Queimadura", &"freeze": "Congelado", &"wet": "Molhado", &"petrify": "Petrificação",
+	&"doom": "Contagem", &"taunt": "Provocar", &"berserk": "Berserk", &"reflect": "Reflexo",
+	&"confusion": "Confusão", &"silence": "Silêncio", &"blind": "Cegueira", &"stop": "Pare", &"regen": "Regeneração",
 }
 const UP_COLOR: Color = Color(0.45, 0.95, 0.45)
 const DOWN_COLOR: Color = Color(1.0, 0.45, 0.45)

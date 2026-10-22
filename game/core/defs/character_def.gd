@@ -16,3 +16,5 @@ extends Resource
 @export var elements: Array[ElementDef] = []
 ## Afinidade base por id de elemento (ver EquipmentDef.element_resist).
 @export var element_resist: Dictionary[StringName, float] = {}
+## Resistencia base a estados por id (M15); soma com as passivas RESIST dos equipamentos. >= 1 = imune, < 0 = vulneravel.
+@export var status_resist: Dictionary[StringName, float] = {}

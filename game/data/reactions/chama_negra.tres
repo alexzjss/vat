@@ -4,10 +4,10 @@
 [ext_resource type="Resource" path="res://data/elements/kagutsuchi.tres" id="2_2"]
 [ext_resource type="Resource" path="res://data/elements/tsukuyomi.tres" id="3_3"]
 [ext_resource type="Script" path="res://core/defs/status_def.gd" id="4_4"]
-[ext_resource type="Resource" path="res://data/test/statuses/poison.tres" id="5_5"]
+[ext_resource type="Resource" path="res://data/test/statuses/burn.tres" id="5_5"]
 
 [resource]
-; Veneno no lugar de Queimadura (M15). Valores de teste.
+; Valores de teste.
 script = ExtResource("1_1")
 id = &"chama_negra"
 display_name = "Chama Negra"

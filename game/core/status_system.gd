@@ -34,7 +34,7 @@ func apply(target: Combatant, def: StatusDef, source: Combatant, chance: float, 
 	if target.immunities.has(def.id) or target.is_petrified():
 		return ApplyResult.IMMUNE
 	var resistance: float = float(target.resistances.get(def.id, 0.0))
-	if _dice.roll() >= chance * (1.0 - resistance):
+	if _dice.roll() >= clampf(chance * (1.0 - resistance), 0.0, 1.0):
 		return ApplyResult.RESISTED
 	if _wet_blocks(target, def):
 		return ApplyResult.IMMUNE
