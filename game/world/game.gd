@@ -14,8 +14,8 @@ extends Node
 
 ## Perfil de início (M12): `start_profile` é o do Novo jogo (a fatia vertical em game_fatia.tscn); as demos (`--demo-*`)
 ## e os testes usam `test_profile` (data/test/start_teste.tres, o equivalente ao jogo de teste do M1-M11).
-## Tela de fim (M12): um EndDemoStep abre o EndScreen; antes disso um save automático grava a flag `fatia_concluida`
-## no último slot usado (`last_slot`; 0 = nenhum, e então nada é gravado). Enter volta ao título.
+## Tela de fim (M12): um EndDemoStep abre o EndScreen; antes disso a flag `fatia_concluida` é gravada no save já existente do
+## último slot usado (`last_slot`; 0 ou slot vazio = nada é gravado), sem mexer no resto: Continuar volta ao ponto de antes do chefe. Enter volta ao título.
 
 ## Saves das demos (`--demo-*`) vão para cá, nunca para os slots reais.
 const DEMO_SAVE_DIR: String = "user://demo_saves/"
@@ -409,9 +409,9 @@ func _on_link_requested(target_map: StringName, target_spawn: StringName) -> voi
 func _on_end_demo_requested() -> void:
 	if end_screen != null or in_title or state == null:
 		return
-	if last_slot > 0:
-		state.set_flag(FLAG_CONCLUDED, 1)
-		if not store.write(last_slot, state):
+	# Clear save: só a flag entra no que já estava gravado (o ponto de antes do chefe, com o chefe vivo); o estado vivo não é gravado.
+	if last_slot > 0 and store.has_slot(last_slot):
+		if not store.set_flag(last_slot, FLAG_CONCLUDED, 1):
 			push_error("Game: falha ao gravar o clear save no slot %d" % last_slot)
 	if current != null:
 		current.process_mode = Node.PROCESS_MODE_DISABLED

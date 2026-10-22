@@ -78,6 +78,27 @@ func read(slot: int, dice: Dice) -> GameState:
 		return null
 	return GameState.from_dict(doc["state"], registry, cfg, dice)
 
+## Muda só a flag `id` no estado já gravado no slot (posição, derrotados, moeda e grupo ficam como estavam). False se o slot
+## estiver vazio/inválido (nada é gravado) ou se a escrita falhar.
+func set_flag(slot: int, id: StringName, value: int) -> bool:
+	var doc: Dictionary = _parse(slot)
+	if doc.is_empty():
+		return false
+	var st: Dictionary = doc["state"]
+	var fl: Dictionary = st.get("flags", {}) if st.get("flags") is Dictionary else {}
+	fl[String(id)] = value
+	st["flags"] = fl
+	var f: FileAccess = FileAccess.open(slot_path(slot), FileAccess.WRITE)
+	if f == null:
+		return false
+	f.store_string(JSON.stringify(doc))
+	f.close()
+	return true
+
+## Há um slot válido (JSON legível, versão certa) em `slot`?
+func has_slot(slot: int) -> bool:
+	return not _parse(slot).is_empty()
+
 ## {"status": Status, e quando OK: "leader", "level", "play_time", "map"}.
 func summary(slot: int) -> Dictionary:
 	if not is_valid_slot(slot) or not FileAccess.file_exists(slot_path(slot)):

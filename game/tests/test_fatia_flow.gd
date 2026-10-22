@@ -201,3 +201,5 @@ func test_boss_fight_final_scene_end_screen_and_back_to_the_title() -> void:
 	assert_null(game.end_screen)
 	var clear: GameState = game.store.read(DemoFatia.SAVE_SLOT, Dice.new(1))
 	assert_eq(clear.get_flag(Game.FLAG_CONCLUDED), 1, "clear save no último slot usado")
+	assert_false(clear.is_defeated(&"chefe_fatia"), "o clear save mantém o save de antes do chefe: o chefe segue vivo")
+	assert_eq(clear.save_map, &"dungeon_2", "Continuar volta ao ponto de descanso antes do chefe")

@@ -96,3 +96,25 @@ func test_invalid_slot_numbers_are_rejected() -> void:
 	assert_false(_store.write(4, _game()))
 	assert_eq(_store.summary(4)["status"], SaveStore.Status.EMPTY)
 	assert_null(_store.read(0, null))
+
+func test_set_flag_changes_only_the_flag_in_the_stored_snapshot() -> void:
+	var g: GameState = _game()
+	g.set_flag(&"antiga", 3)
+	g.money = 17
+	_store.write(1, g)
+	g.money = 99
+	g.set_flag(&"nova_na_memoria", 1)
+	assert_true(_store.set_flag(1, &"fatia_concluida", 1))
+	var r: GameState = _store.read(1, ScriptedDice.new())
+	assert_eq(r.get_flag(&"fatia_concluida"), 1)
+	assert_eq(r.get_flag(&"antiga"), 3, "as outras flags ficam")
+	assert_eq(r.get_flag(&"nova_na_memoria"), 0, "o estado vivo não entra")
+	assert_eq(r.money, 17, "a moeda gravada fica")
+	assert_eq(r.heroes[0].hp, 5)
+
+func test_set_flag_on_empty_or_corrupt_slot_writes_nothing() -> void:
+	assert_false(_store.set_flag(1, &"x", 1))
+	assert_false(FileAccess.file_exists(_store.slot_path(1)))
+	_write_raw(2, "nao e json")
+	assert_false(_store.set_flag(2, &"x", 1))
+	assert_eq(FileAccess.get_file_as_string(_store.slot_path(2)), "nao e json")
