@@ -1,6 +1,6 @@
 # Roteiro de desenvolvimento — núcleo, mecânicas e gameplay
 
-> **Data:** 2026-10-18 · **Estado:** M1 a M14 prontos (M14 são as marcas e reações, concluídas em 2026-10-22; M13 são os elementos, concluídos em 2026-10-22; M12 é a fatia vertical, concluída em 2026-10-21). A base de mecânicas vem do M1 ao M11; o M12 junta tudo numa fatia jogável.
+> **Data:** 2026-10-18 · **Estado:** M1 a M15 prontos (M15 são os estados, o mundo e o bestiário, concluídos em 2026-10-22; M14 são as marcas e reações, concluídas em 2026-10-22; M13 são os elementos, concluídos em 2026-10-22; M12 é a fatia vertical, concluída em 2026-10-21). A base de mecânicas vem do M1 ao M11; o M12 junta tudo numa fatia jogável.
 > **Foco:** continuar construindo **sistemas** (regras, mecânicas, ciclo de jogo) com formas simples, sem arte nem conteúdo narrativo. Cada item vira um marco com design → plano → implementação → revisão, como no M1 e no M2.
 > **Como usar:** escolha os itens que quer; a ordem recomendada está no fim. Itens marcados **(spec)** já existem como regra confirmada ou proposta na spec do jogo e só faltam implementar; **(novo)** são ideias que ainda não estão na spec.
 
@@ -167,6 +167,21 @@ Entregue: corrida e grupo em fila (Shift/X), fuga segurando Q (barra, sem XP, ch
 - Vai para o M15:
   - Queimadura (no lugar do Veneno da Chama Negra) e Petrificação (no lugar do Pare da Sepultura), junto com os estados novos e as resistências a estados.
   - Página "Reações" no menu de campo, junto com o bestiário.
+
+**M15 — Estados, mundo e bestiário** · **Concluído** (2026-10-22) · plano [`m15-estados-mundo-bestiario`](../.claude/plans/2026-10-22-m15-estados-mundo-bestiario.md) · relatório [`2026-10-22-relatorio-estados`](balance/2026-10-22-relatorio-estados.md)
+- Entregue:
+  - 8 estados novos (Queimadura, Congelado, Molhado, Petrificação, Contagem, Provocar, Berserk e Reflexo) e resistência a estados em % para heróis (base e equipamento), inimigos e equipamentos.
+  - Veneno que continua no mapa, puzzles elementais (`ElementalObstacle`) e terreno (`TerrainDef`) que muda o dano elemental na batalha.
+  - Bestiário com Scan (técnica Escanear e item Lente) e a página Reações no menu de campo.
+  - Sobras do M14: turno contado uma vez só, ícone da marca pelo `icon_text` do elemento, e a demo com `--quit-after 7500`.
+- Notas:
+  - Chama Negra → Queimadura (antes Veneno); Sepultura → Petrificação (antes Pare).
+  - O Remédio da fatia também cura Veneno, Contagem e Petrificação (além de Confusão, Silêncio e Cegueira).
+  - Inimigo petrificado dá XP, dinheiro e drops, como um derrotado.
+  - Confusão ignora Provocar.
+  - Inimigo Raro F, com Contagem, é opcional no andar 2 (parado num canto, fora da rota).
+- Pergunta em aberto para o usuário: as reações ainda não aceleram o chefe (17,2 s com reações contra 17,7 s sem), porque o núcleo continua protegido pelos Braços. As reações devem contar contra o chefe?
+- **Próximo marco: M16 — Ferramentas de criação.** Plugin do editor do Godot, roteiro em texto para a narrativa e pipeline de arte 32×32.
 
 ## Ordem recomendada (original)
 

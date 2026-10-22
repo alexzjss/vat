@@ -2,7 +2,7 @@
 
 Prototipo de um RPG com combate em tempo real por barra de ATB, feito em Godot 4 com GDScript tipado e placeholders geometricos. Nao ha conteudo narrativo; personagens, inimigos e lugares sao genericos.
 
-O marco atual e o M13, elementos (seção [Elementos (M13)](#elementos-m13)). Antes dele, o M12 entregou a fatia vertical: o **Novo jogo** agora percorre uma demo jogável de ponta a ponta (cidade, mapa-múndi, estrada com encontros, dungeon de dois andares, chefe e tela de fim), com moeda, loja, pousada paga e recrutamento. Tudo na fatia é placeholder; veja a seção [Fatia vertical](#fatia-vertical-m12).
+O marco atual é o M15, estados, mundo e bestiário (seção [Estados, mundo e bestiário (M15)](#estados-mundo-e-bestiário-m15)). Antes dele, o M14 trouxe as marcas e reações (seção [Marcas e reações (M14)](#marcas-e-reações-m14)) e o M13 os elementos (seção [Elementos (M13)](#elementos-m13)). Antes deles, o M12 entregou a fatia vertical: o **Novo jogo** agora percorre uma demo jogável de ponta a ponta (cidade, mapa-múndi, estrada com encontros, dungeon de dois andares, chefe e tela de fim), com moeda, loja, pousada paga e recrutamento. Tudo na fatia é placeholder; veja a seção [Fatia vertical](#fatia-vertical-m12).
 
 Antes disso, o M11 acrescenta ao M10 o catálogo completo de estados (Pare, Confusão, buffs e debuffs, Silêncio, Cegueira, Regeneração e Barreira), os itens Remédio e Panaceia e um chefe de teste na dungeon de teste (fases por HP, ataque anunciado, contra-ataque e partes). Antes disso, o M10 acrescentou ao M9 o sistema de eventos (caixa de diálogo com nome e escolhas, flags de história, NPCs e placas, cenas roteirizadas e XP narrativa), os objetos de dungeon (baús, portas e chaves, interruptores e armadilhas) e uma dungeon de teste ligada ao mapa-mundi. Antes disso, o M9 acrescentou as técnicas por personagem, mantendo a barra de Limite (M8), o Suporte da reserva (M8.5), fuga, iniciativa por contato, corrida e inimigos com comportamento no mapa: o jogo abre numa tela de título (Novo jogo / Continuar), de onde se chega a um mapa-mundi de teste com áreas locais e inimigos de mapa; tocar um inimigo inicia a batalha no próprio mapa. Há save em disco com 3 slots, gravado só em pontos de descanso e no mapa-mundi, e a página Config do menu de campo. Na derrota (Game Over), o jogo volta ao título e o progresso desde o último save em disco se perde.
 
@@ -139,7 +139,46 @@ Não há reação se o alvo cai com o golpe, nem se o golpe não marcaria. O dan
 
 **Matriz e dados.** A matriz das 28 reações, aprovada pelo usuário, está no [plano do M14](.claude/plans/2026-10-22-m14-marcas-reacoes.md#matriz-das-28-reações-aprovada-pelo-usuário-em-2026-10-22). Cada reação é um `.tres` em [`game/data/reactions/`](game/data/reactions/README.md), que explica como editar. O relatório de balanceamento está em [`docs/balance/2026-10-22-relatorio-reacoes.md`](docs/balance/2026-10-22-relatorio-reacoes.md).
 
-**Demo.** O `--demo-fatia` continua com `--quit-after 6000`. Com a rota atual, o último quadro fica entre 4024 e 4274 (sementes 1 a 5 e padrão), então 6000 tem folga.
+**Demo.** O `--demo-fatia` usa `--quit-after 7500` desde o M15 (antes era 6000). Com a rota atual, o último quadro fica entre 4113 e 4332 (sementes 1 a 5 e padrão), então 7500 tem folga.
+
+## Estados, mundo e bestiário (M15)
+
+Os estados novos, a resistência a estados, o veneno no mapa, os puzzles, o terreno e o bestiário são o M15. Todo número é valor de teste. O relatório de balanceamento está em [`docs/balance/2026-10-22-relatorio-estados.md`](docs/balance/2026-10-22-relatorio-estados.md).
+
+**Estados novos** (`game/data/test/statuses/`; a abreviação é a do HUD):
+
+| Estado | HUD | Regra |
+|---|---|---|
+| Queimadura | QUEI | Dano de 6% do HP máximo a cada ATB cheio do afetado, pode derrubar. Força −20% enquanto dura (3 turnos). Num alvo Molhado não entra, e o Molhado sai. |
+| Congelado | GELO | Para o ATB, como o Pare, por 5 s de batalha. O primeiro golpe de Força que o alvo recebe quebra o gelo, com +50% naquele golpe. Golpe de Fogo derrete o gelo sem bônus e seca o Molhado. Dano de Aura não quebra. |
+| Molhado | MOLH | Sem dano, 3 turnos. Soma 30% de fraqueza a Raio (`wet_indra_bonus`). Impede Queimadura. |
+| Petrificação | PEDRA | Põe uma contagem de 8 s; ao zerar, o alvo petrifica: fora da luta, sem ação, sem dano e sem estados. Conta como derrotado. Herói petrificado volta com o HP que tinha. |
+| Contagem | DOOM | Contagem de 15 s; ao zerar, derruba o alvo. Pode ser removida. Guardião e Braços são imunes. |
+| Provocar | PROV | 3 turnos. Enquanto o provocador estiver vivo, o alvo único escolhido pela IA inimiga é ele, e as áreas centram nele. Confusão ignora. |
+| Berserk | BERS | 3 turnos. Força +50%. Age sozinho: ataque básico num inimigo vivo sorteado, sem menu, sem habilidade e sem item. |
+| Reflexo | REFL | 3 turnos. Habilidade com elemento (não o básico) que mira o refletido volta para quem lançou, com os efeitos dela. Um golpe refletido não reflete de novo. |
+
+**Resistência a estados.**
+- **Heróis:** `status_resist` do personagem, somado às passivas RESIST dos equipamentos vestidos. O total fica em no máximo 100%. Passiva IMMUNE ou total ≥ 100% = imune. Negativo = vulnerável.
+- **Inimigos:** `resistances` (a mesma soma) e `immunities`.
+- A chance de aplicar é `chance × (1 − resistência)`.
+
+**Veneno no mapa.** O Veneno tem `persists`: no fim da batalha, o Veneno ativo num herói vivo fica com ele, sem duração, e volta a valer no começo da batalha seguinte.
+- A cada 320 px andados, cada herói envenenado perde 5% do HP máximo, no mínimo 1. Ele nunca cai: o HP para em 1. A reserva não anda e não perde.
+- Cura: item de campo com `REMOVE_STATUS` (o Remédio da fatia; a Panaceia nos dados de teste), técnica de cura de estado e descanso (pousada e ponto de descanso).
+- O painel do grupo mostra "VEN" no herói.
+
+**Puzzles elementais.** Um `ElementalObstacle` (obstáculo de um elemento) abre a escolha dos heróis do grupo que sabem uma técnica daquele elemento. A escolha gasta o AP da técnica (a mais barata do elemento); sem AP, ela fica desativada. Depois de aberto, o obstáculo some e grava a flag. Sem ninguém capaz, mostra o texto de bloqueio. Os três da fatia são Vinhas (andar 1, Fogo), Comporta (andar 2, Água) e Mecanismo (andar 2, Raio). Como criar um, está no [README da fatia](game/data/fatia/README.md#puzzles-elementais-elementalobstacle).
+
+**Terreno.** Um `TerrainDef` (terreno ou clima) multiplica o dano elemental dos dois lados, depois da afinidade e antes do escudo do núcleo. Elemento fora da tabela vale 1,0. Chuva fica na estrada (Água 1,2, Fogo 0,8), e Calor no andar 2 (Fogo 1,2, Água 0,8). O nome do terreno aparece no canto da batalha. Como criar um, está no [README da fatia](game/data/fatia/README.md#terreno-terraindef).
+
+**Bestiário e Scan.**
+- Um inimigo fica "visto" ao entrar numa batalha, e conta as derrotas. Afinidades, fraquezas e resistências a estados aparecem depois de um Scan ou de `bestiary_reveal_kills` (3) derrotas.
+- **Scan:** a técnica Escanear (Teste C, 2 AP, sem dano) e o item Lente (20 na loja). O popup mostra fraquezas, resistências e absorções.
+- **Página Bestiário:** lista os inimigos vistos (os não vistos aparecem como "???"), com nome, nível, HP máximo e derrotas.
+- **Página Reações:** lista as reações já disparadas. As não vistas aparecem como "???", e a vista mostra o par de elementos e um resumo dos efeitos.
+
+**Menu de campo, na ordem:** Itens, Técnicas, Equipar, Status, Bestiário, Reações, Atributos, Formação, Salvar, Config e Fechar.
 
 ## Controles
 
@@ -279,12 +318,16 @@ Passadas depois de `--` (argumentos de usuario), roteirizam entradas para verifi
 & "<Godot_v4.x-stable_win64_console.exe>" --path game -- --demo-m8   # herói sofre dano até encher a barra, usa Limite, enche de novo e chama o Suporte
 & "<Godot_v4.x-stable_win64_console.exe>" --path game -- --demo-m10  # dungeon de teste: lê a placa, fala com o guia (Sim), abre os baús e a porta, aciona o interruptor, pisa nas armadilhas e assiste à cena final
 & "<Godot_v4.x-stable_win64_console.exe>" --path game -- --demo-m11  # chefe de teste da dungeon: começa direto na batalha, com o grupo forte e auto_battle; mostra a troca de fase, o anúncio, o contra-ataque, a parte revivida e os estados no HUD (--seed=N troca a semente)
-& "<Godot_v4.x-stable_win64_console.exe>" --headless --path game --fixed-fps 60 --quit-after 6000 -- --demo-fatia   # fatia inteira, do título à tela de fim (--seed=N e --speed=1 aceitos)
+& "<Godot_v4.x-stable_win64_console.exe>" --headless --path game --fixed-fps 60 --quit-after 7500 -- --demo-fatia   # fatia inteira, do título à tela de fim (--seed=N e --speed=1 aceitos)
 ```
 
 O `--demo-fatia` (M12) percorre a fatia inteira sozinho, do título à tela de fim: cidade, loja, recrutas, pousada com save e load, estrada, dungeon de dois andares, chefe e título. Ele roda na cena principal (`game_fatia.tscn`) com o perfil da fatia; os saves vão para `user://demo_saves/`, nunca para os slots reais.
 
 Sucesso é a última linha do log, `roteiro concluído: 12 lutas`. O `--quit-after` também sai com código 0, então o código de saída sozinho não basta para dizer que a demo passou. Quando uma etapa não bate, a demo sai com código 1 e imprime `FALHA: ...` com a etapa que falhou.
+
+No fim, a demo imprime a folga do limite: `folga: quadro N de 7500 (sobram M)`. Hoje o último quadro fica entre 4113 e 4332, com folga de 3168 a 3387 quadros. O limite padrão, sem `--quit-after`, é o `FRAME_LIMIT` de `game/world/demo_fatia.gd`.
+
+Não rode sementes da demo em paralelo. Todas gravam em `user://demo_saves/`, o mesmo diretório, e uma execução pode ler o save da outra.
 
 As demais flags `--demo-*` continuam usando o perfil de teste (`game/data/test/start_teste.tres`), como antes. Só o `--demo-fatia` usa o perfil da fatia.
 

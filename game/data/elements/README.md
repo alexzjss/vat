@@ -17,7 +17,30 @@ Abra o `.tres` no Inspector do Godot, ou edite o texto:
 ## `rule` e `reacts`
 
 - `rule` escolhe a regra especial que o código aplica: `0` = normal (sem regra), `1` = `BLOOD` (Sangue, só o Shukketsu), `2` = `RADIOACTIVE` (só o Radioativo). Um elemento novo sem `rule` é um elemento comum. Uma regra nova exige código, não só dados.
-- `reacts` (padrão `true`) diz se o elemento participa de reações. Só o Radioativo tem `reacts = false`. Reações são do M14, então hoje o campo não faz nada na batalha.
+- `reacts` (padrão `true`) diz se o elemento participa de reações e de marcas (M14). Só o Radioativo tem `reacts = false`: ele não deixa marca e não reage com outros elementos.
+
+## `icon_text`: a letra da marca
+
+`icon_text` é o texto do ícone da marca elemental que aparece sobre o alvo (M14 e M15), com 1 a 2 letras.
+
+- **Vazio:** o ícone é a primeira letra de `short_name`. Fogo vira "F".
+- **Preenchido:** o ícone usa o texto, como "At" para Atlas.
+
+Valores atuais:
+
+| Arquivo | `short_name` | `icon_text` |
+|---|---|---|
+| `amaterasu.tres` | Luz | L |
+| `atlas.tres` | Terra | At |
+| `fuhaku.tres` | Vento | V |
+| `indra.tres` | Raio | R |
+| `kagutsuchi.tres` | Fogo | F |
+| `radioativo.tres` | Radioativo | Rd |
+| `shukketsu.tres` | Sangue | S |
+| `susanoo.tres` | Água | Á |
+| `tsukuyomi.tres` | Trevas | Ts |
+
+Sem `icon_text`, Atlas e Tsukuyomi viriam ambos como "T". Por isso eles têm o campo. O teste `test_shipped_elements_have_distinct_icon_texts` confirma que os 9 ícones são distintos. Sem elemento, não há ícone.
 
 ## Dar um elemento a habilidade, arma, herói, inimigo ou equipamento
 
