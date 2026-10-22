@@ -91,11 +91,11 @@ func test_starts_on_overworld_at_start() -> void:
 	assert_false(game.busy)
 
 func test_starting_content_matches_m1() -> void:
-	assert_eq(game.party.size(), 5)
-	assert_eq(game.start_items.size(), 4)
-	assert_eq(game.start_item_counts, [3, 2, 1, 1] as Array[int])
-	for i: int in game.start_items.size():
-		assert_eq(game.state.inventory.available(game.start_items[i].id), game.start_item_counts[i])
+	assert_eq(game.test_profile.party.size(), 5)
+	assert_eq(game.test_profile.items.size(), 4)
+	assert_eq(game.test_profile.item_counts, [3, 2, 1, 1] as Array[int])
+	for i: int in game.test_profile.items.size():
+		assert_eq(game.state.inventory.available(game.test_profile.items[i].id), game.test_profile.item_counts[i])
 
 func test_fade_layer_above_battle_ui() -> void:
 	var fade: Fade = game.get_node("Fade") as Fade

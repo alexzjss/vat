@@ -11,8 +11,16 @@ extends Node
 ## Debug: `-- --demo-field-menu` (DemoFieldMenu) percorre as páginas do menu; `-- --demo-m2` (DemoM2) e
 ## `-- --demo-m3` (DemoM3) / `-- --demo-m4` (DemoM4) / `-- --demo-m6` (DemoM6, descanso e save) / `-- --demo-m7` (DemoM7, corrida, iniciativa, fuga e chefe) / `-- --demo-m8` (DemoM8, Limite e Suporte) / `-- --demo-m11` (DemoM11, chefe de teste da dungeon) percorrem os ciclos dos marcos sozinhos (verificação com --write-movie).
 
+## Perfil de início (M12): `start_profile` é o do Novo jogo (a fatia vertical em game_fatia.tscn); as demos (`--demo-*`)
+## e os testes usam `test_profile` (data/test/start_teste.tres, o equivalente ao jogo de teste do M1-M11).
+## Tela de fim (M12): um EndDemoStep abre o EndScreen; antes disso um save automático grava a flag `fatia_concluida`
+## no último slot usado (`last_slot`; 0 = nenhum, e então nada é gravado). Enter volta ao título.
+
 ## Saves das demos (`--demo-*`) vão para cá, nunca para os slots reais.
 const DEMO_SAVE_DIR: String = "user://demo_saves/"
+
+## Flag gravada no "clear save" ao chegar à tela de fim.
+const FLAG_CONCLUDED: StringName = &"fatia_concluida"
 
 const MAPS: Dictionary[StringName, PackedScene] = {
 	&"overworld": preload("res://world/overworld.tscn"),
@@ -24,12 +32,10 @@ const MAPS: Dictionary[StringName, PackedScene] = {
 const EXIT_SPAWNS: Dictionary[StringName, StringName] = {&"area_teste": &"AreaTesteReturn", &"dungeon_teste": &"DungeonReturn"}
 
 @export var balance: BalanceConfig
-@export var party: Array[CharacterDef] = []
-@export var start_items: Array[ItemDef] = []
-@export var start_item_counts: Array[int] = []
-## Mochila inicial de equipamento (o equipamento vestido vem de CharacterDef.starting_equipment).
-@export var start_equipment: Array[EquipmentDef] = []
-@export var start_equipment_counts: Array[int] = []
+## Perfil do Novo jogo (grupo, itens, moeda, mapa e spawn iniciais).
+@export var start_profile: StartProfile
+## Perfil das demos e dos testes (equivale ao jogo de teste de antes da fatia).
+@export var test_profile: StartProfile
 ## Semente do Dice do jogo (-1 = aleatório).
 @export var world_seed: int = -1
 
@@ -39,6 +45,12 @@ var settings_path: String = SettingsStore.DEFAULT_PATH
 var save_dir: String = "user://"
 ## Pula a tela de título e começa em Novo jogo (testes; qualquer flag --demo-* também pula).
 var skip_title: bool = false
+## Usar `test_profile` no Novo jogo (ligado por qualquer flag --demo-*).
+var use_test_profile: bool = false
+## Mapas conhecidos (cópia de MAPS; testes podem acrescentar mapas).
+var maps: Dictionary[StringName, PackedScene] = MAPS.duplicate()
+## Último slot de save usado (salvar ou continuar); 0 = nenhum.
+var last_slot: int = 0
 var state: GameState
 var settings: GameSettings
 var registry: DefRegistry
@@ -56,6 +68,8 @@ var shop_menu: ShopMenu
 ## Executa os eventos roteirizados do mapa atual (M10); a caixa de diálogo é filha dele.
 var event_player: EventPlayer
 var game_over_screen: GameOverScreen
+## Tela de fim da demo (null fora dela).
+var end_screen: EndScreen
 
 static var _registry_cache: DefRegistry
 
@@ -67,7 +81,8 @@ func _ready() -> void:
 		_registry_cache = SaveStore.build_registry()
 	registry = _registry_cache
 	var args: PackedStringArray = OS.get_cmdline_user_args()
-	if _has_demo_flag(args):
+	use_test_profile = uses_test_profile(args)
+	if use_test_profile:
 		save_dir = DEMO_SAVE_DIR
 	store = SaveStore.new(save_dir, registry, balance)
 	settings = GameSettings.new(balance)
@@ -84,8 +99,9 @@ func _ready() -> void:
 	add_child(shop_menu)
 	menu.save_handler = save_to_slot
 	event_player = EventPlayer.new()
+	event_player.end_demo_requested.connect(_on_end_demo_requested)
 	add_child(event_player)
-	if skip_title or _has_demo_flag(args):
+	if skip_title or use_test_profile:
 		start_new_game()
 	else:
 		_show_title()
@@ -108,6 +124,10 @@ func _ready() -> void:
 	if args.has("--demo-field-menu"):
 		_add_demo(DemoFieldMenu.new(), "DemoFieldMenu")
 
+## As demos (qualquer flag --demo-*) rodam no perfil de teste.
+static func uses_test_profile(args: PackedStringArray) -> bool:
+	return _has_demo_flag(args)
+
 static func _has_demo_flag(args: PackedStringArray) -> bool:
 	for a: String in args:
 		if a.begins_with("--demo-"):
@@ -115,27 +135,37 @@ static func _has_demo_flag(args: PackedStringArray) -> bool:
 	return false
 
 func _process(delta: float) -> void:
-	if state != null and not in_title and game_over_screen == null:
+	if state != null and not in_title and game_over_screen == null and end_screen == null:
 		state.play_time += delta
 
-## Começa um jogo novo no mapa-múndi (sai do título, se estiver nele).
+## Perfil do Novo jogo: o de teste nas demos e nos testes, senão `start_profile`.
+func active_profile() -> StartProfile:
+	return test_profile if use_test_profile or start_profile == null else start_profile
+
+## Começa um jogo novo no local do perfil de início (sai do título, se estiver nele).
 func start_new_game() -> void:
+	var p: StartProfile = active_profile()
+	if p == null:
+		push_error("Game: sem perfil de início")
+		return
 	_close_title()
-	state = GameState.new_game(balance, party, start_items, start_item_counts, Dice.new(world_seed),
-			&"overworld", &"Start", GameState.MAX_ACTIVE, start_equipment, start_equipment_counts)
+	state = GameState.new_game(balance, p.party, p.items, p.item_counts, Dice.new(world_seed),
+			p.map, p.spawn, GameState.MAX_ACTIVE, p.equipment, p.equipment_counts, p.money)
 	state.settings = settings
 	in_title = false
-	go_to(&"overworld", &"Start", false)
+	last_slot = 0
+	go_to(p.map, p.spawn, false)
 
 ## Continua do slot `slot` do disco. False se o slot não carregar.
 func continue_from_slot(slot: int) -> bool:
 	var loaded: GameState = store.read(slot, Dice.new(world_seed))
-	if loaded == null or not MAPS.has(loaded.save_map):
+	if loaded == null or not maps.has(loaded.save_map):
 		return false
 	_close_title()
 	loaded.settings = settings
 	state = loaded
 	in_title = false
+	last_slot = slot
 	go_to(loaded.save_map, loaded.save_spawn, false)
 	var world: Overworld = current as Overworld
 	if world != null and loaded.has_save_pos():
@@ -183,7 +213,10 @@ func save_to_slot(slot: int) -> bool:
 	if world != null:
 		pos = world.player.global_position
 	state.save(current_map, save_spawn_here(), pos)
-	return store.write(slot, state)
+	var ok: bool = store.write(slot, state)
+	if ok:
+		last_slot = slot
+	return ok
 
 ## Aplica as configurações que não dependem de uma cena (volume do bus Master).
 func apply_settings() -> void:
@@ -206,7 +239,7 @@ func _unhandled_input(event: InputEvent) -> void:
 ## Verdadeiro se o menu de campo pode abrir agora: sem transição, menu fechado, sem batalha
 ## (o que inclui as telas de resultado) e mapa não travado (Game Over).
 func can_open_menu() -> bool:
-	if busy or menu.is_open or rest_menu.is_open or shop_menu.is_open or current == null or event_player.active:
+	if busy or menu.is_open or rest_menu.is_open or shop_menu.is_open or current == null or event_player.active or end_screen != null:
 		return false
 	var local: LocalMap = current as LocalMap
 	if local != null and (local.battle != null or local.locked or local.event_active):
@@ -239,7 +272,7 @@ func _refresh_leader() -> void:
 func go_to(map: StringName, spawn: StringName, with_fade: bool = true) -> void:
 	if busy:
 		return
-	if not MAPS.has(map):
+	if not maps.has(map):
 		push_error("Game: mapa desconhecido '%s'" % map)
 		return
 	busy = true
@@ -253,7 +286,7 @@ func go_to(map: StringName, spawn: StringName, with_fade: bool = true) -> void:
 		remove_child(current)
 		current.queue_free()
 		current = null
-	current = MAPS[map].instantiate() as Node2D
+	current = maps[map].instantiate() as Node2D
 	current_map = map
 	current.process_mode = Node.PROCESS_MODE_DISABLED
 	add_child(current)
@@ -282,6 +315,7 @@ func _connect_and_setup(node: Node2D, spawn: StringName) -> void:
 	var local: LocalMap = node as LocalMap
 	if local != null:
 		local.exit_requested.connect(_on_exit_requested)
+		local.link_requested.connect(_on_link_requested)
 		local.game_over.connect(_on_game_over)
 		local.rest_requested.connect(_on_rest_requested)
 		local.shop_requested.connect(_on_shop_requested)
@@ -295,14 +329,14 @@ func _connect_and_setup(node: Node2D, spawn: StringName) -> void:
 func _on_location_entered(zone_id: StringName) -> void:
 	if busy:
 		return
-	if not MAPS.has(zone_id):
+	if not maps.has(zone_id):
 		push_error("Game: local desconhecido '%s'" % zone_id)
 		return
 	go_to(zone_id, &"Entry")
 
 ## O Game aceita um evento agora? (mapa local, sem transição, título, menu, Game Over nem outro evento)
 func can_play_event() -> bool:
-	return current is LocalMap and not (busy or in_title or menu.is_open or rest_menu.is_open or shop_menu.is_open or game_over_screen != null or event_player.active)
+	return current is LocalMap and not (busy or in_title or menu.is_open or rest_menu.is_open or shop_menu.is_open or game_over_screen != null or end_screen != null or event_player.active)
 
 ## Executa `event` no mapa atual (pedido por NPCs, placas e demais objetos). Ignorado se já houver evento,
 ## transição, menu ou Game Over.
@@ -338,7 +372,7 @@ func _on_shop_closed() -> void:
 
 ## Os menus sobre o mapa (descanso, pousada, loja) só abrem fora de transição, título, outro menu, Game Over e evento.
 func _can_open_overlay() -> bool:
-	return not (busy or in_title or menu.is_open or rest_menu.is_open or shop_menu.is_open or game_over_screen != null or event_player.active)
+	return not (busy or in_title or menu.is_open or rest_menu.is_open or shop_menu.is_open or game_over_screen != null or end_screen != null or event_player.active)
 
 func _on_rest_closed() -> void:
 	if current != null and not busy:
@@ -350,8 +384,39 @@ func _on_exit_requested() -> void:
 		return
 	go_to(&"overworld", EXIT_SPAWNS.get(current_map, &"Start"))
 
+## Uma ligação de mapa (MapLink) do mapa atual foi pisada.
+func _on_link_requested(target_map: StringName, target_spawn: StringName) -> void:
+	if busy or end_screen != null:
+		return
+	go_to(target_map, target_spawn)
+
+## EndDemoStep: grava o "clear save" e mostra a tela de fim (uma só; o mapa fica parado sob ela).
+func _on_end_demo_requested() -> void:
+	if end_screen != null or in_title or state == null:
+		return
+	if last_slot > 0:
+		state.set_flag(FLAG_CONCLUDED, 1)
+		store.write(last_slot, state)
+	if current != null:
+		current.process_mode = Node.PROCESS_MODE_DISABLED
+	end_screen = EndScreen.new()
+	end_screen.setup(state.play_time, state.party_avg_level())
+	end_screen.dismissed.connect(_on_end_dismissed)
+	add_child(end_screen)
+
+## Da tela de fim de volta ao título.
+func _on_end_dismissed() -> void:
+	end_screen.queue_free()
+	end_screen = null
+	event_player.cancel()
+	if current != null:
+		remove_child(current)
+		current.queue_free()
+		current = null
+	_show_title()
+
 func _on_game_over() -> void:
-	if busy or in_title or game_over_screen != null:
+	if busy or in_title or game_over_screen != null or end_screen != null:
 		return
 	event_player.cancel()
 	state.restore_save()

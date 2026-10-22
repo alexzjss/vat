@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="StartProfile" format=3]
+
+[ext_resource type="Script" path="res://core/defs/start_profile.gd" id="1_sp"]
+[ext_resource type="Script" path="res://core/defs/character_def.gd" id="3_cd"]
+[ext_resource type="Resource" path="res://data/test/heroes/teste_a.tres" id="4_ha"]
+[ext_resource type="Resource" path="res://data/test/heroes/teste_b.tres" id="5_hb"]
+[ext_resource type="Resource" path="res://data/test/heroes/teste_c.tres" id="6_hc"]
+[ext_resource type="Script" path="res://core/defs/item_def.gd" id="7_id"]
+[ext_resource type="Resource" path="res://data/test/items/pocao.tres" id="8_ip"]
+[ext_resource type="Resource" path="res://data/test/items/eter.tres" id="9_ie"]
+[ext_resource type="Resource" path="res://data/test/items/reviver.tres" id="10_ir"]
+[ext_resource type="Resource" path="res://data/test/heroes/teste_d.tres" id="12_hd"]
+[ext_resource type="Resource" path="res://data/test/heroes/teste_e.tres" id="13_he"]
+[ext_resource type="Script" path="res://core/defs/equipment_def.gd" id="15_ed"]
+[ext_resource type="Resource" path="res://data/test/equipment/lamina_aco.tres" id="16_e1"]
+[ext_resource type="Resource" path="res://data/test/equipment/bastao_carvalho.tres" id="17_e2"]
+[ext_resource type="Resource" path="res://data/test/equipment/arco_longo.tres" id="18_e3"]
+[ext_resource type="Resource" path="res://data/test/equipment/armadura_pesada.tres" id="19_e4"]
+[ext_resource type="Resource" path="res://data/test/equipment/capacete_leve.tres" id="20_e5"]
+[ext_resource type="Resource" path="res://data/test/equipment/capacete_teste_b.tres" id="21_e6"]
+[ext_resource type="Resource" path="res://data/test/equipment/amuleto_sono.tres" id="22_e7"]
+[ext_resource type="Resource" path="res://data/test/equipment/amuleto_veneno.tres" id="23_e8"]
+[ext_resource type="Resource" path="res://data/test/equipment/amuleto_pressa.tres" id="24_e9"]
+[ext_resource type="Resource" path="res://data/test/items/cristal_reinicio.tres" id="25_cr"]
+
+[resource]
+script = ExtResource("1_sp")
+party = Array[ExtResource("3_cd")]([ExtResource("4_ha"), ExtResource("5_hb"), ExtResource("6_hc"), ExtResource("12_hd"), ExtResource("13_he")])
+items = Array[ExtResource("7_id")]([ExtResource("8_ip"), ExtResource("9_ie"), ExtResource("10_ir"), ExtResource("25_cr")])
+item_counts = Array[int]([3, 2, 1, 1])
+equipment = Array[ExtResource("15_ed")]([ExtResource("16_e1"), ExtResource("17_e2"), ExtResource("18_e3"), ExtResource("19_e4"), ExtResource("20_e5"), ExtResource("21_e6"), ExtResource("22_e7"), ExtResource("23_e8"), ExtResource("24_e9")])
+equipment_counts = Array[int]([1, 1, 1, 1, 1, 1, 1, 1, 1])
+money = 0
+map = &"overworld"
+spawn = &"Start"

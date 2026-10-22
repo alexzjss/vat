@@ -28,17 +28,17 @@ func _enter_area() -> LocalMap:
 	return game.current as LocalMap
 
 func _bag_def(id: StringName) -> EquipmentDef:
-	for e: EquipmentDef in game.start_equipment:
+	for e: EquipmentDef in game.test_profile.equipment:
 		if e.id == id:
 			return e
 	return null
 
 func test_new_game_has_starting_equipment_and_bag() -> void:
-	assert_gt(game.start_equipment.size(), 0, "mochila inicial preenchida")
-	assert_eq(game.start_equipment.size(), game.start_equipment_counts.size())
-	for i: int in game.start_equipment.size():
-		assert_eq(game.state.bag.count(game.start_equipment[i].id), game.start_equipment_counts[i],
-				"mochila: %s" % game.start_equipment[i].id)
+	assert_gt(game.test_profile.equipment.size(), 0, "mochila inicial preenchida")
+	assert_eq(game.test_profile.equipment.size(), game.test_profile.equipment_counts.size())
+	for i: int in game.test_profile.equipment.size():
+		assert_eq(game.state.bag.count(game.test_profile.equipment[i].id), game.test_profile.equipment_counts[i],
+				"mochila: %s" % game.test_profile.equipment[i].id)
 	for id: StringName in [&"lamina_aco", &"bastao_carvalho", &"arco_longo", &"armadura_pesada",
 			&"capacete_leve", &"capacete_teste_b", &"amuleto_sono", &"amuleto_veneno", &"amuleto_pressa"]:
 		assert_not_null(_bag_def(id), "mochila tem %s" % id)

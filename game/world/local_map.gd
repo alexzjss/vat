@@ -16,6 +16,8 @@ signal event_requested(event: EventScript)
 signal shop_requested(shop: ShopDef)
 ## A pousada pede o descanso pago (M12); o Game abre o menu com o preço da pousada.
 signal inn_requested
+## O jogador entrou numa ligação de mapa (MapLink): o Game troca de mapa (M12).
+signal link_requested(target_map: StringName, target_spawn: StringName)
 ## Fim da batalha iniciada por um evento (StartBattle) com vitória ou fuga; derrota vira `game_over`.
 signal event_battle_finished(outcome: int)
 
@@ -54,13 +56,16 @@ var _event_end_frame: int = -1
 
 @onready var player: Player = $Player
 @onready var camera: MapCamera = $MapCamera
-@onready var exit_zone: Zone = $Exit
+@onready var exit_zone: Zone = get_node_or_null(^"Exit") as Zone
 @onready var default_arena: BattleArena = $Arena
 @onready var followers: PartyFollowers = get_node_or_null(^"Followers") as PartyFollowers
 @onready var rest_point: RestPoint = get_node_or_null(^"RestPoint") as RestPoint
 
 func _ready() -> void:
-	exit_zone.entered.connect(_on_exit_entered)
+	if exit_zone != null:
+		exit_zone.entered.connect(_on_exit_entered)
+	for link: MapLink in map_links():
+		link.activated.connect(_on_link_activated)
 	if rest_point != null:
 		rest_point.player = player
 		rest_point.interacted.connect(_on_rest_interacted)
@@ -191,7 +196,7 @@ func set_event_frozen(on: bool) -> void:
 		player.enabled = false
 		for e: MapEnemy in enemies():
 			e.frozen = true
-		exit_zone.armed = false
+		_arm_exits(false)
 		return
 	if _camera_detached:
 		_camera_detached = false
@@ -210,10 +215,31 @@ func _resume_world() -> void:
 	player.enabled = not event_active
 	for e: MapEnemy in enemies():
 		e.frozen = event_active
-	exit_zone.armed = not event_active
+	_arm_exits(not event_active)
 	if not event_active:
 		for e: MapEnemy in enemies():
 			e.rearm()
+
+## Liga/desliga a saída e as ligações de mapa (desligadas em batalha e evento).
+func _arm_exits(armed: bool) -> void:
+	if exit_zone != null:
+		exit_zone.armed = armed
+	for link: MapLink in map_links():
+		link.armed = armed
+
+## Ligações de mapa (MapLink) filhas diretas do mapa.
+func map_links() -> Array[MapLink]:
+	var out: Array[MapLink] = []
+	for child: Node in get_children():
+		var l: MapLink = child as MapLink
+		if l != null:
+			out.append(l)
+	return out
+
+func _on_link_activated(target_map: StringName, target_spawn: StringName) -> void:
+	if battle != null or locked:
+		return
+	link_requested.emit(target_map, target_spawn)
 
 func enemies() -> Array[MapEnemy]:
 	var out: Array[MapEnemy] = []
@@ -245,7 +271,7 @@ func _on_enemy_touched(enemy: MapEnemy) -> void:
 	player.enabled = false
 	for e: MapEnemy in enemies():
 		e.frozen = true
-	exit_zone.armed = false
+	_arm_exits(false)
 	camera.slide_to(arena.center(), state.cfg.camera_slide_time)
 	var from_pos: Vector2 = player.global_position
 	var kind: Initiative.Kind = Initiative.classify(enemy.global_position, enemy.facing, enemy.is_chasing(),
@@ -272,7 +298,7 @@ func start_event_battle(encounter: EncounterDef) -> void:
 	player.enabled = false
 	for e: MapEnemy in enemies():
 		e.frozen = true
-	exit_zone.armed = false
+	_arm_exits(false)
 	var from_pos: Vector2 = player.global_position
 	_battle_from = from_pos
 	camera.slide_to(default_arena.center(), state.cfg.camera_slide_time)

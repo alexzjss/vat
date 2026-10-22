@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="StartProfile" format=3]
+
+[ext_resource type="Script" path="res://core/defs/start_profile.gd" id="1_sp"]
+[ext_resource type="Script" path="res://core/defs/character_def.gd" id="3_cd"]
+[ext_resource type="Resource" path="res://data/test/heroes/teste_a.tres" id="4_ha"]
+[ext_resource type="Resource" path="res://data/test/heroes/teste_b.tres" id="5_hb"]
+[ext_resource type="Resource" path="res://data/test/heroes/teste_c.tres" id="6_hc"]
+[ext_resource type="Script" path="res://core/defs/item_def.gd" id="7_id"]
+[ext_resource type="Resource" path="res://data/test/items/pocao.tres" id="8_ip"]
+
+[resource]
+script = ExtResource("1_sp")
+party = Array[ExtResource("3_cd")]([ExtResource("4_ha"), ExtResource("5_hb"), ExtResource("6_hc")])
+items = Array[ExtResource("7_id")]([ExtResource("8_ip")])
+item_counts = Array[int]([3])
+money = 50
+map = &"cidade"
+spawn = &"Start"
