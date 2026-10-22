@@ -85,6 +85,25 @@ func recruit(d: CharacterDef, level: int = 0) -> HeroState:
 		reserve.append(nh)
 	return nh
 
+## Dá `n` unidades de `item` respeitando BalanceConfig.max_stack (item-chave não tem limite). O excesso se perde.
+## Devolve quantas unidades entraram de fato.
+func grant_item(item: ItemDef, n: int) -> int:
+	if item == null or n <= 0:
+		return 0
+	var room: int = n if item.key_item else clampi(cfg.max_stack - inventory.count(item.id), 0, n)
+	if room > 0:
+		inventory.add(item, room)
+	return room
+
+## Igual a [method grant_item], para a mochila de equipamentos.
+func grant_equipment(equip: EquipmentDef, n: int) -> int:
+	if equip == null or n <= 0:
+		return 0
+	var room: int = clampi(cfg.max_stack - bag.count(equip.id), 0, n)
+	if room > 0:
+		bag.add(equip, room)
+	return room
+
 func add_money(n: int) -> void:
 	if n > 0:
 		money += n

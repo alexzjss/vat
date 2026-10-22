@@ -327,3 +327,38 @@ func test_restore_save_reverts_flags() -> void:
 	g.set_flag(&"antes", 9)
 	g.restore_save()
 	assert_eq(g.get_flag(&"antes"), 1, "snapshot não é afetado por mudanças posteriores")
+
+func test_give_item_respects_the_cap_and_tells_the_player() -> void:
+	var item := ItemDef.new()
+	item.id = &"pocao"
+	item.display_name = "Poção"
+	g.inventory.add(item, cfg.max_stack - 1)
+	var gi := GiveItemStep.new()
+	gi.item = item
+	gi.count = 3
+	var r: EventRunner = _run([gi, _say("depois")] as Array[EventStep])
+	assert_eq(g.inventory.count(&"pocao"), cfg.max_stack)
+	assert_eq(_drain(r), ["Poção: mochila cheia", "depois"] as Array[String])
+
+func test_give_item_that_fits_says_nothing_and_key_items_ignore_the_cap() -> void:
+	var item := ItemDef.new()
+	item.id = &"erva"
+	item.display_name = "Erva"
+	item.key_item = true
+	g.inventory.add(item, cfg.max_stack)
+	var gi := GiveItemStep.new()
+	gi.item = item
+	var r: EventRunner = _run([gi] as Array[EventStep])
+	assert_true(r.finished)
+	assert_eq(g.inventory.count(&"erva"), cfg.max_stack + 1)
+
+func test_give_equipment_respects_the_cap() -> void:
+	var eq := EquipmentDef.new()
+	eq.id = &"espada"
+	eq.display_name = "Espada"
+	g.bag.add(eq, cfg.max_stack)
+	var ge := GiveEquipmentStep.new()
+	ge.equipment = eq
+	var r: EventRunner = _run([ge] as Array[EventStep])
+	assert_eq(g.bag.count(&"espada"), cfg.max_stack)
+	assert_eq(_drain(r), ["Espada: mochila cheia"] as Array[String])

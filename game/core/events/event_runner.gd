@@ -7,6 +7,9 @@ extends RefCounted
 ## Um trecho sem nenhum passo de apresentação que passe de BalanceConfig.event_max_steps passos
 ## (laço infinito) aborta o evento com push_error.
 
+## Linha de sistema quando o limite da pilha (BalanceConfig.max_stack) descarta parte do que foi dado.
+const CAPPED_TEXT: String = "%s: mochila cheia"
+
 var state: GameState
 ## O roteiro terminou (fim, Goto/IfFlag para fora, aborto ou cancelamento).
 var finished: bool = false
@@ -112,12 +115,12 @@ func _exec(step: EventStep) -> void:
 		_jump((step as GotoStep).label)
 	elif step is GiveItemStep:
 		var gi: GiveItemStep = step
-		if gi.item != null and gi.count > 0:
-			state.inventory.add(gi.item, gi.count)
+		if gi.item != null and gi.count > 0 and state.grant_item(gi.item, gi.count) < gi.count:
+			_system(CAPPED_TEXT % gi.item.display_name)
 	elif step is GiveEquipmentStep:
 		var ge: GiveEquipmentStep = step
-		if ge.equipment != null and ge.count > 0:
-			state.bag.add(ge.equipment, ge.count)
+		if ge.equipment != null and ge.count > 0 and state.grant_equipment(ge.equipment, ge.count) < ge.count:
+			_system(CAPPED_TEXT % ge.equipment.display_name)
 	elif step is GiveMoneyStep:
 		state.add_money((step as GiveMoneyStep).amount)
 	elif step is RecruitStep:

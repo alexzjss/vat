@@ -350,3 +350,58 @@ func test_defeat_gives_no_money() -> void:
 	_run_to_end(s)
 	assert_eq(s.ctrl.outcome, BattleController.Outcome.DEFEAT)
 	assert_eq(g.money, 10)
+
+# --- limite da pilha (drops, baús e eventos) ----------------------------------------
+
+func _fill(g: GameState, item: ItemDef, total: int) -> void:
+	g.inventory.add(item, total - g.inventory.count(item.id))
+
+func test_grant_item_stops_at_max_stack_and_reports_what_was_given() -> void:
+	var g: GameState = _game()
+	var cap: int = g.cfg.max_stack
+	_fill(g, _potion, cap - 1)
+	assert_eq(g.grant_item(_potion, 3), 1, "só cabia uma")
+	assert_eq(g.inventory.count(&"potion"), cap)
+	assert_eq(g.grant_item(_potion, 2), 0, "pilha cheia")
+	assert_eq(g.inventory.count(&"potion"), cap)
+
+func test_grant_item_never_caps_key_items() -> void:
+	var g: GameState = _game()
+	_fill(g, _key, g.cfg.max_stack)
+	assert_eq(g.grant_item(_key, 5), 5)
+	assert_eq(g.inventory.count(&"herb"), g.cfg.max_stack + 5)
+
+func test_grant_equipment_stops_at_max_stack() -> void:
+	var g: GameState = _game()
+	g.bag.add(_vest, g.cfg.max_stack - 2)
+	assert_eq(g.grant_equipment(_vest, 5), 2)
+	assert_eq(g.bag.count(&"vest"), g.cfg.max_stack)
+
+func test_selling_still_works_above_the_cap() -> void:
+	var g: GameState = _game()
+	g.inventory.add(_potion, g.cfg.max_stack + 3 - g.inventory.count(&"potion"))
+	assert_eq(ShopRules.max_sell(g, _potion), g.cfg.max_stack + 3)
+	assert_true(ShopRules.sell(g, _potion, g.cfg.max_stack + 3))
+
+func test_rewards_apply_respects_the_cap_and_reports_the_loss() -> void:
+	var g: GameState = _game(0)
+	var cap: int = g.cfg.max_stack
+	_fill(g, _potion, cap - 1)
+	g.bag.add(_vest, cap)
+	var r := BattleRewards.new()
+	r.money = 4
+	r.add_item(_potion, 3)
+	r.add_equipment(_vest, 1)
+	r.apply(g)
+	assert_eq(g.inventory.count(&"potion"), cap)
+	assert_eq(g.bag.count(&"vest"), cap)
+	assert_eq(r.lines("Moedas"), PackedStringArray(["+4 Moedas", "Obteve potion!", "potion: mochila cheia", "vest: mochila cheia"]))
+
+func test_rewards_with_everything_lost_show_only_the_full_line() -> void:
+	var g: GameState = _game()
+	_fill(g, _potion, g.cfg.max_stack)
+	var r := BattleRewards.new()
+	r.add_item(_potion, 2)
+	r.apply(g)
+	assert_eq(r.lines("Moedas"), PackedStringArray(["potion: mochila cheia"]))
+	assert_false(r.is_empty(), "o aviso conta como conteúdo da tela de resultado")
