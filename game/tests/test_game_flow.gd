@@ -210,8 +210,23 @@ func test_unknown_location_is_ignored() -> void:
 
 # --- Mapas congelados durante a transição -------------------------------------------
 
+## Fade longo e independente do relógio: só termina quando o teste o conclui (`_skip_fade`/`_finish_fade`).
 func _slow_fade() -> void:
-	game.state.cfg.fade_time = 0.3
+	game.state.cfg.fade_time = 30.0
+
+## Conclui já o tween do fade em curso (o próximo fade continua longo).
+func _skip_fade() -> void:
+	var guard: int = 0
+	while not (game.fade._tween != null and game.fade._tween.is_valid()) and guard < 60:
+		await get_tree().process_frame
+		guard += 1
+	game.fade._tween.custom_step(30.0)
+
+## Encurta o fade e conclui o tween em curso: a transição termina sem depender do relógio.
+func _finish_fade() -> void:
+	game.state.cfg.fade_time = 0.01
+	if game.fade._tween != null and game.fade._tween.is_valid():
+		game.fade._tween.custom_step(30.0)
 
 func _zone_center(zone: Zone) -> Vector2:
 	var cs: CollisionShape2D = zone.get_node("CollisionShape2D") as CollisionShape2D
@@ -232,12 +247,14 @@ func test_outgoing_map_frozen_during_fade_out() -> void:
 	await wait_physics_frames(10)
 	assert_true(game.busy, "ainda em transição")
 	assert_eq(player.global_position, start, "jogador não se move no mapa que sai")
+	_finish_fade()
 	await _wait_idle()
 	assert_true(game.current is LocalMap)
 
 func test_enemy_touch_during_fade_in_waits_for_transition() -> void:
 	_slow_fade()
 	(game.current as Overworld).location_entered.emit(&"area_teste", &"Entry")
+	await _skip_fade()
 	while game.current is Overworld:
 		await get_tree().process_frame
 	var map: LocalMap = game.current as LocalMap
@@ -251,6 +268,7 @@ func test_enemy_touch_during_fade_in_waits_for_transition() -> void:
 	await wait_physics_frames(10)
 	assert_true(game.busy)
 	assert_null(map.battle, "nenhuma batalha durante a transição")
+	_finish_fade()
 	await _wait_idle()
 	assert_eq(map.process_mode, Node.PROCESS_MODE_INHERIT, "mapa liberado ao fim")
 	await wait_physics_frames(5)
@@ -260,6 +278,7 @@ func test_zone_entered_during_fade_in_fires_after_transition() -> void:
 	var map: LocalMap = await _enter_area()
 	_slow_fade()
 	map.exit_requested.emit()
+	await _skip_fade()
 	while game.current is LocalMap:
 		await get_tree().process_frame
 	var world: Overworld = game.current as Overworld
@@ -269,9 +288,13 @@ func test_zone_entered_during_fade_in_fires_after_transition() -> void:
 	await wait_physics_frames(10)
 	assert_true(game.busy)
 	assert_signal_not_emitted(world, "location_entered", "zona não dispara durante o fade-in")
+	_finish_fade()
 	await _wait_idle()
+	# A saída seguinte fica num fade longo: o mapa que sai continua vivo para a asserção.
+	_slow_fade()
 	await wait_physics_frames(5)
 	assert_signal_emit_count(world, "location_entered", 1, "zona dispara depois (não se perde)")
+	_finish_fade()
 	await _wait_idle()
 	assert_true(game.current is LocalMap, "entrou na área")
 
@@ -280,6 +303,7 @@ func test_leaving_local_map_locks_it_immediately() -> void:
 	_slow_fade()
 	map.exit_requested.emit()
 	assert_true(map.locked, "encontros e saída barrados já no mesmo quadro")
+	_finish_fade()
 	await _wait_idle()
 
 func test_walking_into_location_triggers_transition() -> void:
