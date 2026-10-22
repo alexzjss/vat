@@ -1,6 +1,6 @@
 # Roteiro de desenvolvimento — núcleo, mecânicas e gameplay
 
-> **Data:** 2026-10-18 · **Estado:** M1 (batalha ATB) e M2 (mapa-múndi → área → encontro no mapa) prontos na `main`, 208 testes.
+> **Data:** 2026-10-18 · **Estado:** M1 a M12 prontos (M12 é a fatia vertical, concluída em 2026-10-21). A base de mecânicas vem do M1 ao M11; o M12 junta tudo numa fatia jogável.
 > **Foco:** continuar construindo **sistemas** (regras, mecânicas, ciclo de jogo) com formas simples, sem arte nem conteúdo narrativo. Cada item vira um marco com design → plano → implementação → revisão, como no M1 e no M2.
 > **Como usar:** escolha os itens que quer; a ordem recomendada está no fim. Itens marcados **(spec)** já existem como regra confirmada ou proposta na spec do jogo e só faltam implementar; **(novo)** são ideias que ainda não estão na spec.
 
@@ -109,7 +109,25 @@ Entregue: corrida e grupo em fila (Shift/X), fuga segurando Q (barra, sem XP, ch
 - Resistências por inimigo não mudaram nesta rodada. Os números são valores de teste.
 - **Base de mecânicas concluída (M5b–M11)**: combate, movimento, menu e grupo estão fechados. O próximo passo é a fatia vertical (cidade, dungeon e chefe) juntando tudo.
 
-**Depois — Fatia vertical**: cidade, dungeon e chefe usando tudo acima.
+**M12 — Fatia vertical** · **Concluído** (2026-10-21) · plano [`m12-fatia-vertical`](../.claude/plans/2026-10-20-m12-fatia-vertical.md) · relatório [`2026-10-20-relatorio-fatia`](balance/2026-10-20-relatorio-fatia.md)
+- Entregue: o **Novo jogo** abre a fatia vertical (`game_fatia.tscn`): título → cidade → mapa-múndi → estrada → dungeon de dois andares → chefe → tela "Fim da demo" → título. Moeda (Moedas) com drops de inimigos, loja que compra e vende, pousada paga, recrutamento (D na cidade, E no andar 1), ligações entre mapas (`MapLink`), perfil de início (`start.tres`), missão secundária com a erva, e a demo `--demo-fatia` de ponta a ponta.
+- Todo nome, texto e número é placeholder ("valor de teste"); os dados estão em `game/data/fatia/`, com o próprio README.
+- Ritmo: a rota típica chega ao chefe no Nv 5 (meta Nv 4–6). O chefe fica entre 15 e 20 s no simulador (relatório da fatia).
+
+**Desvios do plano (M12):**
+- Um mapa extra, `estrada`, entre o mapa-múndi e a dungeon, para que o caminho tenha lutas; o plano previa só `overworld_fatia`.
+- `EventTrigger.requires_defeated` (campo novo): o gatilho só dispara se o inimigo indicado já foi derrotado.
+- Chefe encolhido para a luta durar 15–20 s: Vitalidade do Guardião de 28 para 3 e dos Braços de 17 para 2 (`data/fatia/`).
+- `EventPlayer` corrigido: a caixa de diálogo fecha antes de começar uma batalha, senão uma fala anterior ficava aberta sobre a luta e consumia o Enter.
+
+**Perguntas em aberto (M12), para o usuário decidir:**
+- `max_stack` deve limitar também os drops e os itens de evento? Hoje ele limita só a compra.
+- O lojista deve cumprimentar o jogador primeiro? Hoje não cumprimenta.
+- A missão deve consumir a erva ao entregar? Hoje ela fica na mochila.
+- Onde o jogador deve nascer ao voltar pela estrada? Hoje ele nasce na ponta oeste, e por isso o trecho é pulado.
+- O chefe deve ser mais longo ou mais difícil depois?
+- A diferença de nível entre os heróis (o Teste C fica para trás) deve ser corrigida?
+- A rota mínima (chegar ao chefe no nível 3) é aceitável?
 
 ## Ordem recomendada (original)
 
@@ -150,3 +168,18 @@ Entregue: corrida e grupo em fila (Shift/X), fuga segurando Q (barra, sem XP, ch
 - **M10:** baús, portas e chaves, interruptores, armadilhas; caixa de diálogo com nome e escolhas que gravam flags, cenas roteirizadas, NPCs e placas, XP narrativa.
 
 **Ordem:** M5b → M6 (descanso, save, título, Config, ATB Ativo) → M7 (fuga, iniciativa, IA no mapa, corrida, seguidores) → M8 Limite → M8.5 Suporte → M9 Técnicas → M10 Eventos/dungeon → M11 Chefes/estados.
+
+## Decisões do usuário (2026-10-20, rodada 4) — fatia vertical
+
+Estas são as escolhas do usuário que o plano do M12 registrou como [U]. Tudo que é narrativa é só placeholder.
+
+- **Narrativa:** só placeholder ("Cidade Teste", "Morador A" etc.). Tudo fica em dados (`.tres`), para o usuário trocar depois sem mexer em código.
+- **Economia:** moeda por batalha, drops de itens, loja que compra e vende, e loja de equipamento.
+- **Visual:** formas geométricas desenhadas em código, como hoje.
+- **Grupo:** começa com 3 heróis e recruta mais 2, um na cidade e outro na dungeon.
+- **Cidade:** loja, pousada paga, NPCs com falas, uma missão secundária e casas com interior.
+- **Chefe:** o Guardião com os braços do M11, rebalanceado para o nível da fatia. A luta dura uns 15–20 s nesta fase de testes.
+- **Fluxo:** título → cidade → dungeon → chefe → tela de fim → título. Chega-se à dungeon pelo mapa-múndi, com encontros no caminho.
+- **Dungeon:** 2 andares.
+- **Ritmo:** cerca de 15 min, com o grupo saindo do Nv 1 e chegando ao chefe perto do Nv 5.
+- **Conteúdo antigo:** a fatia substitui o Novo jogo. A área de teste, a dungeon de teste e as demos `--demo-*` continuam existindo, só para as demos e os testes.

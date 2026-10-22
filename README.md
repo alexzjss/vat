@@ -2,11 +2,13 @@
 
 Prototipo de um RPG com combate em tempo real por barra de ATB, feito em Godot 4 com GDScript tipado e placeholders geometricos. Nao ha conteudo narrativo; personagens, inimigos e lugares sao genericos.
 
-O marco atual e o M11, que acrescenta ao M10 o catálogo completo de estados (Pare, Confusão, buffs e debuffs, Silêncio, Cegueira, Regeneração e Barreira), os itens Remédio e Panaceia e um chefe de teste na dungeon de teste (fases por HP, ataque anunciado, contra-ataque e partes). Antes disso, o M10 acrescentou ao M9 o sistema de eventos (caixa de diálogo com nome e escolhas, flags de história, NPCs e placas, cenas roteirizadas e XP narrativa), os objetos de dungeon (baús, portas e chaves, interruptores e armadilhas) e uma dungeon de teste ligada ao mapa-mundi. Antes disso, o M9 acrescentou as técnicas por personagem, mantendo a barra de Limite (M8), o Suporte da reserva (M8.5), fuga, iniciativa por contato, corrida e inimigos com comportamento no mapa: o jogo abre numa tela de título (Novo jogo / Continuar), de onde se chega a um mapa-mundi de teste com áreas locais e inimigos de mapa; tocar um inimigo inicia a batalha no próprio mapa. Há save em disco com 3 slots, gravado só em pontos de descanso e no mapa-mundi, e a página Config do menu de campo. Na derrota (Game Over), o jogo volta ao título e o progresso desde o último save em disco se perde.
+O marco atual e o M12, a fatia vertical: o **Novo jogo** agora percorre uma demo jogável de ponta a ponta (cidade, mapa-múndi, estrada com encontros, dungeon de dois andares, chefe e tela de fim), com moeda, loja, pousada paga e recrutamento. Tudo na fatia é placeholder; veja a seção [Fatia vertical](#fatia-vertical-m12).
+
+Antes disso, o M11 acrescenta ao M10 o catálogo completo de estados (Pare, Confusão, buffs e debuffs, Silêncio, Cegueira, Regeneração e Barreira), os itens Remédio e Panaceia e um chefe de teste na dungeon de teste (fases por HP, ataque anunciado, contra-ataque e partes). Antes disso, o M10 acrescentou ao M9 o sistema de eventos (caixa de diálogo com nome e escolhas, flags de história, NPCs e placas, cenas roteirizadas e XP narrativa), os objetos de dungeon (baús, portas e chaves, interruptores e armadilhas) e uma dungeon de teste ligada ao mapa-mundi. Antes disso, o M9 acrescentou as técnicas por personagem, mantendo a barra de Limite (M8), o Suporte da reserva (M8.5), fuga, iniciativa por contato, corrida e inimigos com comportamento no mapa: o jogo abre numa tela de título (Novo jogo / Continuar), de onde se chega a um mapa-mundi de teste com áreas locais e inimigos de mapa; tocar um inimigo inicia a batalha no próprio mapa. Há save em disco com 3 slots, gravado só em pontos de descanso e no mapa-mundi, e a página Config do menu de campo. Na derrota (Game Over), o jogo volta ao título e o progresso desde o último save em disco se perde.
 
 A batalha do M1 continua disponivel como cena isolada: ATB com modo Wait, fila de prontos, pontos de Aura, itens, estados, areas de efeito, contribuicao e XP.
 
-**Os numeros em `game/data/test` sao valores de teste, nao canonicos** (spec v4.0, secao 8).
+**Os numeros em `game/data/test` e em `game/data/fatia` sao valores de teste, nao canonicos** (spec v4.0, secao 8). Os nomes e textos da fatia tambem sao placeholder; veja [`game/data/fatia/README.md`](game/data/fatia/README.md).
 
 ## Requisitos
 
@@ -27,7 +29,7 @@ winget install --id GodotEngine.GodotEngine -e
 
 O winget instala o executavel em `%LOCALAPPDATA%\Microsoft\WinGet\Packages\GodotEngine.GodotEngine_<...>\` (ex.: `Godot_v4.7.2-stable_win64_console.exe`); use o caminho completo ou defina `$env:GODOT` com ele.
 
-O jogo abre na tela de título (`res://world/game.tscn`). A batalha isolada do M1 continua disponivel: abra `game/battle/battle_scene.tscn` no editor e pressione **F6**, ou rode:
+O jogo abre na tela de título (cena principal `res://world/game_fatia.tscn`). A batalha isolada do M1 continua disponivel: abra `game/battle/battle_scene.tscn` no editor e pressione **F6**, ou rode:
 
 ```powershell
 & "<Godot_v4.x-stable_win64_console.exe>" --path game --scene res://battle/battle_scene.tscn
@@ -35,14 +37,15 @@ O jogo abre na tela de título (`res://world/game.tscn`). A batalha isolada do M
 
 ## Como jogar
 
-**Título.** Ao abrir o jogo, a tela de título tem **Novo jogo**, **Continuar** e **Sair**. Continuar abre a lista dos 3 slots e fica desabilitado se nenhum slot tiver um save válido. Um slot com dados corrompidos aparece como "Dados corrompidos" e não carrega. Qualquer flag `--demo-*` pula o título e começa em Novo jogo.
+**Título.** Ao abrir o jogo, a tela de título tem **Novo jogo**, **Continuar** e **Sair**. Continuar abre a lista dos 3 slots e fica desabilitado se nenhum slot tiver um save válido. Um slot com dados corrompidos aparece como "Dados corrompidos" e não carrega. Qualquer flag `--demo-*` pula o título e começa em Novo jogo, exceto `--demo-fatia`, que passa pelo título como um jogador faria.
 
-**Salvar.** O jogo tem 3 slots em disco (`user://save_1.json` a `save_3.json`). Só é possível salvar em dois lugares:
+**Salvar.** O jogo tem 3 slots em disco (`user://save_1.json` a `save_3.json`). Só é possível salvar em três lugares:
 
 - no **mapa-mundi**, pelo comando **Salvar** do menu de campo (salva sem curar o grupo);
 - num **ponto de descanso** (marcado nas áreas locais): ao apertar a tecla de interação dentro dele, o menu mostra **Descansar e salvar**, **Reiniciar atributos** e **Sair**. Descansar cura todo o grupo, inclusive a reserva, grava o ponto de descanso como spawn e depois pede o slot.
+- na **pousada** da cidade (fatia): o descanso pago cura o grupo e depois pede o slot.
 
-Fora desses dois lugares, o comando Salvar fica desabilitado.
+Fora desses lugares, o comando Salvar fica desabilitado.
 
 **Game Over.** Na derrota, a tela de Game Over leva de volta ao título. O progresso desde o último save em disco se perde, por isso vale salvar em pontos de descanso com frequência.
 
@@ -55,6 +58,19 @@ Fora desses dois lugares, o comando Salvar fica desabilitado.
 - **Memória do cursor**: quando ligada (padrão), o menu de comandos da batalha lembra o último comando de cada herói.
 - **Velocidade do texto**: de 1 a 3, guardada para o sistema de diálogo: a fala aparece a 30, 60 ou 120 caracteres por segundo (valores de teste).
 - **Volume**: de 0 a 10, padrão 10, aplicado ao áudio geral (ainda não há som no jogo).
+
+## Fatia vertical (M12)
+
+O **Novo jogo** abre a fatia vertical, na cena principal `game/world/game_fatia.tscn`. O percurso é: título → **cidade** → mapa-múndi → **estrada**, com encontros no caminho → **dungeon** (andares 1 e 2) → **chefe** → tela **Fim da demo** → título. O save funciona no percurso todo, como nos outros marcos.
+
+Tudo na fatia é placeholder: nomes são "Teste", "Morador A" etc., e os textos são de teste. Os dados ficam em [`game/data/fatia/`](game/data/fatia/README.md), onde está também a lista do que trocar.
+
+- **Moedas.** Cada inimigo derrotado dá Moedas (nome de teste, `BalanceConfig.currency_name`) e pode deixar um item ou equipamento. A tela de resultado mostra "+N Moedas" e "Obteve X!". Fugir não dá nada.
+- **Loja.** Na cidade, a loja tem **Comprar** e **Vender**. Comprar tem estoque infinito e respeita o limite de pilha de 99. Vender rende metade do preço (valor de teste). Item-chave e equipamento vestido não se vendem.
+- **Pousada.** Descanso pago (20 Moedas, valor de teste): cura o grupo e depois pede o slot de save. Os pontos de descanso das dungeons continuam grátis.
+- **Recrutamento.** Dois heróis entram no grupo durante a fatia: o recruta D na cidade e o recruta E no andar 1. Se o grupo ativo (4 heróis) estiver cheio, o recruta vai para a reserva. Quem chega ao grupo entra no nível médio dos ativos, arredondado para baixo. Recrutar o mesmo herói de novo não tem efeito.
+
+O relatório de balanceamento da fatia está em [`docs/balance/2026-10-20-relatorio-fatia.md`](docs/balance/2026-10-20-relatorio-fatia.md).
 
 ## Controles
 
@@ -194,7 +210,14 @@ Passadas depois de `--` (argumentos de usuario), roteirizam entradas para verifi
 & "<Godot_v4.x-stable_win64_console.exe>" --path game -- --demo-m8   # herói sofre dano até encher a barra, usa Limite, enche de novo e chama o Suporte
 & "<Godot_v4.x-stable_win64_console.exe>" --path game -- --demo-m10  # dungeon de teste: lê a placa, fala com o guia (Sim), abre os baús e a porta, aciona o interruptor, pisa nas armadilhas e assiste à cena final
 & "<Godot_v4.x-stable_win64_console.exe>" --path game -- --demo-m11  # chefe de teste da dungeon: começa direto na batalha, com o grupo forte e auto_battle; mostra a troca de fase, o anúncio, o contra-ataque, a parte revivida e os estados no HUD (--seed=N troca a semente)
+& "<Godot_v4.x-stable_win64_console.exe>" --headless --path game --fixed-fps 60 --quit-after 4000 -- --demo-fatia   # fatia inteira, do título à tela de fim (--seed=N e --speed=1 aceitos)
 ```
+
+O `--demo-fatia` (M12) percorre a fatia inteira sozinho, do título à tela de fim: cidade, loja, recrutas, pousada com save e load, estrada, dungeon de dois andares, chefe e título. Ele roda na cena principal (`game_fatia.tscn`) com o perfil da fatia; os saves vão para `user://demo_saves/`, nunca para os slots reais.
+
+Sucesso é a última linha do log, `roteiro concluído: 12 lutas`. O `--quit-after` também sai com código 0, então o código de saída sozinho não basta para dizer que a demo passou. Quando uma etapa não bate, a demo sai com código 1 e imprime `FALHA: ...` com a etapa que falhou.
+
+As demais flags `--demo-*` continuam usando o perfil de teste (`game/data/test/start_teste.tres`), como antes. Só o `--demo-fatia` usa o perfil da fatia.
 
 O `--demo-m2` roda no jogo principal (sem `--scene`) e leva cerca de 40 s de jogo. Ele anda com o jogador por pontos fixos dos mapas de teste, liga o `auto_battle`, deixa os inimigos do encontro com 2 de HP (so no demo) e aceita as telas de resultado e de nivel. Para gravar quadros:
 
@@ -210,12 +233,14 @@ As fórmulas do jogo foram escolhidas no M5 (ver [decisões do M5b](.claude/spec
 
 - [Relatório final](docs/balance/2026-10-19-relatorio-final.md): padrão escolhido, com as metas de vitória e duração.
 - [Relatório de opções](docs/balance/2026-10-19-relatorio-opcoes.md): as opções A/B/C de cada fórmula lado a lado (M5a).
+- [Relatório da fatia](docs/balance/2026-10-20-relatorio-fatia.md): ritmo de XP, moeda e metas do chefe da fatia vertical (M12).
 
 Para gerar os relatórios de novo, na raiz do repositório:
 
 ```powershell
 ./run_sim.ps1                  # relatório de opções (cerca de 9 minutos com os padrões)
 ./run_sim.ps1 -Final -Runs 30  # relatório final
+./run_sim.ps1 -Fatia -Runs 60  # relatório da fatia vertical (M12)
 ```
 
 ## Estrutura
@@ -228,5 +253,6 @@ Para gerar os relatórios de novo, na raiz do repositório:
 - `game/core/` - regras de combate (sem nos, cenas ou Input; aleatoriedade via `Dice` injetado)
 - `game/battle/` - apresentacao da batalha (cena, menus, painel de debug, telas de resultado)
 - `game/world/` - jogo raiz (`game.tscn`: transicoes com fade e Game Over), mapa-mundi, area local, jogador, inimigos de mapa e zonas
-- `game/data/test/` - dados de teste (herois, inimigos, habilidades, itens, estados, `balance.tres`)
+- `game/data/test/` - dados de teste (herois, inimigos, habilidades, itens, estados, `balance.tres`, `start_teste.tres`)
+- `game/data/fatia/` - dados da fatia vertical, placeholders ([README](game/data/fatia/README.md))
 - `game/tests/` - testes GUT
