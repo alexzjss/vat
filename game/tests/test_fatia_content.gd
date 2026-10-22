@@ -753,6 +753,20 @@ func test_doom_is_on_one_rare_optional_enemy() -> void:
 				users.append(String(e.id))
 	assert_eq(users, ["inimigo_raro_f"] as Array[String], "Contagem so no inimigo raro")
 
+## Veneno em campo (M15) precisa ser alcancavel jogando: algum inimigo comum da fatia envenena herois, de vez em quando.
+func test_some_slice_enemy_can_poison_heroes() -> void:
+	var users: Array[String] = []
+	for f: String in _list_tres(DATA + "/enemies"):
+		var e: EnemyDef = load(f) as EnemyDef
+		if e.role != EnemyDef.Role.NORMAL:
+			continue
+		for rule: AiRule in e.ai_rules:
+			if rule.ability != null and _has_status_effect(_one(rule.ability), StatusDef.Kind.POISON):
+				assert_lt(rule.chance, 1.0, "%s: veneno so de vez em quando" % e.id)
+				assert_true(e.abilities.has(rule.ability), "%s lista a habilidade" % e.id)
+				users.append(String(e.id))
+	assert_false(users.is_empty(), "um inimigo comum envenena herois")
+
 func test_scan_is_learned_at_level_two_and_the_lens_is_sold() -> void:
 	var scanners: int = 0
 	for id: String in SLICE_HEROES:

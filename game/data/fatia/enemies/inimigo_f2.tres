@@ -8,6 +8,7 @@
 [ext_resource type="Script" path="res://core/defs/stats.gd" id="4_r"]
 [ext_resource type="Script" path="res://core/defs/ability_def.gd" id="5_r"]
 [ext_resource type="Script" path="res://core/defs/enemy_def.gd" id="6_r"]
+[ext_resource type="Resource" path="res://data/fatia/abilities/peconha_f.tres" id="ab_veneno"]
 
 [sub_resource type="Resource" id="ai_rule_1"]
 script = ExtResource("2_r")
@@ -15,6 +16,14 @@ condition = 1
 threshold = 0.5
 ability = ExtResource("1_r")
 pick = 2
+
+[sub_resource type="Resource" id="ai_rule_veneno"]
+script = ExtResource("2_r")
+condition = 0
+threshold = 0.0
+ability = ExtResource("ab_veneno")
+pick = 1
+chance = 0.25
 
 [sub_resource type="Resource" id="ai_rule_2"]
 script = ExtResource("2_r")
@@ -45,8 +54,8 @@ base = SubResource("stats_3")
 xp_base = 100
 money = 8
 drops = Array[ExtResource("dr_script")]([SubResource("dr_0")])
-abilities = Array[ExtResource("5_r")]([ExtResource("3_r"), ExtResource("1_r")])
-ai_rules = Array[ExtResource("2_r")]([SubResource("ai_rule_1"), SubResource("ai_rule_2")])
+abilities = Array[ExtResource("5_r")]([ExtResource("3_r"), ExtResource("1_r"), ExtResource("ab_veneno")])
+ai_rules = Array[ExtResource("2_r")]([SubResource("ai_rule_1"), SubResource("ai_rule_veneno"), SubResource("ai_rule_2")])
 immunities = Array[StringName]([&"sleep"])
 element_resist = Dictionary[StringName, float]({
 &"susanoo": -0.5,
