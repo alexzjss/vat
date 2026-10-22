@@ -94,7 +94,7 @@ static func _pick_center(rule: AiRule, actor: Combatant, b: BattleState) -> Comb
 		AiRule.TargetPick.CLUSTER:
 			return _cluster(rule.ability, cands, actor, b)
 		AiRule.TargetPick.REACTION_TARGET:
-			return _reaction_center(a, cands, actor, b)
+			return _reaction_center(a, actor, b)
 	if rule.condition == AiRule.Condition.ALLY_HP_BELOW:
 		# [P-plano] 19: o alvo é um aliado abaixo do limiar, o de menor fração de HP.
 		return _lowest_hp_ratio(_below(cands, rule.threshold, b), b)
@@ -159,5 +159,5 @@ static func _reacting_targets(a: AbilityDef, actor: Combatant, b: BattleState) -
 
 ## REACTION_TARGET: o alvo reagente de menor HP (empate: o primeiro). Em area o centro tambem e o alvo reagente
 ## (nao se compara quantos a area pega: simples). Sem alvo reagente: nulo, e a regra e pulada.
-static func _reaction_center(a: AbilityDef, _cands: Array[Combatant], actor: Combatant, b: BattleState) -> Combatant:
+static func _reaction_center(a: AbilityDef, actor: Combatant, b: BattleState) -> Combatant:
 	return _lowest_hp(_reacting_targets(a, actor, b))

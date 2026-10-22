@@ -251,6 +251,72 @@ func test_area_hits_other_allies_in_radius_neutral_without_marks() -> void:
 	assert_eq(area[0]["target_id"], &"y")
 	assert_eq(area[0]["amount"], 12)
 
+## Chefe de teste: `x` (alvo do golpe) e o nucleo; `y` (no raio) e uma parte que protege o nucleo.
+func _boss_x_core_y_arm() -> void:
+	x.enemy_def.role = EnemyDef.Role.CORE
+	y.enemy_def.role = EnemyDef.Role.PART
+	y.enemy_def.shields_core = true
+
+## Chefe de teste: `x` (alvo do golpe) e uma parte protetora e `y` (no raio) e o nucleo.
+func _boss_x_arm_y_core() -> void:
+	x.enemy_def.role = EnemyDef.Role.PART
+	x.enemy_def.shields_core = true
+	y.enemy_def.role = EnemyDef.Role.CORE
+
+func test_area_damage_respects_the_shielded_core() -> void:
+	_def({"area_pct": 0.5, "area_radius": 200.0})
+	_boss_x_arm_y_core()
+	assert_true(b.core_shielded(y))
+	var r: ActionResult = _combo()
+	# golpe 24 no Braco; area = 12, reduzida pelo escudo do nucleo (x0,25 = 3).
+	assert_eq(y.hp, 125 - maxi(1, floori(12.0 * b.cfg.core_shield_mult)))
+	assert_eq(r.hits[0]["reaction_effects"]["area"][0]["amount"], 125 - y.hp)
+
+func test_area_damage_to_shielded_core_has_a_minimum_of_one() -> void:
+	_def({"area_pct": 0.1, "area_radius": 200.0})
+	_boss_x_arm_y_core()
+	_combo()
+	assert_eq(y.hp, 125 - 1, "area 2 x 0,25 = 0: o escudo nunca zera o dano")
+
+func test_area_damage_is_full_when_the_core_is_unshielded() -> void:
+	_def({"area_pct": 0.5, "area_radius": 200.0})
+	_boss_x_arm_y_core()
+	x.enemy_def.shields_core = false
+	assert_false(b.core_shielded(y))
+	_combo()
+	assert_eq(y.hp, 125 - 12)
+
+func test_extra_damage_is_already_shielded_through_the_final_hit() -> void:
+	# O dano extra usa o dano final do golpe (depois do escudo do nucleo): nao precisa de escudo a parte.
+	_def({"bonus_pct": 0.5})
+	_boss_x_core_y_arm()
+	var r: ActionResult = _combo()
+	var hit_dmg: int = maxi(1, floori(24.0 * b.cfg.core_shield_mult))
+	assert_eq(r.hits[0]["amount"], hit_dmg)
+	assert_eq(r.hits[0]["reaction_effects"]["extra_damage"], floori(float(hit_dmg) * 0.5))
+
+func test_area_kill_of_the_last_part_unshields_the_core() -> void:
+	_def({"area_pct": 0.5, "area_radius": 200.0})
+	_boss_x_core_y_arm()
+	y.hp = 1
+	var r: ActionResult = _combo()
+	assert_true(y.is_down())
+	assert_true(r.downed.has(y))
+	assert_false(b.core_shielded(x), "sem a parte de pe, o nucleo volta a levar dano cheio")
+
+func test_area_kill_of_the_core_collapses_the_remaining_parts() -> void:
+	_def({"area_pct": 0.5, "area_radius": 200.0})
+	_boss_x_arm_y_core()
+	z.enemy_def.role = EnemyDef.Role.PART
+	z.enemy_def.shields_core = true
+	z.position = Vector2(120, 0)
+	y.hp = 1
+	var r: ActionResult = _combo()
+	assert_true(y.is_down(), "a area de 3 derruba o nucleo de 1 HP mesmo com o escudo")
+	assert_true(b.enemies_defeated())
+	assert_true(x.is_down() and z.is_down(), "as partes caem junto com o nucleo")
+	assert_true(r.downed.has(x) and r.downed.has(z) and r.downed.has(y))
+
 func test_area_has_no_chain_reaction() -> void:
 	_def({"area_pct": 0.5, "area_radius": 200.0, "bonus_pct": 1.0})
 	MarkRules.set_mark(y, fire, 3)

@@ -76,12 +76,16 @@ static func apply(def: ReactionDef, actor: Combatant, t: Combatant, base: int, b
 		for o: Combatant in b.allies_of(t):
 			if o != t and not o.is_down() and o.position.distance_to(t.position) <= def.area_radius:
 				victims.append(o)
-		var area_dmg: int = floori(float(base) * def.area_pct)
+		var area_base: int = floori(float(base) * def.area_pct)
 		for o: Combatant in victims:
+			var area_dmg: int = area_base
+			# Nucleo protegido: mesmo escudo do golpe direto (minimo 1 se havia dano).
+			if area_dmg > 0 and b.core_shielded(o):
+				area_dmg = maxi(1, floori(float(area_dmg) * b.cfg.core_shield_mult))
 			var dealt: int = 0
 			if area_dmg > 0:
 				dealt = ActionExecutor.deal_damage(actor, o, area_dmg, b, credit)
-			(fx["area"] as Array).append({"target_id": o.id, "amount": dealt})
+			(fx["area"] as Array).append({"target_id": o.id, "amount": dealt, "blocked": area_dmg > 0 and dealt == 0})
 			if o.is_down():
 				(fx["downed"] as Array).append(o)
 				continue

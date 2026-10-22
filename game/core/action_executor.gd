@@ -29,7 +29,7 @@ static func _hit(r: ActionResult, t: Combatant, kind: EffectDef.Kind, amount: in
 	# perdeu, Radioativo), `contamination` (nivel do alvo apos o golpe) e `burst` (dano do estouro; > 0 = estourou).
 	# Marcas e reacoes (M14): `mark` (id da marca que o alvo carrega depois do golpe; vazio = nenhuma), `reaction` (id da
 	# reacao disparada; vazio = nenhuma) e `reaction_effects` (o que a reacao fez, para a UI; vazio sem reacao):
-	# {extra_damage, area: [{target_id, amount}], statuses: [{target_id, status_id, result}], atb: {target, attacker},
+	# {extra_damage, area: [{target_id, amount, blocked}], statuses: [{target_id, status_id, result}], atb: {target, attacker},
 	# heal_attacker, heal_allies: [{target_id, amount}], removed}.
 	var hit: Dictionary = {"target_id": t.id, "kind": kind, "amount": amount, "dodged": dodged, "status_result": status_result, "missed": missed, "shielded": shielded, "element": element, "affinity": affinity, "lifesteal": 0, "self_damage": 0, "contamination": 0, "burst": 0, "mark": MarkRules.id_of(t), "reaction": &"", "reaction_effects": {}}
 	hit.merge(extra, true)
@@ -162,7 +162,6 @@ static func _element_rules(element: ElementDef, actor: Combatant, t: Combatant, 
 			extra["contamination"] = t.contamination
 	return extra
 
-## Cura `amount` em `t` pelo teto do HP maximo; devolve quanto curou de fato.
 ## Dano direto de `actor` em `t`: a barreira absorve primeiro; credito de contribuicao (heroi contra inimigo) ou de
 ## dano sofrido (inimigo contra heroi), Limite e despertar de Sono/Confusao. Devolve o dano efetivo no HP.
 static func deal_damage(actor: Combatant, t: Combatant, dmg: int, b: BattleState, credit: StringName) -> int:
@@ -187,6 +186,7 @@ static func _on_down(t: Combatant, b: BattleState, r: ActionResult) -> void:
 	if not r.downed.has(t):
 		r.downed.append(t)
 
+## Cura `amount` em `t` pelo teto do HP maximo; devolve quanto curou de fato.
 static func restore(amount: int, t: Combatant, b: BattleState) -> int:
 	var restored: int = maxi(0, mini(amount, StatCalculator.hp_max(t, b.cfg) - t.hp))
 	t.hp += restored
