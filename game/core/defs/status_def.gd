@@ -2,13 +2,13 @@ class_name StatusDef
 extends Resource
 
 ## Novos tipos sempre no fim: os .tres guardam o indice do enum.
-enum Kind { POISON, SLEEP, PARALYSIS, HASTE, SLOW, BARRIER, ATTR_MOD, STOP, CONFUSION, SILENCE, BLIND, REGEN }
+enum Kind { POISON, SLEEP, PARALYSIS, HASTE, SLOW, BARRIER, ATTR_MOD, STOP, CONFUSION, SILENCE, BLIND, REGEN, BLEED }
 
 @export var id: StringName
 @export var kind: Kind = Kind.POISON
 ## Turnos do afetado (ATB cheio). STOP nao usa: conta em `seconds`.
 @export var duration: int = 1
-## Veneno: dano por turno; Barreira: pontos; HASTE/SLOW: % de taxa; ATTR_MOD: soma no atributo (pode ser negativa).
+## Sangramento: % do HP maximo por acao do afetado (nunca derruba); Veneno: dano por turno; Barreira: pontos; HASTE/SLOW: % de taxa; ATTR_MOD: soma no atributo (pode ser negativa).
 @export var potency: int = 0
 ## Só ATTR_MOD.
 @export var attr: StringName

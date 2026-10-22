@@ -20,8 +20,11 @@ static func apply(a: PendingAction, b: BattleState) -> ActionResult:
 			r.downed.append(p)
 	return r
 
-static func _hit(r: ActionResult, t: Combatant, kind: EffectDef.Kind, amount: int, dodged: bool, status_result: int, missed: bool = false, shielded: bool = false, element: StringName = &"", affinity: int = ElementMath.Affinity.NEUTRAL) -> void:
-	r.hits.append({"target_id": t.id, "kind": kind, "amount": amount, "dodged": dodged, "status_result": status_result, "missed": missed, "shielded": shielded, "element": element, "affinity": affinity})
+static func _hit(r: ActionResult, t: Combatant, kind: EffectDef.Kind, amount: int, dodged: bool, status_result: int, missed: bool = false, shielded: bool = false, element: StringName = &"", affinity: int = ElementMath.Affinity.NEUTRAL, extra: Dictionary = {}) -> void:
+	# Campos de elemento para a UI (M13): `lifesteal` (HP que o atacante roubou).
+	var hit: Dictionary = {"target_id": t.id, "kind": kind, "amount": amount, "dodged": dodged, "status_result": status_result, "missed": missed, "shielded": shielded, "element": element, "affinity": affinity, "lifesteal": 0}
+	hit.merge(extra, true)
+	r.hits.append(hit)
 
 static func _scaled(e: EffectDef, actor: Combatant, attr: StringName, cfg: BalanceConfig) -> int:
 	if e.scale == EffectDef.Scale.FIXED:
@@ -68,7 +71,10 @@ static func _apply_effect(e: EffectDef, actor: Combatant, t: Combatant, b: Battl
 			if eff > 0:
 				t.gain_limit(eff, StatCalculator.hp_max(t, b.cfg), b.cfg)
 				b.statuses.on_hp_damage(t)
-			_hit(r, t, e.kind, eff, false, -1, false, shielded, el_id, affinity)
+			var extra: Dictionary = {}
+			if eff > 0 and element != null:
+				extra = _element_rules(element, actor, t, eff, b, credit)
+			_hit(r, t, e.kind, eff, false, -1, false, shielded, el_id, affinity, extra)
 			if t.is_down():
 				b.statuses.clear_all(t)
 				t.atb = 0.0
@@ -111,6 +117,16 @@ static func _apply_effect(e: EffectDef, actor: Combatant, t: Combatant, b: Battl
 				if e.status != null and b.statuses.remove(t, e.status.id):
 					count += 1
 			_hit(r, t, e.kind, count, false, -1)
+
+## Regras especiais do elemento depois do dano efetivo `eff` (> 0): Sangue rouba vida. Devolve os campos extras do hit. Nao consome Dice.
+static func _element_rules(element: ElementDef, actor: Combatant, t: Combatant, eff: int, b: BattleState, credit: StringName) -> Dictionary:
+	var extra: Dictionary = {}
+	match element.rule:
+		ElementDef.Rule.BLOOD:
+			# Sem contribuicao de cura: o golpe ja gerou a de dano.
+			if not actor.is_down():
+				extra["lifesteal"] = _restore(floori(float(eff) * b.cfg.blood_lifesteal), actor, b)
+	return extra
 
 static func _restore(amount: int, t: Combatant, b: BattleState) -> int:
 	var restored: int = maxi(0, mini(amount, StatCalculator.hp_max(t, b.cfg) - t.hp))

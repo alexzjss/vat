@@ -184,6 +184,22 @@ func on_atb_full(c: Combatant, living_enemies: Array[Combatant]) -> AtbFullOutco
 	c.statuses = kept
 	return out
 
+## Sangramento (M13): chamado quando a acao do afetado sai. Tira `potency`% do HP maximo por estado BLEED,
+## nunca derruba (deixa no minimo 1 HP) e nao enche o Limite mais que o dano real. Devolve o dano causado.
+func on_action(c: Combatant) -> int:
+	var total: int = 0
+	for s: ActiveStatus in c.statuses:
+		if s.def.kind != StatusDef.Kind.BLEED:
+			continue
+		var want: int = maxi(1, floori(float(StatCalculator.hp_max(c, _cfg)) * float(s.def.potency) / 100.0))
+		var dmg: int = clampi(want, 0, maxi(0, c.hp - 1))
+		c.hp -= dmg
+		total += dmg
+		c.gain_limit(dmg, StatCalculator.hp_max(c, _cfg), _cfg)
+		if c.team == Combatant.Team.ENEMY and dmg > 0:
+			_ledger.add(s.source_id, c.id, float(dmg))
+	return total
+
 func absorb_with_barrier(target: Combatant, dmg: int, attacker: Combatant) -> int:
 	var left: int = dmg
 	var kept: Array[ActiveStatus] = []

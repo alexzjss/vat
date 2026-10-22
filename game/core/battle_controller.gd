@@ -25,6 +25,8 @@ signal phase_changed(c: Combatant, banner: String)
 signal charge_started(c: Combatant, a: PendingAction)
 ## Chefe (M11): `c` contra-ataca `target` (logo depois da acao do heroi).
 signal counter_fired(c: Combatant, target: Combatant)
+## Sangramento (M13): a acao de `c` saiu e o Sangramento tirou `amount` de HP (nunca derruba).
+signal bleed_tick(c: Combatant, amount: int)
 
 enum Outcome { ONGOING, VICTORY, DEFEAT, FLED }
 
@@ -161,6 +163,7 @@ func _advance_execution(delta: float) -> void:
 		a.impacted = true
 		_collect_counters(a, r, ready)
 		action_impact.emit(a, r)
+		_on_action_fired(a.turn_owner())
 		_check_phases()
 	if a.elapsed >= a.cast_time(b.cfg):
 		# Contra-ataque nao usa nem zera o ATB de quem contra-ataca.
@@ -169,6 +172,14 @@ func _advance_execution(delta: float) -> void:
 		executing = null
 		action_finished.emit(a)
 		_next_counter()
+
+## A acao de `c` saiu (impacto): o Sangramento cobra.
+func _on_action_fired(c: Combatant) -> void:
+	if c.is_down():
+		return
+	var bled: int = b.statuses.on_action(c)
+	if bled > 0:
+		bleed_tick.emit(c, bled)
 
 # --- Fases, contra-ataque e preparacao (chefes, M11) ---
 

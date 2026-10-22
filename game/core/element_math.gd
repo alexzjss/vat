@@ -42,6 +42,14 @@ static func affinity_of(total: float) -> Affinity:
 		return Affinity.RESIST
 	return Affinity.ABSORB
 
+## Sangue: multiplicador de dano que cresce quanto menor o HP do atacante (1.0 com HP cheio).
+static func blood_multiplier(actor: Combatant, cfg: BalanceConfig) -> float:
+	var hp_max: int = StatCalculator.hp_max(actor, cfg)
+	if hp_max <= 0:
+		return 1.0
+	var ratio: float = clampf(float(actor.hp) / float(hp_max), 0.0, 1.0)
+	return 1.0 + cfg.blood_low_hp_bonus * (1.0 - ratio)
+
 ## Aplica bonus de mesmo elemento e afinidade ao dano (ja com defesa e variacao).
 ## Devolve {damage, heal, affinity}: `heal` > 0 so quando absorve (damage = 0 nesse caso).
 ## Minimo de 1 de dano so em neutro/fraco/resistiu; imune = 0.
@@ -51,6 +59,10 @@ static func resolve(dmg: int, element: ElementDef, actor: Combatant, target: Com
 	var out: int = dmg
 	if is_native(element, actor):
 		out = maxi(1, floori(float(out) * cfg.same_element_bonus))
+	if element.rule == ElementDef.Rule.BLOOD:
+		var bonus: float = blood_multiplier(actor, cfg)
+		if bonus > 1.0:
+			out = maxi(1, floori(float(out) * bonus))
 	var total: float = total_resist(element, target)
 	var aff: Affinity = affinity_of(total)
 	var m: float = 1.0 - total
