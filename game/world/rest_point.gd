@@ -7,6 +7,8 @@ extends Interactable
 @export var spawn_name: StringName = &"RestSpawn"
 @export var label_text: String = "Descanso"
 
+var _label: Label
+
 func _ready() -> void:
 	super._ready()
 	var rect: Rect2 = _shape_rect()
@@ -16,8 +18,14 @@ func _ready() -> void:
 	fill.size = rect.size
 	fill.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(fill)
-	var label := Label.new()
-	label.text = "%s (Enter)" % label_text
-	label.position = rect.position
-	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(label)
+	_label = Label.new()
+	_label.text = "%s (Enter)" % label_text
+	_label.position = rect.position
+	_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_label)
+
+## O rótulo da área some com o mapa ocupado (batalha, evento, travado), como os demais avisos.
+func _process(delta: float) -> void:
+	super._process(delta)
+	if _label != null:
+		_label.visible = not map_busy()

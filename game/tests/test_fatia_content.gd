@@ -233,6 +233,19 @@ func test_route_town_to_dungeon_floor_two_and_back() -> void:
 	assert_eq(game.current_map, &"dungeon_1")
 	assert_eq((game.current as LocalMap).player.global_position, game.current.get_node("Escada").global_position)
 
+func test_enemy_huds_do_not_overlap_in_the_slice_arenas() -> void:
+	for map_id: StringName in [&"estrada", &"dungeon_1", &"dungeon_2"]:
+		var scene: Node = (Game.MAPS[map_id] as PackedScene).instantiate()
+		var arena: Node2D = scene.get_node("Arena") as Node2D
+		var rects: Array[Rect2] = []
+		for i: int in range(1, 5):
+			var spot: Node2D = arena.get_node("EnemySpot%d" % i) as Node2D
+			rects.append(Rect2(CombatantView.HUD_RECT.position + spot.position, CombatantView.HUD_RECT.size))
+		for a: int in rects.size():
+			for b: int in range(a + 1, rects.size()):
+				assert_false(rects[a].intersects(rects[b]), "%s: HUD do inimigo %d sobrepõe o %d" % [map_id, a + 1, b + 1])
+		scene.free()
+
 func test_overworld_pass_is_blocked_except_through_the_road() -> void:
 	var world: Node = (Game.MAPS[&"overworld_fatia"] as PackedScene).instantiate()
 	var ids: Array[StringName] = []

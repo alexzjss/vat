@@ -7,6 +7,13 @@ extends Node2D
 const SIZE: float = 64.0
 const BAR_W: float = 96.0
 const BAR_H: float = 7.0
+## Nome: tamanho base e mínimo da fonte. Nome longo encolhe até o mínimo e, se ainda não couber, termina em "…".
+const NAME_SIZE: int = 16
+const NAME_MIN_SIZE: int = 10
+const ELLIPSIS: String = "…"
+## Área ocupada pelo HUD de um inimigo (nome, corpo, barras e números de HP/AP), relativa à posição dele. As arenas
+## espaçam os pontos de inimigo para que estes retângulos não se sobreponham.
+const HUD_RECT: Rect2 = Rect2(-48.0, -58.0, 150.0, 131.0)
 const HERO_COLOR: Color = Color(0.25, 0.45, 0.95)
 const ENEMY_COLOR: Color = Color(0.9, 0.25, 0.25)
 const LIMIT_COLOR: Color = Color(0.95, 0.55, 0.15)
@@ -64,7 +71,8 @@ func _draw() -> void:
 		draw_arc(Vector2.ZERO, half + 8.0, 0.0, TAU, 40, Color(1.0, 0.6, 0.1), 4.0)
 	var font: Font = ThemeDB.fallback_font
 	var x0: float = -BAR_W / 2.0
-	draw_string(font, Vector2(x0, -half - 10.0), combatant.display_name, HORIZONTAL_ALIGNMENT_CENTER, BAR_W, 16)
+	var fit: Dictionary = fit_name(font, combatant.display_name, BAR_W)
+	draw_string(font, Vector2(x0, -half - 10.0), fit["text"], HORIZONTAL_ALIGNMENT_CENTER, BAR_W, fit["size"])
 	if shielded and not down:
 		draw_string(font, Vector2(x0, -half - 28.0), "Protegido", HORIZONTAL_ALIGNMENT_CENTER, BAR_W, 14, Color(0.55, 0.8, 1.0))
 	if combatant.is_charging() and not down:
@@ -84,6 +92,17 @@ func _draw() -> void:
 		_bar(Vector2(x0, y), clampf(combatant.limit, 0.0, 1.0), limit_color())
 	y += BAR_H + 16.0
 	draw_string(font, Vector2(x0, y), status_text(), HORIZONTAL_ALIGNMENT_CENTER, BAR_W, 12)
+
+## Ajusta o nome à largura `max_w`: encolhe a fonte de `base_size` até `min_size`; se ainda passar, corta e termina em "…".
+## Devolve {"text": String, "size": int}.
+static func fit_name(font: Font, text: String, max_w: float, base_size: int = NAME_SIZE, min_size: int = NAME_MIN_SIZE) -> Dictionary:
+	for size: int in range(base_size, min_size - 1, -1):
+		if font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x <= max_w:
+			return {"text": text, "size": size}
+	var cut: String = text
+	while not cut.is_empty() and font.get_string_size(cut + ELLIPSIS, HORIZONTAL_ALIGNMENT_LEFT, -1, min_size).x > max_w:
+		cut = cut.substr(0, cut.length() - 1)
+	return {"text": cut + ELLIPSIS, "size": min_size}
 
 ## Barra de Limite cheia pisca entre dois tons (relogio de parede; so visual).
 func limit_color() -> Color:

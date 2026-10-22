@@ -274,3 +274,24 @@ func test_prompts_hide_while_the_map_is_busy() -> void:
 	assert_false(label.visible, "batalha em andamento: sem aviso")
 	map.battle.free()
 	map.battle = null
+
+func test_rest_point_label_hides_while_the_map_is_busy() -> void:
+	await _enter_area()
+	var label: Label = null
+	for c: Node in map.rest_point.get_children():
+		if c is Label:
+			label = c as Label
+	assert_not_null(label)
+	await get_tree().process_frame
+	assert_true(label.visible, "livre: o rótulo do descanso aparece")
+	map.event_active = true
+	await get_tree().process_frame
+	assert_false(label.visible, "evento: sem rótulo")
+	map.event_active = false
+	map.battle = BattleScene.new()
+	await get_tree().process_frame
+	assert_false(label.visible, "batalha: sem rótulo")
+	map.battle.free()
+	map.battle = null
+	await get_tree().process_frame
+	assert_true(label.visible)

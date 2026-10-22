@@ -276,3 +276,36 @@ func test_battle_end_clamps_hero_hp_after_vitality_debuff() -> void:
 	s.ctrl.outcome = BattleController.Outcome.FLED
 	s._on_battle_ended(BattleController.Outcome.FLED)
 	assert_lte(heroes[0].hp, real_max, "HP gravado no HeroState respeita o maximo real")
+
+# --- nome no HUD: cabe na largura (M12.5) -----------------------------------------------
+
+func _width(text: String, size: int) -> float:
+	return ThemeDB.fallback_font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x
+
+func test_short_name_keeps_the_base_size_and_text() -> void:
+	var fit: Dictionary = CombatantView.fit_name(ThemeDB.fallback_font, "Ana", CombatantView.BAR_W)
+	assert_eq(fit["text"], "Ana")
+	assert_eq(fit["size"], CombatantView.NAME_SIZE)
+
+func test_long_name_shrinks_before_it_is_cut() -> void:
+	var name: String = "Guardião (fatia)"
+	assert_gt(_width(name, CombatantView.NAME_SIZE), CombatantView.BAR_W, "no tamanho base não cabe")
+	var fit: Dictionary = CombatantView.fit_name(ThemeDB.fallback_font, name, CombatantView.BAR_W)
+	assert_eq(fit["text"], name, "encolhendo, o nome inteiro cabe")
+	assert_lt(fit["size"], CombatantView.NAME_SIZE)
+	assert_gte(fit["size"], CombatantView.NAME_MIN_SIZE)
+	assert_lte(_width(fit["text"], fit["size"]), CombatantView.BAR_W)
+
+func test_very_long_name_ends_with_an_ellipsis_at_the_minimum_size() -> void:
+	var name: String = "Nome de teste absurdamente comprido para a barra"
+	var fit: Dictionary = CombatantView.fit_name(ThemeDB.fallback_font, name, CombatantView.BAR_W)
+	assert_eq(fit["size"], CombatantView.NAME_MIN_SIZE)
+	assert_true(String(fit["text"]).ends_with("…"))
+	assert_lt(String(fit["text"]).length(), name.length())
+	assert_lte(_width(fit["text"], fit["size"]), CombatantView.BAR_W)
+	assert_true(name.begins_with(String(fit["text"]).trim_suffix("…")), "o início do nome é preservado")
+
+func test_fit_name_handles_empty_and_degenerate_widths() -> void:
+	assert_eq(CombatantView.fit_name(ThemeDB.fallback_font, "", CombatantView.BAR_W)["text"], "")
+	var tiny: Dictionary = CombatantView.fit_name(ThemeDB.fallback_font, "Abc", 1.0)
+	assert_eq(tiny["text"], "…", "nem uma letra cabe: só as reticências")

@@ -48,8 +48,12 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
 	if _prompt_label != null:
-		var m: LocalMap = LocalMap.map_of(self)
-		_prompt_label.visible = can_interact() and (m == null or not m.is_busy())
+		_prompt_label.visible = can_interact() and not map_busy()
+
+## O mapa está ocupado (batalha, evento ou travado)? Os avisos na tela somem; a mesma condição de LocalMap.try_interact.
+func map_busy() -> bool:
+	var m: LocalMap = LocalMap.map_of(self)
+	return m != null and m.is_busy()
 
 func can_interact() -> bool:
 	return enabled and player_inside

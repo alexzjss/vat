@@ -375,10 +375,10 @@ position = Vector2(180, -90)
 position = Vector2(180, 90)
 
 [node name="EnemySpot3" type="Marker2D" parent="Arena"]
-position = Vector2(260, -180)
+position = Vector2(260, -230)
 
 [node name="EnemySpot4" type="Marker2D" parent="Arena"]
-position = Vector2(260, 180)
+position = Vector2(260, 230)
 
 [node name="Followers" type="Node2D" parent="."]
 script = ExtResource("e24")
