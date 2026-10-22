@@ -9,6 +9,9 @@ enum Role { NORMAL, CORE, PART }
 @export var level: int = 1
 @export var base: Stats
 @export var xp_base: int = 100
+## Economia (M12): moeda e drops por inimigo derrotado.
+@export var money: int = 0
+@export var drops: Array[DropEntry] = []
 @export var abilities: Array[AbilityDef] = []
 @export var ai_rules: Array[AiRule] = []
 @export var immunities: Array[StringName] = []

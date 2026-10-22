@@ -10,3 +10,5 @@ extends Resource
 ## Só armadura/capacete; vazio = todos usam.
 @export var allowed_ids: Array[StringName] = []
 @export var passives: Array[EquipmentPassive] = []
+## Economia (M12): preço de compra; vender rende floor(price x sell_ratio). 0 = não vendável.
+@export var price: int = 0

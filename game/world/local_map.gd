@@ -271,6 +271,7 @@ func _begin_battle(arena: BattleArena, defs: Array[EnemyDef], flee_ok: bool, fro
 	battle.demo_result = demo_result
 	battle.dice_seed = dice_seed if dice_seed >= 0 else state.dice.pick_index(1 << 30)
 	battle.settings = state.settings
+	battle.game_state = state
 	battle.mode = BattleScene.Mode.MAP
 	battle.can_flee = flee_ok
 	battle.position = Vector2.ZERO

@@ -8,3 +8,5 @@ extends Resource
 @export var effects: Array[EffectDef] = []
 ## Item-chave: não é usável em batalha nem no menu de itens (ex.: Cristal de Reinício, usado no ponto de descanso).
 @export var key_item: bool = false
+## Economia (M12): preço de compra; vender rende floor(price x sell_ratio). 0 = não vendável.
+@export var price: int = 0

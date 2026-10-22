@@ -39,6 +39,10 @@ var views: Dictionary[StringName, CombatantView] = {}
 var hero_states: Array[HeroState] = []
 ## XP concedida na última vitória, por id de herói.
 var last_xp: Dictionary[StringName, int] = {}
+## Moeda e drops da última vitória (M12); null antes de vencer.
+var last_rewards: BattleRewards
+## Só no modo MAP: o estado do jogo que recebe a moeda e os drops da vitória (null = só mostra, não aplica).
+var game_state: GameState
 
 enum Phase { BATTLE, RESULT, LEVEL_UP, FIGHT_AGAIN, DEFEAT, CONTINUE, DONE }
 
@@ -136,6 +140,7 @@ func start_with(heroes: Array[HeroState], enemies: Array[EnemyDef], hero_pos: Ar
 	for h: HeroState in reserve:
 		_reserve_snapshots.append(h.snapshot())
 	last_xp = {}
+	last_rewards = null
 	_level_queue = []
 	phase = Phase.BATTLE
 	_result.close()
@@ -476,8 +481,11 @@ func _grant_victory(b: BattleState) -> void:
 		var h: HeroState = c.hero_state
 		before[h.def.id] = h.level
 		XpCalculator.grant(h, last_xp.get(h.def.id, 0), balance)
+	last_rewards = BattleRewards.roll(b.enemies, b.dice)
+	if game_state != null:
+		last_rewards.apply(game_state)
 	phase = Phase.RESULT
-	_result.show_for(last_xp, before, hero_states)
+	_result.show_for(last_xp, before, hero_states, last_rewards, balance.currency_name)
 
 func _on_result_accepted(index: int) -> void:
 	match phase:

@@ -120,3 +120,9 @@ enum DurationMode { A, B }
 @export var event_actor_speed: float = 120.0 # valor de teste (M10: px/s do MoveActor quando o passo nao define velocidade)
 @export var event_camera_time: float = 0.8 # valor de teste (M10: segundos do CameraTo)
 @export var trap_damage_pct: float = 0.1 # valor de teste (M10: fracao do HP maximo que a armadilha de dano tira dos ativos; nunca mata)
+
+# Economia (M12).
+@export var currency_name: String = "Moedas" # valor de teste (M12: nome exibido da moeda)
+@export var sell_ratio: float = 0.5 # valor de teste (M12: vender rende floor(preco x isto))
+@export var max_stack: int = 99 # valor de teste (M12: limite de uma pilha de item/equipamento ao comprar)
+@export var inn_price: int = 20 # valor de teste (M12: preco da pousada)

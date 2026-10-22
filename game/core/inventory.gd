@@ -18,6 +18,17 @@ func add(item: ItemDef, n: int) -> void:
 func available(id: StringName) -> int:
 	return _counts.get(id, 0) - _reserved.get(id, 0)
 
+## Total possuído (reservas incluídas).
+func count(id: StringName) -> int:
+	return _counts.get(id, 0)
+
+## Tira `n` unidades livres (loja); false, sem mudar nada, se não houver tantas.
+func remove(id: StringName, n: int) -> bool:
+	if n <= 0 or available(id) < n:
+		return false
+	_counts[id] -= n
+	return true
+
 func reserve(id: StringName) -> bool:
 	if available(id) <= 0:
 		return false

@@ -25,6 +25,9 @@ var save_pos: Vector2 = NO_POS
 var defeated: Array[StringName] = []
 ## Flags de evento (M10): bool = 0/1, ou contador. Vão no save.
 var flags: Dictionary[StringName, int] = {}
+## Moeda do grupo (M12). Vai no save como campo opcional; o nome exibido é BalanceConfig.currency_name.
+var money: int = 0
+var _saved_money: int = 0
 var _saved_defeated: Array[StringName] = []
 var _saved_flags: Dictionary[StringName, int] = {}
 var _saved_heroes: Array[Dictionary] = []
@@ -33,7 +36,7 @@ var _saved_reserve_ids: Array[StringName] = []
 var _saved_inventory: Inventory
 var _saved_bag: EquipmentBag
 
-static func new_game(cfg: BalanceConfig, defs: Array[CharacterDef], items: Array[ItemDef], counts: Array[int], dice: Dice, map: StringName, spawn: StringName, max_active: int = MAX_ACTIVE, bag_items: Array[EquipmentDef] = [], bag_counts: Array[int] = []) -> GameState:
+static func new_game(cfg: BalanceConfig, defs: Array[CharacterDef], items: Array[ItemDef], counts: Array[int], dice: Dice, map: StringName, spawn: StringName, max_active: int = MAX_ACTIVE, bag_items: Array[EquipmentDef] = [], bag_counts: Array[int] = [], start_money: int = 0) -> GameState:
 	var g := GameState.new()
 	g.cfg = cfg
 	g.dice = dice
@@ -50,8 +53,20 @@ static func new_game(cfg: BalanceConfig, defs: Array[CharacterDef], items: Array
 		g.inventory.add(items[i], counts[i])
 	for i: int in bag_items.size():
 		g.bag.add(bag_items[i], bag_counts[i])
+	g.money = maxi(0, start_money)
 	g.save(map, spawn)
 	return g
+
+func add_money(n: int) -> void:
+	if n > 0:
+		money += n
+
+## Gasta `n` de moeda; false, sem mudar nada, se não houver o bastante (ou n negativo).
+func spend_money(n: int) -> bool:
+	if n < 0 or money < n:
+		return false
+	money -= n
+	return true
 
 ## Roster inteiro: ativos na ordem, depois reserva.
 func roster() -> Array[HeroState]:
@@ -146,6 +161,8 @@ func to_dict() -> Dictionary:
 		"heroes": hs, "reserve": rs, "inventory": inventory.to_dict(), "bag": bag.to_dict(),
 		"save_map": String(save_map), "save_spawn": String(save_spawn), "play_time": play_time,
 	}
+	if money > 0:
+		out["money"] = money
 	if has_save_pos():
 		out["save_pos"] = [save_pos.x, save_pos.y]
 	if not defeated.is_empty():
@@ -198,6 +215,9 @@ static func from_dict(d: Dictionary, registry: DefRegistry, p_cfg: BalanceConfig
 			var val: Variant = (fv as Dictionary)[k]
 			if k is String and not (k as String).is_empty() and (val is int or val is float):
 				g.flags[StringName(k as String)] = int(val)
+	var mv: Variant = d.get("money")
+	if mv is int or mv is float:
+		g.money = maxi(0, int(mv))
 	g.save(StringName(str(d.get("save_map", ""))), StringName(str(d.get("save_spawn", ""))), pos)
 	return g
 
@@ -247,6 +267,7 @@ func save(map: StringName, spawn: StringName, pos: Vector2 = NO_POS) -> void:
 	for h: HeroState in reserve:
 		_saved_heroes.append(h.snapshot())
 		_saved_reserve_ids.append(h.def.id)
+	_saved_money = money
 	_saved_defeated = defeated.duplicate()
 	_saved_flags = flags.duplicate()
 	_saved_inventory = inventory.copy()
@@ -267,6 +288,7 @@ func restore_save() -> void:
 	var saved: Array[HeroState] = roster()
 	for i: int in saved.size():
 		saved[i].restore(_saved_heroes[i])
+	money = _saved_money
 	defeated = _saved_defeated.duplicate()
 	flags = _saved_flags.duplicate()
 	inventory = _saved_inventory.copy()
