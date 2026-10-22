@@ -236,3 +236,41 @@ func test_choice_navigation_keys_do_not_move_player() -> void:
 	await _press(KEY_ENTER)
 	assert_eq(game.state.get_flag(&"r"), 1)
 	assert_eq(map.player.global_position, p0)
+
+# --- prompts escondidos com o mapa ocupado -------------------------------------
+
+func _prompt_of(i: Interactable) -> Label:
+	for c: Node in i.get_children():
+		if c is Label:
+			return c as Label
+	return null
+
+func test_prompts_hide_while_the_map_is_busy() -> void:
+	await _enter_area()
+	var n := Npc.new()
+	n.prompt = "Falar (Enter)"
+	n.position = map.player.position
+	map.add_interactable(n)
+	await get_tree().process_frame
+	await get_tree().process_frame
+	var label: Label = _prompt_of(n)
+	assert_not_null(label)
+	assert_false(map.is_busy())
+	assert_true(label.visible, "livre: o aviso aparece")
+	map.event_active = true
+	await get_tree().process_frame
+	assert_true(map.is_busy())
+	assert_false(label.visible, "evento em andamento: sem aviso")
+	map.event_active = false
+	map.locked = true
+	await get_tree().process_frame
+	assert_false(label.visible, "mapa travado: sem aviso")
+	map.locked = false
+	await get_tree().process_frame
+	assert_true(label.visible)
+	map.battle = BattleScene.new()
+	await get_tree().process_frame
+	assert_true(map.is_busy())
+	assert_false(label.visible, "batalha em andamento: sem aviso")
+	map.battle.free()
+	map.battle = null

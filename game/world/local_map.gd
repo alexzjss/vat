@@ -126,20 +126,20 @@ func rest_spawn() -> StringName:
 
 ## Pede ao Game a loja `shop`. False se o mapa está ocupado (batalha, evento, travado).
 func request_shop(shop: ShopDef) -> bool:
-	if shop == null or battle != null or locked or event_active or state == null:
+	if shop == null or is_busy():
 		return false
 	shop_requested.emit(shop)
 	return true
 
 ## Pede ao Game o descanso pago da pousada. False se o mapa está ocupado.
 func request_inn() -> bool:
-	if battle != null or locked or event_active or state == null:
+	if is_busy():
 		return false
 	inn_requested.emit()
 	return true
 
 func _on_rest_interacted() -> void:
-	if battle != null or locked or event_active or state == null:
+	if is_busy():
 		return
 	rest_requested.emit()
 
@@ -164,9 +164,13 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("interact") and try_interact():
 		get_viewport().set_input_as_handled()
 
+## Mapa ocupado (batalha, mapa travado, evento em andamento) ou ainda sem estado: sem interação, loja, descanso nem avisos.
+func is_busy() -> bool:
+	return battle != null or locked or event_active or state == null
+
 ## Aciona o interagível ao alcance mais próximo do jogador. False se nenhum (ou mapa ocupado).
 func try_interact() -> bool:
-	if battle != null or locked or event_active or state == null:
+	if is_busy():
 		return false
 	if Engine.get_process_frames() <= _event_end_frame:
 		return false
@@ -181,7 +185,7 @@ func try_interact() -> bool:
 
 ## Pede ao Game que execute `event`. False se o mapa está ocupado (batalha, evento, travado).
 func run_event(event: EventScript) -> bool:
-	if event == null or battle != null or locked or event_active or state == null:
+	if event == null or is_busy():
 		return false
 	if event_gate.is_valid() and not bool(event_gate.call()):
 		return false
@@ -254,7 +258,7 @@ func _arena_for(enemy: MapEnemy) -> BattleArena:
 	return a if a != null else default_arena
 
 func _on_enemy_touched(enemy: MapEnemy) -> void:
-	if battle != null or locked or event_active or state == null:
+	if is_busy():
 		return
 	if enemy.encounter == null:
 		push_error("LocalMap: inimigo '%s' sem encontro" % enemy.name)

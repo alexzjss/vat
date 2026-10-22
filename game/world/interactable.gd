@@ -48,7 +48,8 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
 	if _prompt_label != null:
-		_prompt_label.visible = can_interact()
+		var m: LocalMap = LocalMap.map_of(self)
+		_prompt_label.visible = can_interact() and (m == null or not m.is_busy())
 
 func can_interact() -> bool:
 	return enabled and player_inside
