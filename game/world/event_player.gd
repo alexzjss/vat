@@ -11,6 +11,8 @@ extends Node
 
 ## `completed` é false se o evento foi cancelado ou abortado.
 signal finished(completed: bool)
+## Um EndDemoStep pediu a tela de fim (M12); o Game a mostra.
+signal end_demo_requested
 ## Resposta interna de cada apresentação; carrega a "geração" para ignorar callbacks de eventos cancelados.
 signal _step_done(answer: int)
 
@@ -117,6 +119,9 @@ func _present(req: EventRequest, gen: int) -> int:
 			if t <= 0.0:
 				return 0
 			get_tree().create_timer(t).timeout.connect(_done.bind(gen, 0))
+		EventRequest.Kind.END_DEMO:
+			end_demo_requested.emit()
+			return 0
 		EventRequest.Kind.START_BATTLE:
 			_map.event_battle_finished.connect(_done_with.bind(gen), CONNECT_ONE_SHOT)
 			_map.start_event_battle(req.encounter)

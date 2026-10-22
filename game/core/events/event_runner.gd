@@ -118,6 +118,14 @@ func _exec(step: EventStep) -> void:
 		var ge: GiveEquipmentStep = step
 		if ge.equipment != null and ge.count > 0:
 			state.bag.add(ge.equipment, ge.count)
+	elif step is GiveMoneyStep:
+		state.add_money((step as GiveMoneyStep).amount)
+	elif step is RecruitStep:
+		_recruit(step as RecruitStep)
+	elif step is EndDemoStep:
+		var re := EventRequest.new()
+		re.kind = EventRequest.Kind.END_DEMO
+		_present(re)
 	elif step is TeachStep:
 		_teach(step as TeachStep)
 	elif step is GrantXpStep:
@@ -168,6 +176,12 @@ func _jump(label: StringName) -> void:
 
 func _system(text: String) -> void:
 	_queue.append(EventRequest.say("", text))
+
+func _recruit(r: RecruitStep) -> void:
+	var lv: int = r.level if r.level_mode == RecruitStep.LevelMode.FIXED else 0
+	var h: HeroState = state.recruit(r.hero, lv)
+	if h != null:
+		_system("%s entrou no grupo!" % h.def.display_name)
 
 func _teach(t: TeachStep) -> void:
 	for h: HeroState in state.roster():

@@ -57,6 +57,34 @@ static func new_game(cfg: BalanceConfig, defs: Array[CharacterDef], items: Array
 	g.save(map, spawn)
 	return g
 
+## Nível médio dos ativos, arredondado para baixo (mínimo 1).
+func party_avg_level() -> int:
+	if heroes.is_empty():
+		return 1
+	var total: int = 0
+	for h: HeroState in heroes:
+		total += h.level
+	return maxi(1, total / heroes.size())
+
+## Recruta `d` (M12): ativo se houver vaga, senão reserva. `level` <= 0 = nível médio dos ativos; o recruta chega
+## com a XP, os pontos e as técnicas desse nível e HP/AP cheios. Devolve o HeroState novo; null se `d` é nulo ou já está no roster.
+func recruit(d: CharacterDef, level: int = 0) -> HeroState:
+	if d == null:
+		return null
+	for h: HeroState in roster():
+		if h.def.id == d.id:
+			return null
+	var target: int = level if level > 0 else party_avg_level()
+	var nh := HeroState.create(d, cfg)
+	XpCalculator.grant(nh, XpCalculator.xp_for_level(target, cfg), cfg)
+	nh.last_learned = []
+	nh.rest(cfg)
+	if heroes.size() < MAX_ACTIVE:
+		heroes.append(nh)
+	else:
+		reserve.append(nh)
+	return nh
+
 func add_money(n: int) -> void:
 	if n > 0:
 		money += n

@@ -28,6 +28,7 @@ var _pick_index: int = -1
 var _active_box: VBoxContainer
 var _reserve_title: Label
 var _reserve_box: GridContainer
+var _money_label: Label
 
 func _init() -> void:
 	add_theme_constant_override("separation", 6)
@@ -49,6 +50,10 @@ func _init() -> void:
 	_reserve_box.add_theme_constant_override("h_separation", 6)
 	_reserve_box.add_theme_constant_override("v_separation", 6)
 	add_child(_reserve_box)
+	_money_label = Label.new()
+	_money_label.add_theme_font_size_override("font_size", 16)
+	_money_label.add_theme_color_override("font_color", CURSOR_COLOR)
+	add_child(_money_label)
 
 func refresh(s: GameState) -> void:
 	state = s
@@ -65,10 +70,15 @@ func refresh(s: GameState) -> void:
 		_cards.append(card)
 		(_reserve_box if small else _active_box).add_child(card)
 	_reserve_title.visible = _heroes.size() > _active_count
+	_money_label.text = "%s: %d" % [s.cfg.currency_name, s.money]
 	if picking:
 		if _pick_index < 0 or _pick_index >= _heroes.size() or not _enabled(_pick_index):
 			_pick_index = _first_enabled_from(0, 1)
 	_render_pick()
+
+## Linha da moeda do grupo ("Moedas: 35"), atualizada em refresh.
+func money_text() -> String:
+	return _money_label.text
 
 func active_card_count() -> int:
 	return _active_count

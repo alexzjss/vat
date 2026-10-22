@@ -4,6 +4,7 @@ extends CanvasLayer
 ## Menu do ponto de descanso (camada 6: acima do menu de campo, abaixo do Fade):
 ## "Descansar e salvar" (cura todo o roster, grava o ponto e abre os slots), "Reiniciar atributos"
 ## (gasta um Cristal de Reinício num herói) e "Sair". O mapa fica congelado enquanto aberto.
+## Com `price` > 0 (pousada, M12) é o mesmo menu, mas "Descansar e salvar" cobra o preço; sem moeda, recusa.
 
 signal closed
 
@@ -22,6 +23,8 @@ var is_open: bool = false
 var stage: Stage = Stage.MAIN
 var cursor: int = 0
 var picker: SaveSlotPicker
+## Preço do descanso (0 = ponto de descanso grátis; > 0 = pousada).
+var price: int = 0
 
 var _list: VBoxContainer
 var _title: Label
@@ -73,8 +76,9 @@ func _init() -> void:
 	_message.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	box.add_child(_message)
 
-func open(g: Game) -> void:
+func open(g: Game, p_price: int = 0) -> void:
 	game = g
+	price = p_price
 	is_open = true
 	visible = true
 	_go(Stage.MAIN)
@@ -103,6 +107,8 @@ func entries() -> PackedStringArray:
 func entry_enabled(i: int) -> bool:
 	match stage:
 		Stage.MAIN:
+			if i == REST_INDEX:
+				return game.state.money >= price
 			return i != RESET_INDEX or crystals() > 0
 		Stage.PICK_HERO:
 			var roster: Array[HeroState] = game.state.roster()
@@ -143,10 +149,12 @@ func cancel() -> void:
 
 func _accept_main() -> void:
 	if not entry_enabled(cursor):
-		_message.text = "Você não tem Cristal de Reinício."
+		_message.text = ("Você não tem %s suficientes." % game.state.cfg.currency_name) if cursor == REST_INDEX 				else "Você não tem Cristal de Reinício."
 		return
 	match cursor:
 		REST_INDEX:
+			if price > 0:
+				game.state.spend_money(price)
 			game.rest_here()
 			_go(Stage.SLOTS)
 			_message.text = "Todos descansaram. Escolha o slot para salvar (Esc: não salvar)."
@@ -177,7 +185,8 @@ func _go(s: Stage, at: int = 0) -> void:
 	_list.visible = s != Stage.SLOTS
 	if s == Stage.SLOTS:
 		picker.open(game.store, SaveSlotPicker.Mode.SAVE)
-	_title.text = "Ponto de descanso" if s != Stage.PICK_HERO else "Reiniciar atributos de quem?"
+	var base: String = "Ponto de descanso" if price <= 0 else "Pousada (%s: %d)" % [game.state.cfg.currency_name, game.state.money]
+	_title.text = base if s != Stage.PICK_HERO else "Reiniciar atributos de quem?"
 	_message.text = ""
 	_render()
 
@@ -213,6 +222,8 @@ func _render() -> void:
 		l.text = ("> " if selected else "  ") + texts[i]
 		if stage == Stage.MAIN and i == RESET_INDEX:
 			l.text += "  (Cristais: %d)" % crystals()
+		if stage == Stage.MAIN and i == REST_INDEX and price > 0:
+			l.text += "  (%d %s)" % [price, game.state.cfg.currency_name]
 		l.add_theme_font_size_override("font_size", 18)
 		var color: Color = TEXT_COLOR
 		if not entry_enabled(i):

@@ -12,6 +12,10 @@ signal game_over
 signal rest_requested
 ## Um objeto do mapa (NPC, placa...) pede um evento; quem hospeda o jogo (Game) o executa com o EventPlayer.
 signal event_requested(event: EventScript)
+## Um lojista pede a loja `shop` (M12); o Game abre o menu de loja.
+signal shop_requested(shop: ShopDef)
+## A pousada pede o descanso pago (M12); o Game abre o menu com o preço da pousada.
+signal inn_requested
 ## Fim da batalha iniciada por um evento (StartBattle) com vitória ou fuga; derrota vira `game_over`.
 signal event_battle_finished(outcome: int)
 
@@ -105,11 +109,29 @@ func setup(game_state: GameState, spawn: StringName) -> void:
 		e.player = player
 		e.setup(state.cfg, state.dice)
 
-## Marcador de spawn do ponto de descanso se o jogador está dentro dele; vazio fora.
+## Marcador de spawn do ponto de descanso (ou da pousada, M12) se o jogador está dentro dele; vazio fora.
 func rest_spawn() -> StringName:
 	if rest_point != null and rest_point.player_inside:
 		return rest_point.spawn_name
+	for i: Interactable in interactables():
+		var inn: Inn = i as Inn
+		if inn != null and inn.player_inside:
+			return inn.spawn_name
 	return &""
+
+## Pede ao Game a loja `shop`. False se o mapa está ocupado (batalha, evento, travado).
+func request_shop(shop: ShopDef) -> bool:
+	if shop == null or battle != null or locked or event_active or state == null:
+		return false
+	shop_requested.emit(shop)
+	return true
+
+## Pede ao Game o descanso pago da pousada. False se o mapa está ocupado.
+func request_inn() -> bool:
+	if battle != null or locked or event_active or state == null:
+		return false
+	inn_requested.emit()
+	return true
 
 func _on_rest_interacted() -> void:
 	if battle != null or locked or event_active or state == null:

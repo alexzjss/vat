@@ -4,7 +4,8 @@ extends RefCounted
 ## Um passo de apresentação que o EventRunner entrega a quem executa (EventPlayer). O runner
 ## fica parado até `resume(answer)`.
 
-enum Kind { SAY, CHOICE, MOVE_ACTOR, WAIT, CAMERA_TO, START_BATTLE }
+## Novos valores sempre no fim.
+enum Kind { SAY, CHOICE, MOVE_ACTOR, WAIT, CAMERA_TO, START_BATTLE, END_DEMO }
 
 var kind: Kind = Kind.SAY
 var speaker: String = ""
