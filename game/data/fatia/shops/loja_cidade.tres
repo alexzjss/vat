@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="ShopDef" format=3]
+
+[ext_resource type="Script" path="res://core/defs/shop_def.gd" id="1_shopdef"]
+[ext_resource type="Script" path="res://core/defs/item_def.gd" id="2_itemdef"]
+[ext_resource type="Script" path="res://core/defs/equipment_def.gd" id="3_equipmen"]
+[ext_resource type="Resource" path="res://data/fatia/items/pocao_f.tres" id="4_pocaof"]
+[ext_resource type="Resource" path="res://data/fatia/items/eter_f.tres" id="5_eterf"]
+[ext_resource type="Resource" path="res://data/fatia/items/remedio_f.tres" id="6_remediof"]
+[ext_resource type="Resource" path="res://data/fatia/items/reviver_f.tres" id="7_reviverf"]
+[ext_resource type="Resource" path="res://data/fatia/equipment/lamina_aco_f.tres" id="8_laminaac"]
+[ext_resource type="Resource" path="res://data/fatia/equipment/bastao_carvalho_f.tres" id="9_bastaoca"]
+[ext_resource type="Resource" path="res://data/fatia/equipment/arco_longo_f.tres" id="10_arcolong"]
+[ext_resource type="Resource" path="res://data/fatia/equipment/armadura_pesada_f.tres" id="11_armadura"]
+[ext_resource type="Resource" path="res://data/fatia/equipment/capacete_leve_f.tres" id="12_capacete"]
+
+[resource]
+script = ExtResource("1_shopdef")
+id = &"loja_cidade"
+display_name = "Loja da Cidade Teste"
+items = Array[ExtResource("2_itemdef")]([ExtResource("4_pocaof"), ExtResource("5_eterf"), ExtResource("6_remediof"), ExtResource("7_reviverf")])
+equipment = Array[ExtResource("3_equipmen")]([ExtResource("8_laminaac"), ExtResource("9_bastaoca"), ExtResource("10_arcolong"), ExtResource("11_armadura"), ExtResource("12_capacete")])

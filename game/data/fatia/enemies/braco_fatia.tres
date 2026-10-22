@@ -1,0 +1,37 @@
+[gd_resource type="Resource" script_class="EnemyDef" format=3]
+
+[ext_resource type="Script" path="res://core/defs/drop_entry.gd" id="dr_script"]
+[ext_resource type="Script" path="res://core/defs/stats.gd" id="s_stats"]
+[ext_resource type="Script" path="res://core/defs/ai_rule.gd" id="s_rule"]
+[ext_resource type="Resource" path="res://data/test/abilities/golpe.tres" id="ab_golpe"]
+[ext_resource type="Script" path="res://core/defs/enemy_def.gd" id="s_def"]
+[ext_resource type="Script" path="res://core/defs/ability_def.gd" id="s_ab"]
+
+[sub_resource type="Resource" id="sub_1"]
+script = ExtResource("s_stats")
+strength = 16
+speed = 8
+vitality = 17
+aura = 2
+
+[sub_resource type="Resource" id="sub_2"]
+script = ExtResource("s_rule")
+condition = 0
+threshold = 0.0
+ability = ExtResource("ab_golpe")
+pick = 4
+telegraph = false
+chance = 1.0
+
+[resource]
+script = ExtResource("s_def")
+id = &"braco_fatia"
+display_name = "Braço (fatia)"
+level = 5
+base = SubResource("sub_1")
+xp_base = 150
+money = 20
+abilities = Array[ExtResource("s_ab")]([ExtResource("ab_golpe")])
+ai_rules = Array[ExtResource("s_rule")]([SubResource("sub_2")])
+role = 2
+shields_core = true

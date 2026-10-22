@@ -1,0 +1,251 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://world/overworld.gd" id="e1"]
+[ext_resource type="Script" path="res://world/zone.gd" id="e2"]
+[ext_resource type="PackedScene" path="res://world/player.tscn" id="e3"]
+[ext_resource type="Script" path="res://world/map_camera.gd" id="e4"]
+
+[sub_resource type="RectangleShape2D" id="sh_2560x20"]
+size = Vector2(2560, 20)
+
+[sub_resource type="RectangleShape2D" id="sh_20x1440"]
+size = Vector2(20, 1440)
+
+[sub_resource type="RectangleShape2D" id="sh_260x580"]
+size = Vector2(260, 580)
+
+[sub_resource type="RectangleShape2D" id="sh_400x240"]
+size = Vector2(400, 240)
+
+[sub_resource type="RectangleShape2D" id="sh_200x320"]
+size = Vector2(200, 320)
+
+[sub_resource type="RectangleShape2D" id="sh_260x300"]
+size = Vector2(260, 300)
+
+[sub_resource type="RectangleShape2D" id="sh_200x240"]
+size = Vector2(200, 240)
+
+[sub_resource type="RectangleShape2D" id="sh_200x160"]
+size = Vector2(200, 160)
+
+[sub_resource type="RectangleShape2D" id="sh_260x240"]
+size = Vector2(260, 240)
+
+[node name="OverworldFatia" type="Node2D"]
+script = ExtResource("e1")
+
+[node name="Background" type="ColorRect" parent="."]
+offset_left = 0
+offset_top = 0
+offset_right = 2560
+offset_bottom = 1440
+mouse_filter = 2
+color = Color(0.22, 0.45, 0.25, 1)
+
+[node name="Caminho" type="ColorRect" parent="."]
+offset_left = 300
+offset_top = 680
+offset_right = 2200
+offset_bottom = 760
+mouse_filter = 2
+color = Color(0.55, 0.47, 0.32, 1)
+
+[node name="WallTop" type="StaticBody2D" parent="."]
+position = Vector2(1280, 10)
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WallTop"]
+shape = SubResource("sh_2560x20")
+
+[node name="ColorRect" type="ColorRect" parent="WallTop"]
+offset_left = -1280
+offset_top = -10
+offset_right = 1280
+offset_bottom = 10
+mouse_filter = 2
+color = Color(0.35, 0.3, 0.25, 1)
+
+[node name="WallBottom" type="StaticBody2D" parent="."]
+position = Vector2(1280, 1430)
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WallBottom"]
+shape = SubResource("sh_2560x20")
+
+[node name="ColorRect" type="ColorRect" parent="WallBottom"]
+offset_left = -1280
+offset_top = -10
+offset_right = 1280
+offset_bottom = 10
+mouse_filter = 2
+color = Color(0.35, 0.3, 0.25, 1)
+
+[node name="WallLeft" type="StaticBody2D" parent="."]
+position = Vector2(10, 720)
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WallLeft"]
+shape = SubResource("sh_20x1440")
+
+[node name="ColorRect" type="ColorRect" parent="WallLeft"]
+offset_left = -10
+offset_top = -720
+offset_right = 10
+offset_bottom = 720
+mouse_filter = 2
+color = Color(0.35, 0.3, 0.25, 1)
+
+[node name="WallRight" type="StaticBody2D" parent="."]
+position = Vector2(2550, 720)
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WallRight"]
+shape = SubResource("sh_20x1440")
+
+[node name="ColorRect" type="ColorRect" parent="WallRight"]
+offset_left = -10
+offset_top = -720
+offset_right = 10
+offset_bottom = 720
+mouse_filter = 2
+color = Color(0.35, 0.3, 0.25, 1)
+
+[node name="AguaNorte" type="StaticBody2D" parent="."]
+position = Vector2(1280, 310)
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="AguaNorte"]
+shape = SubResource("sh_260x580")
+
+[node name="ColorRect" type="ColorRect" parent="AguaNorte"]
+offset_left = -130
+offset_top = -290
+offset_right = 130
+offset_bottom = 290
+mouse_filter = 2
+color = Color(0.2, 0.4, 0.7, 1)
+
+[node name="AguaSul" type="StaticBody2D" parent="."]
+position = Vector2(1280, 1130)
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="AguaSul"]
+shape = SubResource("sh_260x580")
+
+[node name="ColorRect" type="ColorRect" parent="AguaSul"]
+offset_left = -130
+offset_top = -290
+offset_right = 130
+offset_bottom = 290
+mouse_filter = 2
+color = Color(0.2, 0.4, 0.7, 1)
+
+[node name="Lago" type="StaticBody2D" parent="."]
+position = Vector2(700, 300)
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Lago"]
+shape = SubResource("sh_400x240")
+
+[node name="ColorRect" type="ColorRect" parent="Lago"]
+offset_left = -200
+offset_top = -120
+offset_right = 200
+offset_bottom = 120
+mouse_filter = 2
+color = Color(0.2, 0.4, 0.7, 1)
+
+[node name="Montanha1" type="StaticBody2D" parent="."]
+position = Vector2(1800, 330)
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Montanha1"]
+shape = SubResource("sh_200x320")
+
+[node name="ColorRect" type="ColorRect" parent="Montanha1"]
+offset_left = -100
+offset_top = -160
+offset_right = 100
+offset_bottom = 160
+mouse_filter = 2
+color = Color(0.45, 0.42, 0.4, 1)
+
+[node name="Montanha2" type="StaticBody2D" parent="."]
+position = Vector2(700, 1100)
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Montanha2"]
+shape = SubResource("sh_260x300")
+
+[node name="ColorRect" type="ColorRect" parent="Montanha2"]
+offset_left = -130
+offset_top = -150
+offset_right = 130
+offset_bottom = 150
+mouse_filter = 2
+color = Color(0.45, 0.42, 0.4, 1)
+
+[node name="Montanha3" type="StaticBody2D" parent="."]
+position = Vector2(2250, 1100)
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Montanha3"]
+shape = SubResource("sh_200x240")
+
+[node name="ColorRect" type="ColorRect" parent="Montanha3"]
+offset_left = -100
+offset_top = -120
+offset_right = 100
+offset_bottom = 120
+mouse_filter = 2
+color = Color(0.45, 0.42, 0.4, 1)
+
+[node name="Cidade" type="Area2D" parent="."]
+position = Vector2(400, 720)
+script = ExtResource("e2")
+zone_id = &"cidade"
+label_text = "Cidade Teste"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Cidade"]
+shape = SubResource("sh_200x160")
+
+[node name="Estrada" type="Area2D" parent="."]
+position = Vector2(1280, 720)
+script = ExtResource("e2")
+zone_id = &"estrada"
+label_text = "Estrada"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Estrada"]
+shape = SubResource("sh_260x240")
+
+[node name="Dungeon" type="Area2D" parent="."]
+position = Vector2(2100, 720)
+script = ExtResource("e2")
+zone_id = &"dungeon_1"
+label_text = "Dungeon Teste"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Dungeon"]
+shape = SubResource("sh_200x160")
+
+[node name="Start" type="Marker2D" parent="."]
+position = Vector2(600, 720)
+
+[node name="CidadeReturn" type="Marker2D" parent="."]
+position = Vector2(600, 720)
+
+[node name="EstradaOeste" type="Marker2D" parent="."]
+position = Vector2(1110, 720)
+
+[node name="EstradaLeste" type="Marker2D" parent="."]
+position = Vector2(1450, 720)
+
+[node name="DungeonReturn" type="Marker2D" parent="."]
+position = Vector2(1940, 720)
+
+[node name="Player" parent="." instance=ExtResource("e3")]
+position = Vector2(600, 720)
+
+[node name="MapCamera" type="Camera2D" parent="."]
+position = Vector2(600, 720)
+script = ExtResource("e4")

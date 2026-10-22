@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="EventScript" format=3]
+
+[ext_resource type="Script" path="res://core/events/event_script.gd" id="1_eventscr"]
+[ext_resource type="Script" path="res://core/events/event_step.gd" id="2_eventste"]
+[ext_resource type="Script" path="res://core/events/say_step.gd" id="3_saystep"]
+
+[sub_resource type="Resource" id="s1"]
+script = ExtResource("3_saystep")
+speaker = "Morador A"
+text = "Texto de teste: bem-vindo à Cidade Teste."
+
+[resource]
+script = ExtResource("1_eventscr")
+steps = Array[ExtResource("2_eventste")]([SubResource("s1")])

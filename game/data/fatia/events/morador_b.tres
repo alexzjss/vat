@@ -1,0 +1,53 @@
+[gd_resource type="Resource" script_class="EventScript" format=3]
+
+[ext_resource type="Script" path="res://core/events/event_script.gd" id="1_eventscr"]
+[ext_resource type="Script" path="res://core/events/event_step.gd" id="2_eventste"]
+[ext_resource type="Script" path="res://core/events/say_step.gd" id="3_saystep"]
+[ext_resource type="Script" path="res://core/events/choice_step.gd" id="4_choicest"]
+[ext_resource type="Script" path="res://core/events/if_flag_step.gd" id="5_ifflagst"]
+[ext_resource type="Script" path="res://core/events/goto_step.gd" id="6_gotostep"]
+[ext_resource type="Script" path="res://core/events/label_step.gd" id="7_labelste"]
+
+[sub_resource type="Resource" id="s1"]
+script = ExtResource("3_saystep")
+speaker = "Morador B"
+text = "Texto de teste: o que acha da Cidade Teste?"
+
+[sub_resource type="Resource" id="s2"]
+script = ExtResource("4_choicest")
+prompt = "Gostou da cidade?"
+options = PackedStringArray("Sim", "Não")
+flag = &"morador_b_escolha"
+
+[sub_resource type="Resource" id="s3"]
+script = ExtResource("5_ifflagst")
+flag = &"morador_b_escolha"
+op = 0
+value = 0
+else_label = &"nao"
+
+[sub_resource type="Resource" id="s4"]
+script = ExtResource("3_saystep")
+speaker = "Morador B"
+text = "Texto de teste: que bom! Aproveite a loja."
+
+[sub_resource type="Resource" id="s5"]
+script = ExtResource("6_gotostep")
+label = &"fim"
+
+[sub_resource type="Resource" id="s6"]
+script = ExtResource("7_labelste")
+label_name = &"nao"
+
+[sub_resource type="Resource" id="s7"]
+script = ExtResource("3_saystep")
+speaker = "Morador B"
+text = "Texto de teste: é uma cidade de mentira mesmo."
+
+[sub_resource type="Resource" id="s8"]
+script = ExtResource("7_labelste")
+label_name = &"fim"
+
+[resource]
+script = ExtResource("1_eventscr")
+steps = Array[ExtResource("2_eventste")]([SubResource("s1"), SubResource("s2"), SubResource("s3"), SubResource("s4"), SubResource("s5"), SubResource("s6"), SubResource("s7"), SubResource("s8")])

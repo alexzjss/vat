@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="EquipmentDef" format=3]
+
+[ext_resource type="Script" path="res://core/defs/stats.gd" id="stats"]
+[ext_resource type="Script" path="res://core/defs/equipment_def.gd" id="def"]
+
+[sub_resource type="Resource" id="stats_1"]
+script = ExtResource("stats")
+strength = 2
+speed = 2
+vitality = 0
+aura = 0
+
+[resource]
+script = ExtResource("def")
+id = &"arco_longo_f"
+display_name = "Arco Longo"
+slot = &"weapon"
+modifiers = SubResource("stats_1")
+weapon_type = &"bow"
+price = 80

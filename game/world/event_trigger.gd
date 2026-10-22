@@ -6,6 +6,8 @@ extends Area2D
 
 @export var event: EventScript
 @export var once_flag: StringName = &""
+## Cena de pós-batalha (M12): só roda depois que o encontro com esse `unique_id` foi derrotado (vazio = sem exigência).
+@export var requires_defeated: StringName = &""
 @export var size: Vector2 = Vector2(48, 120)
 
 func _init() -> void:
@@ -45,6 +47,8 @@ func trigger() -> bool:
 	if map == null or map.state == null or event == null:
 		return false
 	if once_flag != &"" and map.state.get_flag(once_flag) != 0:
+		return false
+	if requires_defeated != &"" and not map.state.is_defeated(requires_defeated):
 		return false
 	if not map.run_event(event):
 		return false

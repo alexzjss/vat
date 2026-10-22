@@ -1,0 +1,356 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://world/local_map.gd" id="e1"]
+[ext_resource type="Script" path="res://world/map_link.gd" id="e2"]
+[ext_resource type="Resource" path="res://data/fatia/events/placa_dungeon_2.tres" id="e3"]
+[ext_resource type="Script" path="res://world/sign.gd" id="e4"]
+[ext_resource type="Resource" path="res://data/fatia/items/pocao_f.tres" id="e5"]
+[ext_resource type="Script" path="res://world/chest.gd" id="e6"]
+[ext_resource type="Script" path="res://world/switch.gd" id="e7"]
+[ext_resource type="Script" path="res://world/flag_gate.gd" id="e8"]
+[ext_resource type="Script" path="res://world/rest_point.gd" id="e9"]
+[ext_resource type="Resource" path="res://data/fatia/items/reviver_f.tres" id="e10"]
+[ext_resource type="Resource" path="res://data/fatia/events/chefe_entrada.tres" id="e11"]
+[ext_resource type="Script" path="res://world/event_trigger.gd" id="e12"]
+[ext_resource type="Resource" path="res://data/fatia/events/cena_final.tres" id="e13"]
+[ext_resource type="Resource" path="res://data/fatia/encounters/enc_f3.tres" id="e14"]
+[ext_resource type="PackedScene" path="res://world/map_enemy.tscn" id="e15"]
+[ext_resource type="Resource" path="res://data/fatia/encounters/enc_f4.tres" id="e16"]
+[ext_resource type="Resource" path="res://data/fatia/encounters/enc_f34.tres" id="e17"]
+[ext_resource type="Resource" path="res://data/fatia/encounters/chefe_fatia.tres" id="e18"]
+[ext_resource type="Script" path="res://world/battle_arena.gd" id="e19"]
+[ext_resource type="Script" path="res://world/party_followers.gd" id="e20"]
+[ext_resource type="PackedScene" path="res://world/player.tscn" id="e21"]
+[ext_resource type="Script" path="res://world/map_camera.gd" id="e22"]
+
+[sub_resource type="RectangleShape2D" id="sh_2400x20"]
+size = Vector2(2400, 20)
+
+[sub_resource type="RectangleShape2D" id="sh_20x720"]
+size = Vector2(20, 720)
+
+[sub_resource type="RectangleShape2D" id="sh_20x280"]
+size = Vector2(20, 280)
+
+[sub_resource type="RectangleShape2D" id="sh_40x160"]
+size = Vector2(40, 160)
+
+[sub_resource type="RectangleShape2D" id="sh_120x80"]
+size = Vector2(120, 80)
+
+[node name="Dungeon2" type="Node2D"]
+script = ExtResource("e1")
+
+[node name="Background" type="ColorRect" parent="."]
+offset_left = 0
+offset_top = 0
+offset_right = 2400
+offset_bottom = 720
+mouse_filter = 2
+color = Color(0.08, 0.08, 0.12, 1)
+
+[node name="Floor1" type="ColorRect" parent="."]
+offset_left = 20
+offset_top = 20
+offset_right = 720
+offset_bottom = 700
+mouse_filter = 2
+color = Color(0.2, 0.2, 0.26, 1)
+
+[node name="Floor2" type="ColorRect" parent="."]
+offset_left = 740
+offset_top = 20
+offset_right = 1500
+offset_bottom = 700
+mouse_filter = 2
+color = Color(0.22, 0.2, 0.24, 1)
+
+[node name="Floor3" type="ColorRect" parent="."]
+offset_left = 1520
+offset_top = 20
+offset_right = 2380
+offset_bottom = 700
+mouse_filter = 2
+color = Color(0.2, 0.23, 0.24, 1)
+
+[node name="WallTop" type="StaticBody2D" parent="."]
+position = Vector2(1200, 10)
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WallTop"]
+shape = SubResource("sh_2400x20")
+
+[node name="ColorRect" type="ColorRect" parent="WallTop"]
+offset_left = -1200
+offset_top = -10
+offset_right = 1200
+offset_bottom = 10
+mouse_filter = 2
+color = Color(0.35, 0.3, 0.25, 1)
+
+[node name="WallBottom" type="StaticBody2D" parent="."]
+position = Vector2(1200, 710)
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WallBottom"]
+shape = SubResource("sh_2400x20")
+
+[node name="ColorRect" type="ColorRect" parent="WallBottom"]
+offset_left = -1200
+offset_top = -10
+offset_right = 1200
+offset_bottom = 10
+mouse_filter = 2
+color = Color(0.35, 0.3, 0.25, 1)
+
+[node name="WallLeft" type="StaticBody2D" parent="."]
+position = Vector2(10, 360)
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WallLeft"]
+shape = SubResource("sh_20x720")
+
+[node name="ColorRect" type="ColorRect" parent="WallLeft"]
+offset_left = -10
+offset_top = -360
+offset_right = 10
+offset_bottom = 360
+mouse_filter = 2
+color = Color(0.35, 0.3, 0.25, 1)
+
+[node name="WallRight" type="StaticBody2D" parent="."]
+position = Vector2(2390, 360)
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WallRight"]
+shape = SubResource("sh_20x720")
+
+[node name="ColorRect" type="ColorRect" parent="WallRight"]
+offset_left = -10
+offset_top = -360
+offset_right = 10
+offset_bottom = 360
+mouse_filter = 2
+color = Color(0.35, 0.3, 0.25, 1)
+
+[node name="Divider1Top" type="StaticBody2D" parent="."]
+position = Vector2(730, 160)
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Divider1Top"]
+shape = SubResource("sh_20x280")
+
+[node name="ColorRect" type="ColorRect" parent="Divider1Top"]
+offset_left = -10
+offset_top = -140
+offset_right = 10
+offset_bottom = 140
+mouse_filter = 2
+color = Color(0.35, 0.3, 0.25, 1)
+
+[node name="Divider1Bottom" type="StaticBody2D" parent="."]
+position = Vector2(730, 560)
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Divider1Bottom"]
+shape = SubResource("sh_20x280")
+
+[node name="ColorRect" type="ColorRect" parent="Divider1Bottom"]
+offset_left = -10
+offset_top = -140
+offset_right = 10
+offset_bottom = 140
+mouse_filter = 2
+color = Color(0.35, 0.3, 0.25, 1)
+
+[node name="Divider2Top" type="StaticBody2D" parent="."]
+position = Vector2(1510, 160)
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Divider2Top"]
+shape = SubResource("sh_20x280")
+
+[node name="ColorRect" type="ColorRect" parent="Divider2Top"]
+offset_left = -10
+offset_top = -140
+offset_right = 10
+offset_bottom = 140
+mouse_filter = 2
+color = Color(0.35, 0.3, 0.25, 1)
+
+[node name="Divider2Bottom" type="StaticBody2D" parent="."]
+position = Vector2(1510, 560)
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Divider2Bottom"]
+shape = SubResource("sh_20x280")
+
+[node name="ColorRect" type="ColorRect" parent="Divider2Bottom"]
+offset_left = -10
+offset_top = -140
+offset_right = 10
+offset_bottom = 140
+mouse_filter = 2
+color = Color(0.35, 0.3, 0.25, 1)
+
+[node name="Entry" type="Marker2D" parent="."]
+position = Vector2(180, 360)
+
+[node name="VoltaLink" type="Area2D" parent="."]
+position = Vector2(50, 360)
+script = ExtResource("e2")
+target_map = &"dungeon_1"
+target_spawn = &"Escada"
+label_text = "Escada"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="VoltaLink"]
+shape = SubResource("sh_40x160")
+
+[node name="Sign" type="Area2D" parent="."]
+position = Vector2(330, 290)
+script = ExtResource("e4")
+prompt = "Ler"
+event = ExtResource("e3")
+
+[node name="BauA" type="Area2D" parent="."]
+position = Vector2(620, 100)
+script = ExtResource("e6")
+item = ExtResource("e5")
+count = 2
+opened_flag = &"f2_bau_a"
+
+[node name="SwitchA" type="Area2D" parent="."]
+position = Vector2(1000, 90)
+script = ExtResource("e7")
+flag = &"f2_sw_a"
+
+[node name="SwitchB" type="Area2D" parent="."]
+position = Vector2(1000, 630)
+script = ExtResource("e7")
+flag = &"f2_sw_b"
+
+[node name="GateA" type="StaticBody2D" parent="."]
+position = Vector2(1504, 360)
+script = ExtResource("e8")
+flag = &"f2_sw_a"
+
+[node name="GateB" type="StaticBody2D" parent="."]
+position = Vector2(1518, 360)
+script = ExtResource("e8")
+flag = &"f2_sw_b"
+
+[node name="RestPoint" type="Area2D" parent="."]
+position = Vector2(1560, 580)
+script = ExtResource("e9")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RestPoint"]
+shape = SubResource("sh_120x80")
+
+[node name="RestSpawn" type="Marker2D" parent="."]
+position = Vector2(1560, 520)
+
+[node name="BauC" type="Area2D" parent="."]
+position = Vector2(1580, 100)
+script = ExtResource("e6")
+item = ExtResource("e10")
+opened_flag = &"f2_bau_c"
+
+[node name="CenaChefeTrigger" type="Area2D" parent="."]
+position = Vector2(1900, 360)
+script = ExtResource("e12")
+event = ExtResource("e11")
+once_flag = &"f2_cena_chefe"
+size = Vector2(40, 640)
+
+[node name="FinalTrigger" type="Area2D" parent="."]
+position = Vector2(2020, 360)
+script = ExtResource("e12")
+event = ExtResource("e13")
+once_flag = &"f2_fim"
+requires_defeated = &"chefe_fatia"
+size = Vector2(700, 640)
+
+[node name="BossSpot" type="Marker2D" parent="."]
+position = Vector2(2250, 360)
+
+[node name="Patrulheiro" parent="." instance=ExtResource("e15")]
+position = Vector2(300, 200)
+encounter = ExtResource("e14")
+behavior = 1
+patrol_points = PackedVector2Array(300, 200, 600, 200)
+arena_path = NodePath("../Arena")
+
+[node name="DuplaA" parent="." instance=ExtResource("e15")]
+position = Vector2(500, 560)
+encounter = ExtResource("e14")
+region = Rect2(440, 530, 140, 70)
+group = &"dupla"
+arena_path = NodePath("../Arena")
+
+[node name="DuplaB" parent="." instance=ExtResource("e15")]
+position = Vector2(560, 560)
+encounter = ExtResource("e16")
+region = Rect2(440, 530, 140, 70)
+group = &"dupla"
+arena_path = NodePath("../Arena")
+
+[node name="Errante" parent="." instance=ExtResource("e15")]
+position = Vector2(1150, 360)
+encounter = ExtResource("e16")
+region = Rect2(1050, 260, 300, 200)
+arena_path = NodePath("../Arena")
+
+[node name="Perseguidor" parent="." instance=ExtResource("e15")]
+position = Vector2(1750, 560)
+encounter = ExtResource("e17")
+region = Rect2(1650, 500, 200, 120)
+chases = true
+arena_path = NodePath("../Arena")
+
+[node name="Boss" parent="." instance=ExtResource("e15")]
+position = Vector2(2250, 360)
+encounter = ExtResource("e18")
+region = Rect2(2240, 350, 20, 20)
+arena_path = NodePath("../Arena")
+requires_flag = &"f2_cena_chefe"
+
+[node name="Arena" type="Node2D" parent="."]
+position = Vector2(2050, 360)
+script = ExtResource("e19")
+
+[node name="HeroSpot1" type="Marker2D" parent="Arena"]
+position = Vector2(-280, -225)
+
+[node name="HeroSpot2" type="Marker2D" parent="Arena"]
+position = Vector2(-340, -75)
+
+[node name="HeroSpot3" type="Marker2D" parent="Arena"]
+position = Vector2(-280, 75)
+
+[node name="HeroSpot4" type="Marker2D" parent="Arena"]
+position = Vector2(-340, 225)
+
+[node name="SupportSpot" type="Marker2D" parent="Arena"]
+position = Vector2(-460, 0)
+
+[node name="EnemySpot1" type="Marker2D" parent="Arena"]
+position = Vector2(180, -90)
+
+[node name="EnemySpot2" type="Marker2D" parent="Arena"]
+position = Vector2(180, 90)
+
+[node name="EnemySpot3" type="Marker2D" parent="Arena"]
+position = Vector2(260, -180)
+
+[node name="EnemySpot4" type="Marker2D" parent="Arena"]
+position = Vector2(260, 180)
+
+[node name="Followers" type="Node2D" parent="."]
+script = ExtResource("e20")
+
+[node name="Player" parent="." instance=ExtResource("e21")]
+position = Vector2(180, 360)
+
+[node name="MapCamera" type="Camera2D" parent="."]
+position = Vector2(180, 360)
+script = ExtResource("e22")

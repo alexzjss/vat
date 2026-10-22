@@ -26,6 +26,14 @@ const MAPS: Dictionary[StringName, PackedScene] = {
 	&"overworld": preload("res://world/overworld.tscn"),
 	&"area_teste": preload("res://world/local_map.tscn"),
 	&"dungeon_teste": preload("res://world/dungeon_teste.tscn"),
+	# Fatia vertical (M12). Saem do mapa por MapLink (sem $Exit), então não há entradas em EXIT_SPAWNS.
+	&"cidade": preload("res://world/fatia/cidade.tscn"),
+	&"casa_1": preload("res://world/fatia/casa_1.tscn"),
+	&"casa_2": preload("res://world/fatia/casa_2.tscn"),
+	&"overworld_fatia": preload("res://world/fatia/overworld_fatia.tscn"),
+	&"estrada": preload("res://world/fatia/estrada.tscn"),
+	&"dungeon_1": preload("res://world/fatia/dungeon_1.tscn"),
+	&"dungeon_2": preload("res://world/fatia/dungeon_2.tscn"),
 }
 
 ## Marcador do mapa-múndi onde o jogador reaparece ao sair de cada área.

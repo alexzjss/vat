@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="EquipmentDef" format=3]
+
+[ext_resource type="Script" path="res://core/defs/stats.gd" id="stats"]
+[ext_resource type="Script" path="res://core/defs/equipment_def.gd" id="def"]
+
+[sub_resource type="Resource" id="stats_1"]
+script = ExtResource("stats")
+strength = 0
+speed = -2
+vitality = 4
+aura = 0
+
+[resource]
+script = ExtResource("def")
+id = &"armadura_pesada_f"
+display_name = "Armadura Pesada"
+slot = &"armor"
+modifiers = SubResource("stats_1")
+price = 100

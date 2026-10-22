@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="ItemDef" format=3]
+
+[ext_resource type="Script" path="res://core/defs/status_def.gd" id="1_r"]
+[ext_resource type="Script" path="res://core/defs/effect_def.gd" id="2_r"]
+[ext_resource type="Script" path="res://core/defs/item_def.gd" id="3_r"]
+[ext_resource type="Resource" path="res://data/test/statuses/confusion.tres" id="4_r"]
+[ext_resource type="Resource" path="res://data/test/statuses/silence.tres" id="5_r"]
+[ext_resource type="Resource" path="res://data/test/statuses/blind.tres" id="6_r"]
+
+[sub_resource type="Resource" id="effect_def_1"]
+script = ExtResource("2_r")
+kind = 5
+scale = 2
+potency = 0.0
+statuses = Array[ExtResource("1_r")]([ExtResource("4_r"), ExtResource("5_r"), ExtResource("6_r")])
+chance = 1.0
+dodgeable = false
+
+[resource]
+script = ExtResource("3_r")
+id = &"remedio_f"
+display_name = "Remédio"
+shape = 0
+side = 1
+effects = Array[ExtResource("2_r")]([SubResource("effect_def_1")])
+price = 15

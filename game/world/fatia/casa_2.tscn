@@ -1,0 +1,195 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://world/local_map.gd" id="e1"]
+[ext_resource type="Script" path="res://world/map_link.gd" id="e2"]
+[ext_resource type="Resource" path="res://data/fatia/events/recruta_d.tres" id="e3"]
+[ext_resource type="Script" path="res://world/npc.gd" id="e4"]
+[ext_resource type="Script" path="res://world/battle_arena.gd" id="e5"]
+[ext_resource type="Script" path="res://world/party_followers.gd" id="e6"]
+[ext_resource type="PackedScene" path="res://world/player.tscn" id="e7"]
+[ext_resource type="Script" path="res://world/map_camera.gd" id="e8"]
+
+[sub_resource type="RectangleShape2D" id="sh_1020x12"]
+size = Vector2(1020, 12)
+
+[sub_resource type="RectangleShape2D" id="sh_12x540"]
+size = Vector2(12, 540)
+
+[sub_resource type="RectangleShape2D" id="sh_460x12"]
+size = Vector2(460, 12)
+
+[sub_resource type="RectangleShape2D" id="sh_120x60"]
+size = Vector2(120, 60)
+
+[sub_resource type="RectangleShape2D" id="sh_90x24"]
+size = Vector2(90, 24)
+
+[node name="Casa2" type="Node2D"]
+script = ExtResource("e1")
+
+[node name="Background" type="ColorRect" parent="."]
+offset_left = 0
+offset_top = 0
+offset_right = 2400
+offset_bottom = 720
+mouse_filter = 2
+color = Color(0.05, 0.05, 0.07, 1)
+
+[node name="Chao" type="ColorRect" parent="."]
+offset_left = 700
+offset_top = 100
+offset_right = 1700
+offset_bottom = 620
+mouse_filter = 2
+color = Color(0.45, 0.34, 0.24, 1)
+
+[node name="ParedeTopo" type="StaticBody2D" parent="."]
+position = Vector2(1200, 94)
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ParedeTopo"]
+shape = SubResource("sh_1020x12")
+
+[node name="ColorRect" type="ColorRect" parent="ParedeTopo"]
+offset_left = -510
+offset_top = -6
+offset_right = 510
+offset_bottom = 6
+mouse_filter = 2
+color = Color(0.3, 0.22, 0.16, 1)
+
+[node name="ParedeEsq" type="StaticBody2D" parent="."]
+position = Vector2(694, 360)
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ParedeEsq"]
+shape = SubResource("sh_12x540")
+
+[node name="ColorRect" type="ColorRect" parent="ParedeEsq"]
+offset_left = -6
+offset_top = -270
+offset_right = 6
+offset_bottom = 270
+mouse_filter = 2
+color = Color(0.3, 0.22, 0.16, 1)
+
+[node name="ParedeDir" type="StaticBody2D" parent="."]
+position = Vector2(1706, 360)
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ParedeDir"]
+shape = SubResource("sh_12x540")
+
+[node name="ColorRect" type="ColorRect" parent="ParedeDir"]
+offset_left = -6
+offset_top = -270
+offset_right = 6
+offset_bottom = 270
+mouse_filter = 2
+color = Color(0.3, 0.22, 0.16, 1)
+
+[node name="ParedeBaixoE" type="StaticBody2D" parent="."]
+position = Vector2(930, 626)
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ParedeBaixoE"]
+shape = SubResource("sh_460x12")
+
+[node name="ColorRect" type="ColorRect" parent="ParedeBaixoE"]
+offset_left = -230
+offset_top = -6
+offset_right = 230
+offset_bottom = 6
+mouse_filter = 2
+color = Color(0.3, 0.22, 0.16, 1)
+
+[node name="ParedeBaixoD" type="StaticBody2D" parent="."]
+position = Vector2(1470, 626)
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ParedeBaixoD"]
+shape = SubResource("sh_460x12")
+
+[node name="ColorRect" type="ColorRect" parent="ParedeBaixoD"]
+offset_left = -230
+offset_top = -6
+offset_right = 230
+offset_bottom = 6
+mouse_filter = 2
+color = Color(0.3, 0.22, 0.16, 1)
+
+[node name="Mesa" type="StaticBody2D" parent="."]
+position = Vector2(1000, 330)
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Mesa"]
+shape = SubResource("sh_120x60")
+
+[node name="ColorRect" type="ColorRect" parent="Mesa"]
+offset_left = -60
+offset_top = -30
+offset_right = 60
+offset_bottom = 30
+mouse_filter = 2
+color = Color(0.35, 0.25, 0.15, 1)
+
+[node name="Entry" type="Marker2D" parent="."]
+position = Vector2(1200, 560)
+
+[node name="Saida" type="Area2D" parent="."]
+position = Vector2(1200, 626)
+script = ExtResource("e2")
+target_map = &"cidade"
+target_spawn = &"Casa2Saida"
+label_text = "Saída"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Saida"]
+shape = SubResource("sh_90x24")
+
+[node name="NpcD" type="Area2D" parent="."]
+position = Vector2(1200, 220)
+script = ExtResource("e4")
+prompt = "Falar"
+event = ExtResource("e3")
+display_name = "Teste D"
+
+[node name="Arena" type="Node2D" parent="."]
+position = Vector2(1200, 360)
+script = ExtResource("e5")
+
+[node name="HeroSpot1" type="Marker2D" parent="Arena"]
+position = Vector2(-280, -225)
+
+[node name="HeroSpot2" type="Marker2D" parent="Arena"]
+position = Vector2(-340, -75)
+
+[node name="HeroSpot3" type="Marker2D" parent="Arena"]
+position = Vector2(-280, 75)
+
+[node name="HeroSpot4" type="Marker2D" parent="Arena"]
+position = Vector2(-340, 225)
+
+[node name="SupportSpot" type="Marker2D" parent="Arena"]
+position = Vector2(-460, 0)
+
+[node name="EnemySpot1" type="Marker2D" parent="Arena"]
+position = Vector2(180, -90)
+
+[node name="EnemySpot2" type="Marker2D" parent="Arena"]
+position = Vector2(180, 90)
+
+[node name="EnemySpot3" type="Marker2D" parent="Arena"]
+position = Vector2(260, -180)
+
+[node name="EnemySpot4" type="Marker2D" parent="Arena"]
+position = Vector2(260, 180)
+
+[node name="Followers" type="Node2D" parent="."]
+script = ExtResource("e6")
+
+[node name="Player" parent="." instance=ExtResource("e7")]
+position = Vector2(1200, 560)
+
+[node name="MapCamera" type="Camera2D" parent="."]
+position = Vector2(1200, 560)
+script = ExtResource("e8")

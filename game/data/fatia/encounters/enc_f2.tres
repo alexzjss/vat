@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="EncounterDef" format=3]
+
+[ext_resource type="Script" path="res://core/defs/encounter_def.gd" id="1_encounte"]
+[ext_resource type="Script" path="res://core/defs/enemy_def.gd" id="2_enemydef"]
+[ext_resource type="Resource" path="res://data/fatia/enemies/inimigo_f2.tres" id="3_inimigof"]
+
+[resource]
+script = ExtResource("1_encounte")
+id = &"enc_f2"
+enemies = Array[ExtResource("2_enemydef")]([ExtResource("3_inimigof")])

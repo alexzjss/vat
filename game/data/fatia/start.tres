@@ -6,7 +6,7 @@
 [ext_resource type="Resource" path="res://data/test/heroes/teste_b.tres" id="5_hb"]
 [ext_resource type="Resource" path="res://data/test/heroes/teste_c.tres" id="6_hc"]
 [ext_resource type="Script" path="res://core/defs/item_def.gd" id="7_id"]
-[ext_resource type="Resource" path="res://data/test/items/pocao.tres" id="8_ip"]
+[ext_resource type="Resource" path="res://data/fatia/items/pocao_f.tres" id="8_ip"]
 
 [resource]
 script = ExtResource("1_sp")

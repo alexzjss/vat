@@ -52,7 +52,7 @@ func test_fatia_profile_has_three_heroes_and_fifty_coins() -> void:
 	assert_eq(p.map, &"cidade", "começa na cidade")
 	assert_gt(p.items.size(), 0, "algumas poções")
 	assert_eq(p.items.size(), p.item_counts.size())
-	assert_eq(p.items[0].id, &"pocao")
+	assert_eq(p.items[0].id, &"pocao_f")
 	assert_gt(p.item_counts[0], 0)
 
 func test_game_scene_uses_test_profile_and_fatia_scene_the_fatia() -> void:
@@ -94,7 +94,7 @@ func test_new_game_with_fatia_profile_applies_it() -> void:
 	assert_eq(game.state.money, 50)
 	assert_eq(game.state.heroes.size(), 3)
 	assert_eq(game.state.reserve.size(), 0)
-	assert_eq(game.state.inventory.available(&"pocao"), p.item_counts[0])
+	assert_eq(game.state.inventory.available(&"pocao_f"), p.item_counts[0])
 	assert_eq(game.current_map, &"area_teste")
 	assert_eq(game.state.save_map, &"area_teste")
 	assert_eq(game.state.save_spawn, &"Entry")

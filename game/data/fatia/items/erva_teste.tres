@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="ItemDef" format=3]
+
+[ext_resource type="Script" path="res://core/defs/item_def.gd" id="2_r"]
+
+[resource]
+script = ExtResource("2_r")
+id = &"erva_teste"
+display_name = "Erva de Teste"
+shape = 0
+side = 1
+key_item = true

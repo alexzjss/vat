@@ -1,0 +1,454 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://world/local_map.gd" id="e1"]
+[ext_resource type="Script" path="res://world/map_link.gd" id="e2"]
+[ext_resource type="Resource" path="res://data/fatia/events/placa_saida.tres" id="e3"]
+[ext_resource type="Script" path="res://world/sign.gd" id="e4"]
+[ext_resource type="Resource" path="res://data/fatia/events/morador_a.tres" id="e5"]
+[ext_resource type="Script" path="res://world/npc.gd" id="e6"]
+[ext_resource type="Resource" path="res://data/fatia/events/morador_b.tres" id="e7"]
+[ext_resource type="Resource" path="res://data/fatia/events/morador_c.tres" id="e8"]
+[ext_resource type="Resource" path="res://data/fatia/events/morador_d.tres" id="e9"]
+[ext_resource type="Resource" path="res://data/fatia/events/morador_e.tres" id="e10"]
+[ext_resource type="Resource" path="res://data/fatia/shops/loja_cidade.tres" id="e11"]
+[ext_resource type="Script" path="res://world/shop_keeper.gd" id="e12"]
+[ext_resource type="Script" path="res://world/inn.gd" id="e13"]
+[ext_resource type="Resource" path="res://data/fatia/events/pousadeiro.tres" id="e14"]
+[ext_resource type="Script" path="res://world/battle_arena.gd" id="e15"]
+[ext_resource type="Script" path="res://world/party_followers.gd" id="e16"]
+[ext_resource type="PackedScene" path="res://world/player.tscn" id="e17"]
+[ext_resource type="Script" path="res://world/map_camera.gd" id="e18"]
+
+[sub_resource type="RectangleShape2D" id="sh_2400x20"]
+size = Vector2(2400, 20)
+
+[sub_resource type="RectangleShape2D" id="sh_20x720"]
+size = Vector2(20, 720)
+
+[sub_resource type="RectangleShape2D" id="sh_240x150"]
+size = Vector2(240, 150)
+
+[sub_resource type="RectangleShape2D" id="sh_150x24"]
+size = Vector2(150, 24)
+
+[sub_resource type="RectangleShape2D" id="sh_260x16"]
+size = Vector2(260, 16)
+
+[sub_resource type="RectangleShape2D" id="sh_40x40"]
+size = Vector2(40, 40)
+
+[sub_resource type="RectangleShape2D" id="sh_56x30"]
+size = Vector2(56, 30)
+
+[sub_resource type="RectangleShape2D" id="sh_40x160"]
+size = Vector2(40, 160)
+
+[node name="Cidade" type="Node2D"]
+script = ExtResource("e1")
+
+[node name="Background" type="ColorRect" parent="."]
+offset_left = 0
+offset_top = 0
+offset_right = 2400
+offset_bottom = 720
+mouse_filter = 2
+color = Color(0.2, 0.38, 0.22, 1)
+
+[node name="Estrada" type="ColorRect" parent="."]
+offset_left = 20
+offset_top = 330
+offset_right = 2380
+offset_bottom = 400
+mouse_filter = 2
+color = Color(0.5, 0.42, 0.3, 1)
+
+[node name="CaminhoCasa1" type="ColorRect" parent="."]
+offset_left = 775
+offset_top = 270
+offset_right = 825
+offset_bottom = 330
+mouse_filter = 2
+color = Color(0.5, 0.42, 0.3, 1)
+
+[node name="CaminhoCasa2" type="ColorRect" parent="."]
+offset_left = 1375
+offset_top = 270
+offset_right = 1425
+offset_bottom = 330
+mouse_filter = 2
+color = Color(0.5, 0.42, 0.3, 1)
+
+[node name="PousadaChao" type="ColorRect" parent="."]
+offset_left = 1700
+offset_top = 460
+offset_right = 1960
+offset_bottom = 640
+mouse_filter = 2
+color = Color(0.34, 0.28, 0.4, 1)
+
+[node name="WallTop" type="StaticBody2D" parent="."]
+position = Vector2(1200, 10)
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WallTop"]
+shape = SubResource("sh_2400x20")
+
+[node name="ColorRect" type="ColorRect" parent="WallTop"]
+offset_left = -1200
+offset_top = -10
+offset_right = 1200
+offset_bottom = 10
+mouse_filter = 2
+color = Color(0.35, 0.3, 0.25, 1)
+
+[node name="WallBottom" type="StaticBody2D" parent="."]
+position = Vector2(1200, 710)
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WallBottom"]
+shape = SubResource("sh_2400x20")
+
+[node name="ColorRect" type="ColorRect" parent="WallBottom"]
+offset_left = -1200
+offset_top = -10
+offset_right = 1200
+offset_bottom = 10
+mouse_filter = 2
+color = Color(0.35, 0.3, 0.25, 1)
+
+[node name="WallLeft" type="StaticBody2D" parent="."]
+position = Vector2(10, 360)
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WallLeft"]
+shape = SubResource("sh_20x720")
+
+[node name="ColorRect" type="ColorRect" parent="WallLeft"]
+offset_left = -10
+offset_top = -360
+offset_right = 10
+offset_bottom = 360
+mouse_filter = 2
+color = Color(0.35, 0.3, 0.25, 1)
+
+[node name="WallRight" type="StaticBody2D" parent="."]
+position = Vector2(2390, 360)
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WallRight"]
+shape = SubResource("sh_20x720")
+
+[node name="ColorRect" type="ColorRect" parent="WallRight"]
+offset_left = -10
+offset_top = -360
+offset_right = 10
+offset_bottom = 360
+mouse_filter = 2
+color = Color(0.35, 0.3, 0.25, 1)
+
+[node name="Casa1" type="StaticBody2D" parent="."]
+position = Vector2(800, 190)
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Casa1"]
+shape = SubResource("sh_240x150")
+
+[node name="ColorRect" type="ColorRect" parent="Casa1"]
+offset_left = -120
+offset_top = -75
+offset_right = 120
+offset_bottom = 75
+mouse_filter = 2
+color = Color(0.55, 0.3, 0.25, 1)
+
+[node name="Casa2" type="StaticBody2D" parent="."]
+position = Vector2(1400, 190)
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Casa2"]
+shape = SubResource("sh_240x150")
+
+[node name="ColorRect" type="ColorRect" parent="Casa2"]
+offset_left = -120
+offset_top = -75
+offset_right = 120
+offset_bottom = 75
+mouse_filter = 2
+color = Color(0.3, 0.4, 0.55, 1)
+
+[node name="LojaTenda" type="StaticBody2D" parent="."]
+position = Vector2(1100, 470)
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="LojaTenda"]
+shape = SubResource("sh_150x24")
+
+[node name="ColorRect" type="ColorRect" parent="LojaTenda"]
+offset_left = -75
+offset_top = -12
+offset_right = 75
+offset_bottom = 12
+mouse_filter = 2
+color = Color(0.8, 0.6, 0.2, 1)
+
+[node name="PousadaFundo" type="StaticBody2D" parent="."]
+position = Vector2(1830, 452)
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="PousadaFundo"]
+shape = SubResource("sh_260x16")
+
+[node name="ColorRect" type="ColorRect" parent="PousadaFundo"]
+offset_left = -130
+offset_top = -8
+offset_right = 130
+offset_bottom = 8
+mouse_filter = 2
+color = Color(0.4, 0.3, 0.5, 1)
+
+[node name="Arvore1" type="StaticBody2D" parent="."]
+position = Vector2(300, 200)
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Arvore1"]
+shape = SubResource("sh_40x40")
+
+[node name="ColorRect" type="ColorRect" parent="Arvore1"]
+offset_left = -20
+offset_top = -20
+offset_right = 20
+offset_bottom = 20
+mouse_filter = 2
+color = Color(0.1, 0.25, 0.12, 1)
+
+[node name="Arvore2" type="StaticBody2D" parent="."]
+position = Vector2(300, 600)
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Arvore2"]
+shape = SubResource("sh_40x40")
+
+[node name="ColorRect" type="ColorRect" parent="Arvore2"]
+offset_left = -20
+offset_top = -20
+offset_right = 20
+offset_bottom = 20
+mouse_filter = 2
+color = Color(0.1, 0.25, 0.12, 1)
+
+[node name="Arvore3" type="StaticBody2D" parent="."]
+position = Vector2(560, 640)
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Arvore3"]
+shape = SubResource("sh_40x40")
+
+[node name="ColorRect" type="ColorRect" parent="Arvore3"]
+offset_left = -20
+offset_top = -20
+offset_right = 20
+offset_bottom = 20
+mouse_filter = 2
+color = Color(0.1, 0.25, 0.12, 1)
+
+[node name="Arvore4" type="StaticBody2D" parent="."]
+position = Vector2(1000, 620)
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Arvore4"]
+shape = SubResource("sh_40x40")
+
+[node name="ColorRect" type="ColorRect" parent="Arvore4"]
+offset_left = -20
+offset_top = -20
+offset_right = 20
+offset_bottom = 20
+mouse_filter = 2
+color = Color(0.1, 0.25, 0.12, 1)
+
+[node name="Arvore5" type="StaticBody2D" parent="."]
+position = Vector2(2100, 600)
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Arvore5"]
+shape = SubResource("sh_40x40")
+
+[node name="ColorRect" type="ColorRect" parent="Arvore5"]
+offset_left = -20
+offset_top = -20
+offset_right = 20
+offset_bottom = 20
+mouse_filter = 2
+color = Color(0.1, 0.25, 0.12, 1)
+
+[node name="Arvore6" type="StaticBody2D" parent="."]
+position = Vector2(2150, 160)
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Arvore6"]
+shape = SubResource("sh_40x40")
+
+[node name="ColorRect" type="ColorRect" parent="Arvore6"]
+offset_left = -20
+offset_top = -20
+offset_right = 20
+offset_bottom = 20
+mouse_filter = 2
+color = Color(0.1, 0.25, 0.12, 1)
+
+[node name="LojaLabel" type="Label" parent="."]
+offset_left = 1070
+offset_top = 438
+text = "Loja"
+mouse_filter = 2
+
+[node name="PousadaLabel" type="Label" parent="."]
+offset_left = 1760
+offset_top = 466
+text = "Pousada"
+mouse_filter = 2
+
+[node name="Start" type="Marker2D" parent="."]
+position = Vector2(200, 360)
+
+[node name="Entry" type="Marker2D" parent="."]
+position = Vector2(2230, 380)
+
+[node name="Casa1Saida" type="Marker2D" parent="."]
+position = Vector2(800, 335)
+
+[node name="Casa2Saida" type="Marker2D" parent="."]
+position = Vector2(1400, 335)
+
+[node name="InnSpawn" type="Marker2D" parent="."]
+position = Vector2(1830, 575)
+
+[node name="Casa1Porta" type="Area2D" parent="."]
+position = Vector2(800, 285)
+script = ExtResource("e2")
+target_map = &"casa_1"
+target_spawn = &"Entry"
+label_text = "Casa 1"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Casa1Porta"]
+shape = SubResource("sh_56x30")
+
+[node name="Casa2Porta" type="Area2D" parent="."]
+position = Vector2(1400, 285)
+script = ExtResource("e2")
+target_map = &"casa_2"
+target_spawn = &"Entry"
+label_text = "Casa 2"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Casa2Porta"]
+shape = SubResource("sh_56x30")
+
+[node name="SaidaLink" type="Area2D" parent="."]
+position = Vector2(2340, 360)
+script = ExtResource("e2")
+target_map = &"overworld_fatia"
+target_spawn = &"CidadeReturn"
+label_text = "Mapa-múndi"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="SaidaLink"]
+shape = SubResource("sh_40x160")
+
+[node name="PlacaSaida" type="Area2D" parent="."]
+position = Vector2(2230, 290)
+script = ExtResource("e4")
+prompt = "Ler"
+event = ExtResource("e3")
+
+[node name="MoradorA" type="Area2D" parent="."]
+position = Vector2(400, 520)
+script = ExtResource("e6")
+prompt = "Falar"
+event = ExtResource("e5")
+display_name = "Morador A"
+
+[node name="MoradorB" type="Area2D" parent="."]
+position = Vector2(560, 200)
+script = ExtResource("e6")
+prompt = "Falar"
+event = ExtResource("e7")
+display_name = "Morador B"
+
+[node name="MoradorC" type="Area2D" parent="."]
+position = Vector2(2000, 220)
+script = ExtResource("e6")
+prompt = "Falar"
+event = ExtResource("e8")
+display_name = "Morador C"
+
+[node name="MoradorD" type="Area2D" parent="."]
+position = Vector2(1060, 250)
+script = ExtResource("e6")
+prompt = "Falar"
+event = ExtResource("e9")
+display_name = "Morador D"
+
+[node name="MoradorE" type="Area2D" parent="."]
+position = Vector2(700, 560)
+script = ExtResource("e6")
+prompt = "Falar"
+event = ExtResource("e10")
+display_name = "Morador E"
+
+[node name="Lojista" type="Area2D" parent="."]
+position = Vector2(1100, 520)
+script = ExtResource("e12")
+prompt = "Comprar"
+shop = ExtResource("e11")
+display_name = "Lojista"
+
+[node name="Pousada" type="Area2D" parent="."]
+position = Vector2(1830, 520)
+script = ExtResource("e13")
+
+[node name="Pousadeiro" type="Area2D" parent="."]
+position = Vector2(1910, 520)
+script = ExtResource("e6")
+prompt = "Falar"
+event = ExtResource("e14")
+display_name = "Pousadeiro"
+
+[node name="Arena" type="Node2D" parent="."]
+position = Vector2(1200, 360)
+script = ExtResource("e15")
+
+[node name="HeroSpot1" type="Marker2D" parent="Arena"]
+position = Vector2(-280, -225)
+
+[node name="HeroSpot2" type="Marker2D" parent="Arena"]
+position = Vector2(-340, -75)
+
+[node name="HeroSpot3" type="Marker2D" parent="Arena"]
+position = Vector2(-280, 75)
+
+[node name="HeroSpot4" type="Marker2D" parent="Arena"]
+position = Vector2(-340, 225)
+
+[node name="SupportSpot" type="Marker2D" parent="Arena"]
+position = Vector2(-460, 0)
+
+[node name="EnemySpot1" type="Marker2D" parent="Arena"]
+position = Vector2(180, -90)
+
+[node name="EnemySpot2" type="Marker2D" parent="Arena"]
+position = Vector2(180, 90)
+
+[node name="EnemySpot3" type="Marker2D" parent="Arena"]
+position = Vector2(260, -180)
+
+[node name="EnemySpot4" type="Marker2D" parent="Arena"]
+position = Vector2(260, 180)
+
+[node name="Followers" type="Node2D" parent="."]
+script = ExtResource("e16")
+
+[node name="Player" parent="." instance=ExtResource("e17")]
+position = Vector2(200, 360)
+
+[node name="MapCamera" type="Camera2D" parent="."]
+position = Vector2(200, 360)
+script = ExtResource("e18")

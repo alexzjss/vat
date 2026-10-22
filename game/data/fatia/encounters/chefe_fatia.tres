@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="EncounterDef" format=3]
+
+[ext_resource type="Script" path="res://core/defs/encounter_def.gd" id="1_encounte"]
+[ext_resource type="Script" path="res://core/defs/enemy_def.gd" id="2_enemydef"]
+[ext_resource type="Resource" path="res://data/fatia/enemies/braco_fatia.tres" id="3_bracofat"]
+[ext_resource type="Resource" path="res://data/fatia/enemies/guardiao_fatia.tres" id="4_guardiao"]
+
+[resource]
+script = ExtResource("1_encounte")
+id = &"chefe_fatia"
+enemies = Array[ExtResource("2_enemydef")]([ExtResource("3_bracofat"), ExtResource("3_bracofat"), ExtResource("4_guardiao")])
+can_flee = false
+unique_id = &"chefe_fatia"

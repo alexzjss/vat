@@ -1,0 +1,147 @@
+[gd_resource type="Resource" script_class="EventScript" format=3]
+
+[ext_resource type="Script" path="res://core/events/event_script.gd" id="1_eventscr"]
+[ext_resource type="Script" path="res://core/events/event_step.gd" id="2_eventste"]
+[ext_resource type="Script" path="res://core/events/if_flag_step.gd" id="3_ifflagst"]
+[ext_resource type="Script" path="res://core/events/say_step.gd" id="4_saystep"]
+[ext_resource type="Script" path="res://core/events/goto_step.gd" id="5_gotostep"]
+[ext_resource type="Script" path="res://core/events/label_step.gd" id="6_labelste"]
+[ext_resource type="Script" path="res://core/events/give_money_step.gd" id="7_givemone"]
+[ext_resource type="Resource" path="res://data/fatia/equipment/capacete_teste_b_f.tres" id="8_capacete"]
+[ext_resource type="Script" path="res://core/events/give_equipment_step.gd" id="9_giveequi"]
+[ext_resource type="Script" path="res://core/events/grant_xp_step.gd" id="10_grantxps"]
+[ext_resource type="Script" path="res://core/events/set_flag_step.gd" id="11_setflags"]
+[ext_resource type="Script" path="res://core/events/choice_step.gd" id="12_choicest"]
+
+[sub_resource type="Resource" id="s1"]
+script = ExtResource("3_ifflagst")
+flag = &"missao_estado"
+op = 0
+value = 2
+else_label = &"ativa"
+
+[sub_resource type="Resource" id="s2"]
+script = ExtResource("4_saystep")
+speaker = "Morador C"
+text = "Texto de teste: obrigado de novo pela ajuda."
+
+[sub_resource type="Resource" id="s3"]
+script = ExtResource("5_gotostep")
+label = &"fim"
+
+[sub_resource type="Resource" id="s4"]
+script = ExtResource("6_labelste")
+label_name = &"ativa"
+
+[sub_resource type="Resource" id="s5"]
+script = ExtResource("3_ifflagst")
+flag = &"missao_estado"
+op = 0
+value = 1
+else_label = &"inicio"
+
+[sub_resource type="Resource" id="s6"]
+script = ExtResource("3_ifflagst")
+flag = &"bau_erva"
+op = 0
+value = 1
+else_label = &"falta"
+
+[sub_resource type="Resource" id="s7"]
+script = ExtResource("4_saystep")
+speaker = "Morador C"
+text = "Texto de teste: é a Erva de Teste! Pegue esta recompensa."
+
+[sub_resource type="Resource" id="s8"]
+script = ExtResource("7_givemone")
+amount = 40
+
+[sub_resource type="Resource" id="s9"]
+script = ExtResource("9_giveequi")
+equipment = ExtResource("8_capacete")
+count = 1
+
+[sub_resource type="Resource" id="s10"]
+script = ExtResource("10_grantxps")
+amount = 120
+rule = 0
+
+[sub_resource type="Resource" id="s11"]
+script = ExtResource("11_setflags")
+flag = &"missao_estado"
+value = 2
+
+[sub_resource type="Resource" id="s12"]
+script = ExtResource("4_saystep")
+speaker = ""
+text = "Missão de teste concluída!"
+
+[sub_resource type="Resource" id="s13"]
+script = ExtResource("5_gotostep")
+label = &"fim"
+
+[sub_resource type="Resource" id="s14"]
+script = ExtResource("6_labelste")
+label_name = &"falta"
+
+[sub_resource type="Resource" id="s15"]
+script = ExtResource("4_saystep")
+speaker = "Morador C"
+text = "Texto de teste: ainda falta a Erva de Teste. Há um baú no andar 1 da dungeon."
+
+[sub_resource type="Resource" id="s16"]
+script = ExtResource("5_gotostep")
+label = &"fim"
+
+[sub_resource type="Resource" id="s17"]
+script = ExtResource("6_labelste")
+label_name = &"inicio"
+
+[sub_resource type="Resource" id="s18"]
+script = ExtResource("4_saystep")
+speaker = "Morador C"
+text = "Texto de teste: preciso de uma Erva de Teste, que fica na dungeon."
+
+[sub_resource type="Resource" id="s19"]
+script = ExtResource("12_choicest")
+prompt = "Aceitar a missão?"
+options = PackedStringArray("Sim", "Não")
+flag = &"missao_escolha"
+
+[sub_resource type="Resource" id="s20"]
+script = ExtResource("3_ifflagst")
+flag = &"missao_escolha"
+op = 0
+value = 0
+else_label = &"recusa"
+
+[sub_resource type="Resource" id="s21"]
+script = ExtResource("11_setflags")
+flag = &"missao_estado"
+value = 1
+
+[sub_resource type="Resource" id="s22"]
+script = ExtResource("4_saystep")
+speaker = "Morador C"
+text = "Texto de teste: combinado. Volte com a erva."
+
+[sub_resource type="Resource" id="s23"]
+script = ExtResource("5_gotostep")
+label = &"fim"
+
+[sub_resource type="Resource" id="s24"]
+script = ExtResource("6_labelste")
+label_name = &"recusa"
+
+[sub_resource type="Resource" id="s25"]
+script = ExtResource("4_saystep")
+speaker = "Morador C"
+text = "Texto de teste: tudo bem, volte se mudar de ideia."
+
+[sub_resource type="Resource" id="s26"]
+script = ExtResource("6_labelste")
+label_name = &"fim"
+
+[resource]
+script = ExtResource("1_eventscr")
+steps = Array[ExtResource("2_eventste")]([SubResource("s1"), SubResource("s2"), SubResource("s3"), SubResource("s4"), SubResource("s5"), SubResource("s6"), SubResource("s7"), SubResource("s8"), SubResource("s9"), SubResource("s10"), SubResource("s11"), SubResource("s12"), SubResource("s13"), SubResource("s14"), SubResource("s15"), SubResource("s16"), SubResource("s17"), SubResource("s18"), SubResource("s19"), SubResource("s20"), SubResource("s21"), SubResource("s22"), SubResource("s23"), SubResource("s24"), SubResource("s25"), SubResource("s26")])
