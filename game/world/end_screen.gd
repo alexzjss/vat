@@ -5,7 +5,11 @@ extends CanvasLayer
 
 signal dismissed
 
+## Segundos em que o Enter é ignorado ao aparecer, para quem vem apertando Enter no diálogo final ver o resumo.
+const INPUT_DELAY: float = 0.5
+
 var _label: Label
+var _wait: float = INPUT_DELAY
 
 func _init() -> void:
 	layer = 9
@@ -53,7 +57,17 @@ static func format_time(seconds: float) -> String:
 func accept() -> void:
 	dismissed.emit()
 
+## Verdadeiro depois do INPUT_DELAY: só então o Enter volta ao título.
+func accepting_input() -> bool:
+	return _wait <= 0.0
+
+func _process(delta: float) -> void:
+	if _wait > 0.0:
+		_wait -= delta
+
 func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed("ui_accept"):
+	if event.is_action_pressed("ui_accept") and not accepting_input():
+		get_viewport().set_input_as_handled()
+	elif event.is_action_pressed("ui_accept"):
 		accept()
 		get_viewport().set_input_as_handled()

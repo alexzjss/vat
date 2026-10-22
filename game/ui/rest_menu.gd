@@ -149,7 +149,10 @@ func cancel() -> void:
 
 func _accept_main() -> void:
 	if not entry_enabled(cursor):
-		_message.text = ("Você não tem %s suficientes." % game.state.cfg.currency_name) if cursor == REST_INDEX 				else "Você não tem Cristal de Reinício."
+		if cursor == REST_INDEX:
+			_message.text = "Você não tem %s suficientes." % game.state.cfg.currency_name
+		else:
+			_message.text = "Você não tem Cristal de Reinício."
 		return
 	match cursor:
 		REST_INDEX:

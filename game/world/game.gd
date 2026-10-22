@@ -411,7 +411,8 @@ func _on_end_demo_requested() -> void:
 		return
 	if last_slot > 0:
 		state.set_flag(FLAG_CONCLUDED, 1)
-		store.write(last_slot, state)
+		if not store.write(last_slot, state):
+			push_error("Game: falha ao gravar o clear save no slot %d" % last_slot)
 	if current != null:
 		current.process_mode = Node.PROCESS_MODE_DISABLED
 	end_screen = EndScreen.new()

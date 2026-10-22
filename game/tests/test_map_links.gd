@@ -186,6 +186,23 @@ func test_end_demo_shows_end_screen_and_blocks_input() -> void:
 	assert_string_contains(game.end_screen.body_text(), "02:05", "tempo de jogo")
 	assert_string_contains(game.end_screen.body_text(), "Nv %d" % game.state.party_avg_level())
 
+func test_end_screen_ignores_enter_right_after_it_appears() -> void:
+	await _enter(&"area_teste", &"Entry")
+	_end_demo()
+	var es: EndScreen = game.end_screen
+	var ev := InputEventAction.new()
+	ev.action = &"ui_accept"
+	ev.pressed = true
+	es._unhandled_input(ev)
+	await get_tree().process_frame
+	assert_same(game.end_screen, es, "Enter no primeiro quadro não sai da tela")
+	es._process(EndScreen.INPUT_DELAY)
+	assert_true(es.accepting_input())
+	es._unhandled_input(ev)
+	await get_tree().process_frame
+	assert_null(game.end_screen, "depois da espera o Enter volta ao título")
+	assert_true(game.in_title)
+
 func test_end_demo_twice_keeps_one_screen() -> void:
 	await _enter(&"area_teste", &"Entry")
 	_end_demo()

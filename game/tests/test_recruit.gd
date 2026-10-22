@@ -162,6 +162,12 @@ func test_recruit_step_fixed_level() -> void:
 	_drain(_run(g, steps))
 	assert_eq(g.roster()[2].level, 3)
 
+func test_recruit_step_fixed_level_zero_means_level_one() -> void:
+	var g: GameState = _game(2, 5)
+	var steps: Array[EventStep] = [_step(_hero(&"novo"), RecruitStep.LevelMode.FIXED, 0)]
+	_drain(_run(g, steps))
+	assert_eq(g.roster()[2].level, 1, "FIXED com nível 0 não vira média do grupo")
+
 func test_recruit_step_with_null_hero_does_nothing() -> void:
 	var g: GameState = _game(2)
 	var steps: Array[EventStep] = [_step(null)]

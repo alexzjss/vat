@@ -178,7 +178,7 @@ func _system(text: String) -> void:
 	_queue.append(EventRequest.say("", text))
 
 func _recruit(r: RecruitStep) -> void:
-	var lv: int = r.level if r.level_mode == RecruitStep.LevelMode.FIXED else 0
+	var lv: int = maxi(1, r.level) if r.level_mode == RecruitStep.LevelMode.FIXED else 0
 	var h: HeroState = state.recruit(r.hero, lv)
 	if h != null:
 		_system("%s entrou no grupo!" % h.def.display_name)
