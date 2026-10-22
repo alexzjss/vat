@@ -367,3 +367,35 @@ func test_delayed_queued_target_does_not_count_its_turn_twice() -> void:
 	assert_false(c.turn_counted, "zera quando o alvo age")
 	# O proximo ATB cheio conta normalmente.
 	assert_eq(c.statuses[0].remaining, 2)
+
+## Quem cai por Contagem, Veneno ou Queimadura (um so caminho: BattleState.take_out) nao leva a marca de turno contado para a proxima vez que reviver.
+func test_doom_death_resets_turn_counted_so_revived_unit_counts_again() -> void:
+	var ctrl := _battle([10, 10], [1])
+	ctrl.active_mode = true
+	var b: BattleState = ctrl.b
+	var a: Combatant = b.heroes[0]
+	var c: Combatant = b.heroes[1]
+	a.atb = 0.999
+	ctrl.tick(0.05)
+	assert_not_null(ctrl.session, "a sessao de A fica aberta: C espera na fila")
+	c.atb = 0.999
+	ctrl.tick(0.05)
+	assert_true(b.queue.has(c))
+	# Uma reacao atrasa C (que estava na fila): marca de turno contado.
+	ReactionRules.shift_atb(c, -0.25, b)
+	assert_true(c.turn_counted)
+	# A Contagem o derruba antes de agir (mesmo caminho de queda do Veneno e da Queimadura).
+	b.statuses.apply_forced(c, Fixtures.status_def(StatusDef.Kind.DOOM, 3))
+	for st: ActiveStatus in c.statuses:
+		st.time_left = 0.01
+	ctrl.tick(0.05)
+	assert_true(c.is_down(), "caiu pela Contagem")
+	assert_false(c.turn_counted, "a queda zera a marca de turno contado")
+	# Reviveu: o proximo ATB cheio executa on_atb_full (conta o turno do Lento).
+	c.hp = 10
+	var slow := Fixtures.status_def(StatusDef.Kind.SLOW, 3, 50)
+	b.statuses.apply(c, slow, b.enemies[0], 1.0, b.living(b.enemies))
+	c.atb = 0.999
+	ctrl.tick(0.05)
+	assert_true(b.queue.has(c))
+	assert_eq(c.statuses[0].remaining, 2, "on_atb_full rodou: o turno foi contado")

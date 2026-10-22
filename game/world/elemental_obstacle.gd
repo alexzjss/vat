@@ -25,6 +25,8 @@ class Option:
 	var enabled: bool = false
 
 var _blocker: CollisionShape2D
+## Último estado aplicado (-1 = nenhum): a colisão só é mexida quando a flag muda.
+var _synced: int = -1
 
 func _init() -> void:
 	prompt = "Examinar"
@@ -59,7 +61,8 @@ func can_interact() -> bool:
 ## Colisão e visual seguem a flag todo quadro.
 func sync_state() -> void:
 	var open: bool = is_open()
-	if _blocker != null:
+	if _blocker != null and _synced != int(open):
+		_synced = int(open)
 		_blocker.set_deferred(&"disabled", open)
 	visible = not open
 

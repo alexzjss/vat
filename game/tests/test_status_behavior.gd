@@ -476,3 +476,24 @@ func test_reflect_bounce_that_downs_the_caster_ends_cleanly() -> void:
 	assert_true(h.is_down())
 	assert_true(r.downed.has(h))
 	assert_eq(x.hp, StatCalculator.hp_max(x, cfg))
+
+## Golpe devolvido: a cegueira e a esquiva do lancador nao valem (nao erra nem esquiva o proprio golpe).
+func test_reflected_hit_ignores_casters_blind_and_dodge() -> void:
+	cfg.dodge_per_speed = 1.0
+	cfg.dodge_cap = 1.0
+	var zeros: Array[float] = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+	b = BattleState.create(cfg, ScriptedDice.new(zeros), [h, h2], [x, x2])
+	var fire: ElementDef = _el(&"fire")
+	var ab: AbilityDef = _ability(2.0, fire)
+	ab.effects[0].dodgeable = true
+	_give(h, StatusDef.Kind.BLIND)
+	_give(x, StatusDef.Kind.REFLECT)
+	var hp_x: int = x.hp
+	var hp_h: int = h.hp
+	var r: ActionResult = _cast(h, ab, x)
+	assert_eq(r.hits.size(), 1)
+	assert_false(r.hits[0]["missed"], "cegueira nao faz o golpe devolvido errar")
+	assert_false(r.hits[0]["dodged"], "o lancador nao esquiva o golpe devolvido")
+	assert_eq(r.hits[0]["reflected_from"], &"x")
+	assert_lt(h.hp, hp_h, "o golpe devolvido sempre acerta o lancador")
+	assert_eq(x.hp, hp_x)

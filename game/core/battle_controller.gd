@@ -161,10 +161,7 @@ func _advance_atb(delta: float) -> void:
 		var out: StatusSystem.AtbFullOutcome = b.statuses.on_atb_full(c, b.living(b.enemies))
 		status_tick.emit(c, out)
 		if c.is_down():
-			b.statuses.clear_all(c)
-			c.atb = 0.0
-			c.charging = null
-			b.queue.remove(c)
+			b.take_out(c)
 		elif out.lost_turn:
 			c.atb = 0.0
 			turn_lost.emit(c)
@@ -185,10 +182,7 @@ func _tick_countdowns(dt: float) -> void:
 		petrified.emit(c)
 	for raw: Variant in res["doomed"]:
 		var c: Combatant = raw as Combatant
-		b.statuses.clear_all(c)
-		c.atb = 0.0
-		c.charging = null
-		b.queue.remove(c)
+		b.take_out(c)
 		doom_fired.emit(c)
 
 func _advance_execution(delta: float) -> void:

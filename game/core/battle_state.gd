@@ -107,6 +107,15 @@ func enemies_defeated() -> bool:
 			return false
 	return true
 
+## Limpeza de quem caiu (por dano, Veneno, Queimadura, Contagem ou queda do nucleo): sem estados, ATB, marca de turno
+## contado nem preparacao, fora da fila. Unico caminho de queda: nao deixar estado velho para a proxima vez que reviver.
+func take_out(c: Combatant) -> void:
+	statuses.clear_all(c)
+	c.atb = 0.0
+	c.turn_counted = false
+	c.charging = null
+	queue.remove(c)
+
 ## Se todos os nucleos cairam, as partes de pe caem junto (HP 0, sem estados, fora da fila, sem preparacao).
 ## Cada parte sem contribuicao registrada herda a divisao de contribuicao do(s) nucleo(s), para dar XP.
 ## Devolve as partes que cairam agora.
@@ -118,10 +127,7 @@ func collapse_parts() -> Array[Combatant]:
 		if p.is_down() or _role_of(p) != EnemyDef.Role.PART:
 			continue
 		p.hp = 0
-		p.atb = 0.0
-		p.charging = null
-		statuses.clear_all(p)
-		queue.remove(p)
+		take_out(p)
 		if ledger.total_against(p.id) <= 0.0:
 			for core: Combatant in enemies:
 				if _role_of(core) != EnemyDef.Role.CORE:

@@ -91,10 +91,11 @@ static func _apply_effect(e: EffectDef, actor: Combatant, t: Combatant, b: Battl
 				_petrified_hit(r, t, e.kind)
 				return
 			# Cegueira: erra antes da esquiva, só em dano de Força ("Errou").
-			if e.scale == EffectDef.Scale.STRENGTH and actor.is_blind() and b.dice.roll() < b.cfg.blind_miss_chance:
+			# Golpe refletido (M15): o lancador nao erra nem esquiva o proprio golpe devolvido.
+			if not reflected and e.scale == EffectDef.Scale.STRENGTH and actor.is_blind() and b.dice.roll() < b.cfg.blind_miss_chance:
 				_hit(r, t, e.kind, 0, false, -1, true)
 				return
-			if e.dodgeable and b.dice.roll() < StatCalculator.dodge_chance(t, b.cfg, actor):
+			if not reflected and e.dodgeable and b.dice.roll() < StatCalculator.dodge_chance(t, b.cfg, actor):
 				_hit(r, t, e.kind, 0, true, -1)
 				return
 			var attr: StringName = &"aura" if e.scale == EffectDef.Scale.AURA else &"strength"
@@ -258,11 +259,7 @@ static func deal_damage(actor: Combatant, t: Combatant, dmg: int, b: BattleState
 
 ## Quem caiu: sem estados, marca nem ATB, fora da fila e da preparacao.
 static func _on_down(t: Combatant, b: BattleState, r: ActionResult) -> void:
-	b.statuses.clear_all(t)
-	t.atb = 0.0
-	t.turn_counted = false
-	t.charging = null
-	b.queue.remove(t)
+	b.take_out(t)
 	if not r.downed.has(t):
 		r.downed.append(t)
 
