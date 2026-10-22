@@ -183,3 +183,26 @@ Estas são as escolhas do usuário que o plano do M12 registrou como [U]. Tudo q
 - **Dungeon:** 2 andares.
 - **Ritmo:** cerca de 15 min, com o grupo saindo do Nv 1 e chegando ao chefe perto do Nv 5.
 - **Conteúdo antigo:** a fatia substitui o Novo jogo. A área de teste, a dungeon de teste e as demos `--demo-*` continuam existindo, só para as demos e os testes.
+
+## Decisões do usuário (2026-10-22, rodada 5) — elementos, reações, estados e ferramentas
+
+O núcleo de mecânicas e a fatia vertical estão prontos (M1–M12). Estas escolhas guiam os próximos marcos. Os nomes dos elementos são do usuário; nomes e efeitos de reação ainda serão propostos e revisados.
+
+- **Elementos (9):** Kagutsuchi (Fogo), Susanoo (Água), Fuhaku (Vento), Atlas (Terra), Indra (Raio), Tsukuyomi (Trevas), Amaterasu (Luz), Shukketsu (Sangue) e um elemento **radioativo** especial.
+- **Onde entram:** habilidades (**um** elemento cada), ataque básico pela arma, heróis e inimigos (**até dois** elementos nativos) e equipamento defensivo.
+- **Afinidade:** **percentual livre** por elemento. Resistência de 100% = imune; além disso, absorve (cura).
+- **Mesmo elemento:** habilidades do mesmo elemento do usuário ganham bônus de dano.
+- **Fórmula:** afinidade base + equipamentos **somam em %** e aplicam uma vez; o bônus de mesmo elemento é outro multiplicador.
+- **Radioativo:** ignora afinidade, contaminação que acumula até um limite, corrói atributos enquanto dura, e fere o usuário também. **Não participa de reações.**
+- **Shukketsu (Sangue):** rouba vida, aplica Sangramento e causa mais dano quanto menor o HP do usuário.
+- **Marcas:** todo golpe elemental deixa uma marca no alvo, que dura **N turnos ATB do alvo**. O mesmo elemento sobre a própria marca **só renova**.
+- **Reações:** **matriz completa** dos 8 elementos que reagem (**28 pares**, a ordem não importa). Cada reação define o que consome. Efeitos possíveis: dano extra, estados, área e ATB. O Claude propõe a matriz inteira (nomes e efeitos placeholder) e o usuário revisa antes de virar dados.
+- **IA:** inimigos buscam combos (regras de IA preferem habilidades que disparam reações em alvos marcados).
+- **Estados novos:** Queimadura, Congelado, Molhado/Encharcado, Petrificação, Provocar, Berserk, Contagem (Doom) e Reflexo.
+- **Resistência a estados:** % por estado em heróis, inimigos e equipamentos.
+- **Fora da batalha:** veneno no mapa, puzzles elementais e terreno/clima elemental na batalha.
+- **Interface:** ícone de marca no alvo, popups "Fraco!/Resistiu/Absorveu" com o nome da reação, bestiário/Scan e elemento nos menus.
+- **Criação de conteúdo:** plugin no editor do Godot (bancos de itens, inimigos e habilidades; editor de eventos), **roteiro em texto** para a narrativa, tiles **32×32**, sprites de mapa em 4 direções, sprites de batalha animados e retratos de diálogo.
+- **Pendências da fatia a fazer antes:** clear save sem sobrescrever o save de antes do chefe, nomes longos no HUD, prompts do mapa escondidos durante a batalha, volta pela estrada pelo lado leste, limite de 99 também para drops e itens de evento, fala do lojista antes da loja, missão consome a erva (passos "tem item" e "tirar item").
+
+**Ordem:** M12.5 pendências da fatia → M13 Elementos → M14 Marcas e reações → M15 Estados novos, resistências e efeitos fora da batalha → M16 Ferramentas de criação (plugin do editor, roteiro em texto, pipeline de arte 32×32).
