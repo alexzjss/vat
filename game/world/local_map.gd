@@ -16,6 +16,8 @@ signal event_requested(event: EventScript)
 signal shop_requested(shop: ShopDef)
 ## A pousada pede o descanso pago (M12); o Game abre o menu com o preço da pousada.
 signal inn_requested
+## Um obstáculo elemental pede a escolha do herói que o desfaz (M15); o Game abre o menu.
+signal obstacle_requested(obstacle: ElementalObstacle)
 ## O jogador entrou numa ligação de mapa (MapLink): o Game troca de mapa (M12).
 signal link_requested(target_map: StringName, target_spawn: StringName)
 ## Fim da batalha iniciada por um evento (StartBattle) com vitória ou fuga; derrota vira `game_over`.
@@ -34,6 +36,8 @@ var auto_battle: bool = false
 var demo_result: bool = false
 ## Semente do Dice da batalha; -1 = derivada de state.dice.
 var dice_seed: int = -1
+## Terreno do mapa (M15): multiplica o dano elemental das batalhas daqui. Nulo = sem efeito.
+@export var terrain: TerrainDef
 ## Bloqueia encontros e saída (ex.: depois do Game Over, até o Game trocar de cena).
 var locked: bool = false
 ## Um evento está em andamento: jogador e inimigos parados, sem saída, interação nem novos encontros.
@@ -47,6 +51,8 @@ var _battle_enemy: MapEnemy
 var _battle_group: Array[MapEnemy] = []
 ## Membros do grupo perto o bastante que não couberam na arena (ficam no mapa; levam cooldown ao fim da batalha).
 var _battle_left_out: Array[MapEnemy] = []
+## Onde o jogador estava no último quadro de física livre (Veneno no mapa); infinito = sem referência.
+var _walk_last: Vector2 = Vector2.INF
 ## Posição do jogador ao tocar o inimigo (para onde ele volta se fugir).
 var _battle_from: Vector2 = Vector2.ZERO
 ## A batalha em andamento veio de um evento (StartBattle), não do toque de um inimigo.
@@ -139,6 +145,26 @@ func request_inn() -> bool:
 		return false
 	inn_requested.emit()
 	return true
+
+## Pede ao Game a escolha do herói para o obstáculo `o`. False se o mapa está ocupado.
+func request_obstacle(o: ElementalObstacle) -> bool:
+	if o == null or is_busy():
+		return false
+	obstacle_requested.emit(o)
+	return true
+
+## Veneno no mapa (M15): o caminho que o jogador anda livremente conta passos; batalha, evento e mapa travado
+## zeram a referência.
+func _physics_process(delta: float) -> void:
+	if state == null or player == null or is_busy() or not player.enabled:
+		_walk_last = Vector2.INF
+		return
+	if _walk_last.is_finite():
+		# Só anda de verdade conta: um salto maior que o dobro do passo mais rápido (teleporte, spawn) é ignorado.
+		var moved: float = player.global_position.distance_to(_walk_last)
+		if moved <= Player.speed_for(state.cfg, true) * delta * 2.0 + 1.0:
+			FieldPoison.walk(state, moved)
+	_walk_last = player.global_position
 
 func _on_rest_interacted() -> void:
 	if is_busy():
@@ -322,6 +348,7 @@ func _begin_battle(arena: BattleArena, defs: Array[EnemyDef], flee_ok: bool, fro
 		defs.resize(max_enemies)
 	battle = BATTLE_SCENE.instantiate() as BattleScene
 	battle.balance = state.cfg
+	battle.terrain = terrain
 	battle.auto_battle = auto_battle
 	battle.demo_result = demo_result
 	battle.dice_seed = dice_seed if dice_seed >= 0 else state.dice.pick_index(1 << 30)

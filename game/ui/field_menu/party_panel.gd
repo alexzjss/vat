@@ -11,6 +11,7 @@ const NAME_COLOR: Color = Color(1.0, 1.0, 1.0)
 const DIM_COLOR: Color = Color(0.45, 0.45, 0.5)
 const DOWNED_COLOR: Color = Color(0.9, 0.35, 0.35)
 const PENDING_COLOR: Color = Color(0.5, 0.9, 0.5)
+const FIELD_STATUS_COLOR: Color = Color(0.7, 0.45, 0.9)
 const CURSOR_COLOR: Color = Color(1.0, 0.85, 0.3)
 const HP_BAR_COLOR: Color = Color(0.3, 0.8, 0.4)
 const AP_BAR_COLOR: Color = Color(0.35, 0.55, 0.95)
@@ -170,6 +171,11 @@ func _make_card(h: HeroState, small: bool) -> PanelContainer:
 	if h.hp <= 0:
 		parts.append("Caído")
 		top.add_child(_label("Caído", fs, DOWNED_COLOR, false))
+	# Estados persistentes (M15): "VEN" no herói envenenado.
+	for sid: StringName in h.field_statuses:
+		var st: String = _field_status_label(sid)
+		parts.append(st)
+		top.add_child(_label(st, fs, FIELD_STATUS_COLOR, false))
 	if h.pending_points > 0:
 		var pts: String = "+%d pts" % h.pending_points
 		parts.append(pts)
@@ -189,6 +195,11 @@ func _make_card(h: HeroState, small: bool) -> PanelContainer:
 		box.add_child(_bar_row(limit_text, roundi(h.limit * 100.0), 100, LIMIT_BAR_COLOR))
 	_texts.append(" ".join(parts))
 	return card
+
+## Rótulo curto do estado persistente (o mesmo do HUD da batalha); o id em maiúsculas se o estado é desconhecido.
+func _field_status_label(id: StringName) -> String:
+	var d: StatusDef = state.cfg.persistent_status(id)
+	return CombatantView.STATUS_LABELS.get(d.kind, String(id).to_upper()) if d != null else String(id).to_upper()
 
 func _bar_row(text: String, value: int, max_value: int, color: Color) -> HBoxContainer:
 	var row := HBoxContainer.new()

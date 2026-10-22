@@ -17,6 +17,8 @@ var reserve: Array[HeroState] = []
 var support_pos: Vector2 = Vector2.INF
 ## Reacoes elementais (M14). Injetavel nos testes; em producao vem de TABLE_PATH, se existir (senao nada reage).
 var reactions: ReactionTable
+## Terreno do mapa da batalha (M15); nulo = sem efeito. O nucleo so le: quem monta a batalha preenche.
+var terrain: TerrainDef
 
 const REACTION_TABLE_PATH: String = "res://data/reactions/tabela.tres"
 

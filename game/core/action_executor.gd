@@ -108,6 +108,8 @@ static func _apply_effect(e: EffectDef, actor: Combatant, t: Combatant, b: Battl
 				# Absorver cura o alvo: sem barreira, Limite nem contribuicao.
 				_hit(r, t, EffectDef.Kind.HEAL, restore(int(res["heal"]), t, b), false, -1, false, false, el_id, affinity)
 				return
+			# Terreno (M15): depois da afinidade (e da absorcao, que ja saiu) e antes do Congelado, do escudo e da barreira.
+			dmg = ElementMath.apply_terrain(dmg, element, b.terrain)
 			dmg = _freeze_and_wet(e, el_id, dmg, t, b)
 			# Nucleo protegido por uma parte: dano reduzido (minimo 1 se havia dano).
 			var shielded: bool = dmg > 0 and b.core_shielded(t)

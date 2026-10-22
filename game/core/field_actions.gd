@@ -6,9 +6,32 @@ static func is_field_usable(effects: Array[EffectDef]) -> bool:
 	if effects.is_empty():
 		return false
 	for e: EffectDef in effects:
+		if e.kind == EffectDef.Kind.REMOVE_STATUS and cures_field_status(e):
+			continue
 		if e.kind != EffectDef.Kind.HEAL and e.kind != EffectDef.Kind.REVIVE and e.kind != EffectDef.Kind.RESTORE_AP:
 			return false
 	return true
+
+## Um REMOVE_STATUS que serve no mapa (M15): remove todos os negativos ou cita um estado `persists` (Veneno).
+static func cures_field_status(e: EffectDef) -> bool:
+	if e.kind != EffectDef.Kind.REMOVE_STATUS:
+		return false
+	if e.status == null and e.statuses.is_empty():
+		return true
+	return not _cure_ids(e).is_empty()
+
+## Ids dos estados `persists` que o REMOVE_STATUS cita.
+static func _cure_ids(e: EffectDef) -> Array[StringName]:
+	var out: Array[StringName] = []
+	if e.status != null and e.status.persists:
+		out.append(e.status.id)
+	for s: StatusDef in e.statuses:
+		if s != null and s.persists and not out.has(s.id):
+			out.append(s.id)
+	return out
+
+static func _cure_all(e: EffectDef) -> bool:
+	return e.status == null and e.statuses.is_empty()
 
 static func would_affect(effects: Array[EffectDef], target: HeroState, cfg: BalanceConfig) -> bool:
 	var c: Combatant = Combatant.from_hero(target, Vector2.ZERO)
@@ -23,6 +46,16 @@ static func would_affect(effects: Array[EffectDef], target: HeroState, cfg: Bala
 			EffectDef.Kind.RESTORE_AP:
 				if target.hp > 0 and target.ap < StatCalculator.ap_max(c, cfg):
 					return true
+			EffectDef.Kind.REMOVE_STATUS:
+				if target.hp > 0 and _would_cure(e, target, cfg):
+					return true
+	return false
+
+static func _would_cure(e: EffectDef, target: HeroState, cfg: BalanceConfig) -> bool:
+	var ids: Array[StringName] = _cure_ids(e)
+	for id: StringName in target.field_statuses:
+		if HeroState.field_cure_matches(id, ids, _cure_all(e), cfg):
+			return true
 	return false
 
 static func field_techniques(user: HeroState) -> Array[AbilityDef]:
@@ -94,3 +127,6 @@ static func _apply(effects: Array[EffectDef], t: HeroState, aura: int, cfg: Bala
 			EffectDef.Kind.RESTORE_AP:
 				if t.hp > 0:
 					t.ap = mini(StatCalculator.ap_max(c, cfg), t.ap + EffectMath.restore_ap_amount(e))
+			EffectDef.Kind.REMOVE_STATUS:
+				if t.hp > 0:
+					t.cure_field_statuses(_cure_ids(e), _cure_all(e), cfg)

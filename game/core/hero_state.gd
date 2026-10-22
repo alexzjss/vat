@@ -15,6 +15,9 @@ var limit: float = 0.0
 var learned: Array[StringName] = []
 ## Técnicas aprendidas pela última XpCalculator.grant (para o aviso da tela de resultado); não vai no save.
 var last_learned: Array[AbilityDef] = []
+## Estados persistentes (M15: Veneno) que o heroi carrega para fora da batalha, sem duracao; ficam ate serem curados.
+## Vao no save (campo opcional, so quando nao vazio).
+var field_statuses: Array[StringName] = []
 
 static func create(d: CharacterDef, cfg: BalanceConfig) -> HeroState:
 	var h := HeroState.new()
@@ -81,6 +84,42 @@ func rest(cfg: BalanceConfig) -> void:
 	var c := Combatant.from_hero(self, Vector2.ZERO)
 	hp = StatCalculator.hp_max(c, cfg)
 	ap = StatCalculator.ap_max(c, cfg)
+	field_statuses = []
+
+## Fim da batalha: os estados `persists` ativos num heroi vivo viram `field_statuses` (sem duracao); quem caiu
+## ou foi curado em batalha sai sem eles. Substitui a lista inteira.
+func store_field_statuses(c: Combatant) -> void:
+	var out: Array[StringName] = []
+	if c.hp > 0:
+		for s: ActiveStatus in c.statuses:
+			if s.def.persists and not out.has(s.def.id):
+				out.append(s.def.id)
+	field_statuses = out
+
+func has_field_status(id: StringName) -> bool:
+	return field_statuses.has(id)
+
+## O estado persistente `id` sai numa cura de `ids` (ou de todos os negativos)?
+static func field_cure_matches(id: StringName, ids: Array[StringName], all_negative: bool, cfg: BalanceConfig) -> bool:
+	if ids.has(id):
+		return true
+	if not all_negative:
+		return false
+	var d: StatusDef = cfg.persistent_status(id)
+	return d == null or d.negative
+
+## Cura de campo: remove os estados persistentes citados (`ids`) ou, com `all_negative`, todos os negativos
+## (`StatusDef.negative` do cfg; um id desconhecido sai junto). Devolve quantos sairam.
+func cure_field_statuses(ids: Array[StringName], all_negative: bool, cfg: BalanceConfig) -> int:
+	var kept: Array[StringName] = []
+	var n: int = 0
+	for id: StringName in field_statuses:
+		if field_cure_matches(id, ids, all_negative, cfg):
+			n += 1
+		else:
+			kept.append(id)
+	field_statuses = kept
+	return n
 
 ## Total de pontos distribuídos nos atributos.
 func allocated_total() -> int:
@@ -103,7 +142,7 @@ func to_dict() -> Dictionary:
 	var eq: Dictionary = {}
 	for slot: StringName in equipment:
 		eq[String(slot)] = String(equipment[slot].id)
-	return {
+	var out: Dictionary = {
 		"id": String(def.id), "level": level, "xp": xp, "pending": pending_points,
 		"allocated": {
 			"strength": allocated.strength, "speed": allocated.speed,
@@ -112,6 +151,9 @@ func to_dict() -> Dictionary:
 		"equipment": eq, "hp": hp, "ap": ap, "limit": limit,
 		"learned": learned.map(func(i: StringName) -> String: return String(i)),
 	}
+	if not field_statuses.is_empty():
+		out["field_statuses"] = field_statuses.map(func(i: StringName) -> String: return String(i))
+	return out
 
 ## Null se o id do heroi ou de algum equipamento for desconhecido, ou se o formato for invalido.
 static func from_dict(d: Dictionary, registry: DefRegistry) -> HeroState:
@@ -141,6 +183,12 @@ static func from_dict(d: Dictionary, registry: DefRegistry) -> HeroState:
 		h._sort_learned()
 	else:
 		h.learn_up_to(h.level)
+	var fs: Variant = d.get("field_statuses")
+	if fs is Array:
+		for v: Variant in (fs as Array):
+			var sid := StringName(str(v))
+			if sid != &"" and not h.field_statuses.has(sid):
+				h.field_statuses.append(sid)
 	var a: Dictionary = al
 	for attr: StringName in Stats.ATTRS:
 		if not (a.get(String(attr)) is float or a.get(String(attr)) is int):
@@ -158,7 +206,7 @@ func snapshot() -> Dictionary:
 	return {
 		"hp": hp, "ap": ap, "limit": limit, "xp": xp, "level": level, "pending": pending_points,
 		"allocated": Stats.make(allocated.strength, allocated.speed, allocated.vitality, allocated.aura),
-		"equipment": equipment.duplicate(), "learned": learned.duplicate(),
+		"equipment": equipment.duplicate(), "learned": learned.duplicate(), "field_statuses": field_statuses.duplicate(),
 	}
 
 ## Restaura os valores de [method snapshot]; `allocated` ganha uma cópia nova.
@@ -176,3 +224,6 @@ func restore(snap: Dictionary) -> void:
 	var lr: Array[StringName] = []
 	lr.assign(snap.get("learned", learned))
 	learned = lr
+	var fs: Array[StringName] = []
+	fs.assign(snap.get("field_statuses", []))
+	field_statuses = fs

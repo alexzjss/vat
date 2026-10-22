@@ -19,3 +19,5 @@ enum Kind { POISON, SLEEP, PARALYSIS, HASTE, SLOW, BARRIER, ATTR_MOD, STOP, CONF
 @export var negative: bool = false
 ## STOP, FREEZE, PETRIFY e DOOM: duracao em segundos de batalha (STOP/FREEZE: o ATB do afetado esta parado, entao turnos nunca contariam; PETRIFY/DOOM: contagem ate petrificar/cair).
 @export var seconds: float = 0.0
+## Veneno no mapa (M15): ativo num heroi vivo no fim da batalha, o estado segue com ele (HeroState.field_statuses) ate ser curado.
+@export var persists: bool = false

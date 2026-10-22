@@ -191,7 +191,11 @@ func test_is_field_usable() -> void:
 	var none: Array[EffectDef] = []
 	assert_false(FieldActions.is_field_usable(none))
 	assert_true(FieldActions.is_field_usable([_effect(EffectDef.Kind.REVIVE, EffectDef.Scale.FIXED, 0.5)]))
-	assert_false(FieldActions.is_field_usable([_effect(EffectDef.Kind.REMOVE_STATUS, EffectDef.Scale.FIXED, 0.0)]))
+	# Veneno no mapa (M15): "remover todos os negativos" serve no campo; remover só estados de batalha, não.
+	assert_true(FieldActions.is_field_usable([_effect(EffectDef.Kind.REMOVE_STATUS, EffectDef.Scale.FIXED, 0.0)]))
+	var only_blind := _effect(EffectDef.Kind.REMOVE_STATUS, EffectDef.Scale.FIXED, 0.0)
+	only_blind.status = Fixtures.status_def(StatusDef.Kind.BLIND, 3)
+	assert_false(FieldActions.is_field_usable([only_blind]))
 
 func test_would_affect_by_kind() -> void:
 	var s := _state(1)

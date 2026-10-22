@@ -118,6 +118,9 @@ enum DurationMode { A, B }
 @export var rad_decay_actions: int = 2 # valor de teste (M13 Radioativo: acoes do alvo para perder 1 de contaminacao)
 @export var rad_corrode_per_stack: float = 0.1 # valor de teste (M13 Radioativo: queda da Vitalidade efetiva por nivel de contaminacao)
 @export var rad_self_pct: float = 0.1 # valor de teste (M13 Radioativo: fracao do dano efetivo que fere o atacante, nunca abaixo de 1 HP)
+@export var poison_step_px: float = 320.0 # valor de teste (M15: pixels andados no mapa por tique de Veneno)
+@export var poison_field_pct: float = 0.05 # valor de teste (M15: fracao do HP maximo que o Veneno tira por tique no mapa; nunca derruba, minimo 1 HP)
+@export var persistent_statuses: Array[StatusDef] = [] # valor de teste (M15: estados com `persists` que a batalha devolve ao heroi pelo id; o Veneno)
 @export var mark_turns: int = 3 # valor de teste (M14: turnos ATB do alvo que uma marca elemental dura)
 @export var sim_tick: float = 0.1 # valor de teste (simulador: passo de tempo por tick)
 @export var sim_max_seconds: float = 600.0 # valor de teste (simulador: limite de uma batalha, em segundos de jogo)
@@ -142,3 +145,10 @@ enum DurationMode { A, B }
 @export var sell_ratio: float = 0.5 # valor de teste (M12: vender rende floor(preco x isto))
 @export var max_stack: int = 99 # valor de teste (M12: limite de uma pilha de item/equipamento ao comprar)
 @export var inn_price: int = 20 # valor de teste (M12: preco da pousada)
+
+## O estado persistente (`persistent_statuses`) com esse id; nulo se desconhecido.
+func persistent_status(id: StringName) -> StatusDef:
+	for d: StatusDef in persistent_statuses:
+		if d != null and d.id == id:
+			return d
+	return null

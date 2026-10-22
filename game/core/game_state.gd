@@ -27,6 +27,8 @@ var defeated: Array[StringName] = []
 var flags: Dictionary[StringName, int] = {}
 ## Moeda do grupo (M12). Vai no save como campo opcional; o nome exibido é BalanceConfig.currency_name.
 var money: int = 0
+## Pixels andados desde o ultimo tique do Veneno no mapa (M15); nao vai no save.
+var poison_walk_px: float = 0.0
 var _saved_money: int = 0
 var _saved_defeated: Array[StringName] = []
 var _saved_flags: Dictionary[StringName, int] = {}

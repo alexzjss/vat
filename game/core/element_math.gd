@@ -82,6 +82,17 @@ static func resolve(dmg: int, element: ElementDef, actor: Combatant, target: Com
 			return {"damage": out, "heal": 0, "affinity": aff}
 	return {"damage": maxi(1, floori(float(out) * m)), "heal": 0, "affinity": aff}
 
+## Terreno (M15): multiplica o dano elemental `dmg` (ja com afinidade) pelo `TerrainDef.element_mult` do elemento do golpe.
+## Sem terreno, sem elemento, sem dano ou Radioativo (ignora afinidade, e o terreno tambem), nada muda. Minimo 1 enquanto
+## o multiplicador for positivo; multiplicador 0 zera.
+static func apply_terrain(dmg: int, element: ElementDef, terrain: TerrainDef) -> int:
+	if terrain == null or element == null or dmg <= 0 or element.rule == ElementDef.Rule.RADIOACTIVE:
+		return dmg
+	var m: float = terrain.mult_for(element)
+	if is_equal_approx(m, 1.0):
+		return dmg
+	return maxi(1, floori(float(dmg) * m)) if m > 0.0 else 0
+
 ## Erros de dados: nativos acima do maximo, nulos ou repetidos. Vazio = ok.
 static func native_errors(owner_id: StringName, elements: Array[ElementDef]) -> Array[String]:
 	var errs: Array[String] = []

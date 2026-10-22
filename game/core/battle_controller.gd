@@ -63,6 +63,12 @@ func _init(p_b: BattleState) -> void:
 			continue
 		for st: StatusDef in h.start_statuses:
 			b.statuses.apply_forced(h, st)
+		# Veneno no mapa (M15): o estado persistente volta a força, com a duração normal.
+		if h.hero_state != null:
+			for sid: StringName in h.hero_state.field_statuses:
+				var fd: StatusDef = b.cfg.persistent_status(sid)
+				if fd != null:
+					b.statuses.apply_forced(h, fd)
 
 func is_paused() -> bool:
 	return session != null and not active_mode

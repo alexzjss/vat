@@ -241,10 +241,12 @@ func test_items_are_usable_in_battle_menu_and_consumed() -> void:
 	assert_false(h.is_silenced(), "Panaceia curou o Silêncio")
 	assert_eq(labels.size(), 4)
 
-func test_status_items_are_not_field_usable() -> void:
-	for f: String in ["remedio", "panaceia"]:
-		var it: ItemDef = load("res://data/test/items/%s.tres" % f) as ItemDef
-		assert_false(FieldActions.is_field_usable(it.effects), "%s só em batalha (estados não existem no campo)" % f)
+func test_status_items_in_the_field() -> void:
+	# Só o Veneno persiste no mapa (M15): a Panaceia (todos os negativos) serve; o Remédio de teste (CNF/SIL/CEG) não.
+	var remedio: ItemDef = load("res://data/test/items/remedio.tres") as ItemDef
+	assert_false(FieldActions.is_field_usable(remedio.effects), "remedio só em batalha")
+	var panaceia: ItemDef = load("res://data/test/items/panaceia.tres") as ItemDef
+	assert_true(FieldActions.is_field_usable(panaceia.effects), "panaceia cura o veneno no campo")
 
 func test_enemy_appliers_exist() -> void:
 	var pairs: Dictionary = {"pare": "stop", "confusao": "confusion", "silencio": "silence", "cegueira": "blind", "fraqueza": "str_down", "fragilidade": "vit_down", "atraso": "spd_down", "regeneracao": "regen"}

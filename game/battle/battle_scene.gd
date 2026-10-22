@@ -20,6 +20,8 @@ const VIEW_SCENE: PackedScene = preload("res://battle/combatant_view.tscn")
 @export var dice_seed: int = -1
 ## Configurações do jogador (velocidade, memória do cursor, modo ATB). Nulo = padrões (Espera, x1.0, sem memória).
 var settings: GameSettings
+## Terreno do mapa (M15), repassado ao BattleState e mostrado num canto; nulo = sem efeito (e sem rótulo).
+var terrain: TerrainDef
 ## Só no modo MAP: o encontro permite fugir (EncounterDef.can_flee). Aplicado ao controlador em start_with.
 var can_flee: bool = true
 ## Só testes/demo: -1 lê a ação `flee`; 0/1 força solta/segurada.
@@ -71,6 +73,7 @@ var _banner: Label
 var _banner_left: float = 0.0
 ## Aviso menor (M11: "X prepara Y!"), abaixo da faixa.
 var _notice: Label
+var _terrain_label: Label
 var _notice_left: float = 0.0
 
 var _demo: bool = false
@@ -157,6 +160,8 @@ func start_with(heroes: Array[HeroState], enemies: Array[EnemyDef], hero_pos: Ar
 		enemy_cs.append(Combatant.from_enemy(d, id, enemy_pos[i], balance))
 	var b: BattleState = BattleState.create(balance, Dice.new(dice_seed), hero_cs, enemy_cs)
 	b.inventory = inventory
+	b.terrain = terrain
+	_refresh_terrain_label()
 	b.reserve = reserve
 	b.support_pos = support_pos
 	if demo_result:
@@ -257,6 +262,17 @@ func _build_flee_ui() -> void:
 	_notice.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_notice.visible = false
 	ui.add_child(_notice)
+	_terrain_label = Label.new()
+	_terrain_label.position = Vector2(980, 8)
+	_terrain_label.size = Vector2(290, 28)
+	_terrain_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_terrain_label.add_theme_font_size_override("font_size", 18)
+	_terrain_label.add_theme_color_override("font_color", Color(0.75, 0.9, 1.0))
+	_terrain_label.add_theme_color_override("font_outline_color", Color.BLACK)
+	_terrain_label.add_theme_constant_override("outline_size", 4)
+	_terrain_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_terrain_label.visible = false
+	ui.add_child(_terrain_label)
 	_flee_bar = ProgressBar.new()
 	_flee_bar.min_value = 0.0
 	_flee_bar.max_value = 1.0
@@ -273,6 +289,17 @@ func _build_flee_ui() -> void:
 	_flee_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_flee_label.visible = false
 	ui.add_child(_flee_label)
+
+## Texto do canto: "Terreno: Chuva"; vazio sem terreno.
+func terrain_text_shown() -> String:
+	return _terrain_label.text if _terrain_label != null and _terrain_label.visible else ""
+
+func _refresh_terrain_label() -> void:
+	if _terrain_label == null:
+		return
+	var shown: bool = terrain != null and terrain.display_name != ""
+	_terrain_label.text = "Terreno: %s" % terrain.display_name if shown else ""
+	_terrain_label.visible = shown
 
 func _refresh_flee_ui() -> void:
 	if _flee_bar == null:
@@ -504,6 +531,8 @@ func _on_battle_ended(outcome: BattleController.Outcome) -> void:
 		c.hero_state.clamp_to_max(b.cfg)
 		c.hero_state.ap = c.ap
 		c.hero_state.limit = c.limit
+		# Veneno no mapa (M15): quem sai vivo com um estado persistente o leva; quem foi curado sai sem ele.
+		c.hero_state.store_field_statuses(c)
 	if outcome == BattleController.Outcome.VICTORY:
 		_grant_victory(b)
 	elif outcome == BattleController.Outcome.FLED:

@@ -6,13 +6,14 @@
 [ext_resource type="Resource" path="res://data/test/statuses/confusion.tres" id="4_r"]
 [ext_resource type="Resource" path="res://data/test/statuses/silence.tres" id="5_r"]
 [ext_resource type="Resource" path="res://data/test/statuses/blind.tres" id="6_r"]
+[ext_resource type="Resource" path="res://data/test/statuses/poison.tres" id="7_r"]
 
 [sub_resource type="Resource" id="effect_def_1"]
 script = ExtResource("2_r")
 kind = 5
 scale = 2
 potency = 0.0
-statuses = Array[ExtResource("1_r")]([ExtResource("4_r"), ExtResource("5_r"), ExtResource("6_r")])
+statuses = Array[ExtResource("1_r")]([ExtResource("4_r"), ExtResource("5_r"), ExtResource("6_r"), ExtResource("7_r")])
 chance = 1.0
 dodgeable = false
 

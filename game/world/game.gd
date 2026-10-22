@@ -77,6 +77,8 @@ var title: TitleScreen
 var rest_menu: RestMenu
 ## Menu da loja (M12), aberto pelos lojistas do mapa.
 var shop_menu: ShopMenu
+## Escolha do herói que desfaz um obstáculo elemental (M15), aberta pelos ElementalObstacle do mapa.
+var obstacle_menu: ObstacleMenu
 ## Executa os eventos roteirizados do mapa atual (M10); a caixa de diálogo é filha dele.
 var event_player: EventPlayer
 var game_over_screen: GameOverScreen
@@ -109,6 +111,9 @@ func _ready() -> void:
 	shop_menu = ShopMenu.new()
 	shop_menu.closed.connect(_on_shop_closed)
 	add_child(shop_menu)
+	obstacle_menu = ObstacleMenu.new()
+	obstacle_menu.closed.connect(_on_obstacle_closed)
+	add_child(obstacle_menu)
 	menu.save_handler = save_to_slot
 	event_player = EventPlayer.new()
 	event_player.end_demo_requested.connect(_on_end_demo_requested)
@@ -254,7 +259,7 @@ func _unhandled_input(event: InputEvent) -> void:
 ## Verdadeiro se o menu de campo pode abrir agora: sem transição, menu fechado, sem batalha
 ## (o que inclui as telas de resultado) e mapa não travado (Game Over).
 func can_open_menu() -> bool:
-	if busy or menu.is_open or rest_menu.is_open or shop_menu.is_open or current == null or event_player.active or end_screen != null:
+	if busy or menu.is_open or rest_menu.is_open or shop_menu.is_open or obstacle_menu.is_open or current == null or event_player.active or end_screen != null:
 		return false
 	var local: LocalMap = current as LocalMap
 	if local != null and (local.battle != null or local.locked or local.event_active):
@@ -335,6 +340,7 @@ func _connect_and_setup(node: Node2D, spawn: StringName) -> void:
 		local.rest_requested.connect(_on_rest_requested)
 		local.shop_requested.connect(_on_shop_requested)
 		local.inn_requested.connect(_on_inn_requested)
+		local.obstacle_requested.connect(_on_obstacle_requested)
 		local.event_requested.connect(play_event)
 		local.event_gate = can_play_event
 		local.setup(state, spawn)
@@ -351,7 +357,7 @@ func _on_location_entered(zone_id: StringName, spawn: StringName) -> void:
 
 ## O Game aceita um evento agora? (mapa local, sem transição, título, menu, Game Over nem outro evento)
 func can_play_event() -> bool:
-	return current is LocalMap and not (busy or in_title or menu.is_open or rest_menu.is_open or shop_menu.is_open or game_over_screen != null or end_screen != null or event_player.active)
+	return current is LocalMap and not (busy or in_title or menu.is_open or rest_menu.is_open or shop_menu.is_open or obstacle_menu.is_open or game_over_screen != null or end_screen != null or event_player.active)
 
 ## Executa `event` no mapa atual (pedido por NPCs, placas e demais objetos). Ignorado se já houver evento,
 ## transição, menu ou Game Over.
@@ -380,6 +386,17 @@ func _on_shop_requested(shop: ShopDef) -> void:
 	current.process_mode = Node.PROCESS_MODE_DISABLED
 	shop_menu.open(self, shop)
 
+func _on_obstacle_requested(o: ElementalObstacle) -> void:
+	if not _can_open_overlay():
+		return
+	current.process_mode = Node.PROCESS_MODE_DISABLED
+	obstacle_menu.open(o)
+
+func _on_obstacle_closed() -> void:
+	if current != null and not busy:
+		current.process_mode = Node.PROCESS_MODE_INHERIT
+	_refresh_leader()
+
 func _on_shop_closed() -> void:
 	if current != null and not busy:
 		current.process_mode = Node.PROCESS_MODE_INHERIT
@@ -387,7 +404,7 @@ func _on_shop_closed() -> void:
 
 ## Os menus sobre o mapa (descanso, pousada, loja) só abrem fora de transição, título, outro menu, Game Over e evento.
 func _can_open_overlay() -> bool:
-	return not (busy or in_title or menu.is_open or rest_menu.is_open or shop_menu.is_open or game_over_screen != null or end_screen != null or event_player.active)
+	return not (busy or in_title or menu.is_open or rest_menu.is_open or shop_menu.is_open or obstacle_menu.is_open or game_over_screen != null or end_screen != null or event_player.active)
 
 func _on_rest_closed() -> void:
 	if current != null and not busy:
