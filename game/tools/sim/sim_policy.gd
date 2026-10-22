@@ -46,9 +46,9 @@ static func _smart(session: SelectionSession, b: BattleState) -> PendingAction:
 	if a == null:
 		a = _ether(session, b)
 	if a == null:
-		a = _area(session, b)
-	if a == null:
 		a = _reaction(session, b)
+	if a == null:
+		a = _area(session, b)
 	if a == null:
 		a = _weakness(session)
 	if a == null:
@@ -80,7 +80,7 @@ static func _best_element_target(actor: Combatant, ab: AbilityDef, cands: Array[
 
 ## Reacao (M14): tecnica elemental ofensiva num alvo cuja marca reage com o elemento dela (e o golpe marcaria).
 ## Prefere o maior multiplicador elemental (fraqueza), depois o menor HP; nunca com imune/absorve na area.
-## Nao mira o nucleo de chefe protegido por uma parte. Fica depois da area e antes da fraqueza.
+## Nao mira o nucleo de chefe protegido por uma parte. Fica antes da area (M14 Task 6: o combo vale mais que o golpe em area; sem marca reagente a area decide como antes) e antes da fraqueza.
 ## Sem marca reagente, tabela vazia ou dados neutros: nao faz nada (a fraqueza e as outras regras decidem).
 static func _reaction(session: SelectionSession, b: BattleState) -> PendingAction:
 	var best_ab: AbilityDef = null

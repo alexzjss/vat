@@ -39,7 +39,7 @@ pick = 0
 script = ExtResource("4_r")
 strength = 32
 speed = 7
-vitality = 13
+vitality = 20
 aura = 2
 
 [sub_resource type="Resource" id="dr_0"]

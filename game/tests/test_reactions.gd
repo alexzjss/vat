@@ -434,6 +434,22 @@ func test_reaction_heals_give_no_contribution() -> void:
 	_combo()
 	assert_eq(b.ledger.get_points(&"a", &"x"), 24.0, "so o dano do golpe")
 
+## M14 Task 6: na Transfusao (Luz + Sangue) os dois numeros verdes no atacante sao a cura da reacao (heal_attacker_pct)
+## e o roubo de vida do Sangue (lifesteal do golpe); com heal_allies_pct = 0 ninguem mais (nem o atacante) entra em heal_allies.
+func test_transfusion_shows_reaction_heal_and_blood_lifesteal_separately() -> void:
+	var blood: ElementDef = _el(&"blood", true, ElementDef.Rule.BLOOD)
+	_def({"a": blood, "b": water, "heal_attacker_pct": 0.5})
+	h.hp = 1
+	h2.hp = 10
+	MarkRules.set_mark(x, water, 3)
+	var r: ActionResult = _fire(h, x, _ability(blood))
+	var hit: Dictionary = r.hits[0]
+	var fx: Dictionary = hit["reaction_effects"]
+	assert_eq(hit["lifesteal"], floori(float(hit["amount"]) * b.cfg.blood_lifesteal), "Sangue: fracao do dano")
+	assert_gt(int(fx["heal_attacker"]), 0, "reacao: heal_attacker_pct")
+	assert_eq((fx["heal_allies"] as Array).size(), 0, "heal_allies_pct 0: ninguem, nem o atacante")
+	assert_eq(h2.hp, 10)
+
 func test_heal_skips_downed_allies() -> void:
 	_def({"heal_allies_pct": 0.5})
 	h2.hp = 0
