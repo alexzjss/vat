@@ -110,6 +110,37 @@ Os valores estão em `BalanceConfig` e são valores de teste. O relatório do M1
 
 **Textos na batalha:** além do número, aparecem "Fraco!", "Resistiu", "Imune" e "Absorveu" (este com o número em verde), na cor do elemento. Neutro não mostra rótulo. Quando o Radioativo estoura, aparece "Contaminação! -N". Nos menus, o nome curto do elemento aparece no comando de batalha, nas Técnicas, em Equipar (com a prévia de resistência) e em Status (nativos e tabela de afinidade). Itens ainda não têm elemento.
 
+## Marcas e reações (M14)
+
+Todo golpe com elemento que reage deixa uma **marca** no alvo. Um elemento diferente sobre a marca dispara uma **reação**, uma das 28 da matriz (a ordem dos elementos não importa). O Radioativo não reage e não deixa marca. Todos os números são valores de teste.
+
+**Marcas.**
+- Um golpe marca quando tem elemento que reage e chega ao alvo. Esquiva, erro, imunidade e absorção não marcam. Barreira que absorve todo o dano ainda marca, porque o golpe acertou.
+- A marca dura `mark_turns` (3) turnos ATB do alvo, contados como os estados. Um golpe do mesmo elemento só renova a marca para 3, sem reação.
+- Cada alvo tem no máximo uma marca. Em habilidade com vários efeitos de dano, só o primeiro que acerta marca ou reage. Em área, cada alvo é tratado à parte.
+- A marca some quando o alvo cai, no fim da batalha e quando uma reação a consome. Ela não entra no save.
+- Heróis também recebem marcas e sofrem reações dos inimigos.
+
+**Reações.** A reação é aplicada depois do dano normal do golpe, que já passou por afinidade, escudo e barreira. Nesta ordem:
+1. **Dano extra** (`bonus_pct`, fração do dano final do golpe). Não passa de novo pela afinidade e não marca.
+2. **Área** (`area_pct` nos outros aliados do alvo dentro de `area_radius`). O dano é neutro, sem marca e sem reação: não há cadeia.
+3. **Estados** no alvo e na área, com a chance da reação.
+4. **ATB** do alvo e do atacante.
+5. **Estados no atacante**, sem sorteio.
+6. **Cura** do atacante e do grupo dele.
+7. **Remoção de estados** do alvo (a Fragmentar, por exemplo, quebra a Barreira).
+8. **Consumo**: a marca fica como `keep` (o elemento que sobra) ou some.
+
+Não há reação se o alvo cai com o golpe, nem se o golpe não marcaria. O dano extra e o da área contam como dano do atacante. A reação não dá XP à parte.
+
+**Inimigos buscam combos.** Uma regra de IA com a condição `CAN_REACT` só vale se algum alvo vivo tem uma marca que reage com o elemento da habilidade. O alvo `REACTION_TARGET` é o alvo com essa marca. As regras antigas não mudam.
+
+**Na batalha.** Um círculo pequeno ao lado do combatente mostra a marca: a inicial do elemento e os turnos que faltam. O popup do golpe mostra o nome da reação; o dano extra, a cura e os estados aparecem como os outros popups. O painel de debug (F1) mostra a última reação e o cálculo do dano extra.
+
+**Matriz e dados.** A matriz das 28 reações, aprovada pelo usuário, está no [plano do M14](.claude/plans/2026-10-22-m14-marcas-reacoes.md#matriz-das-28-reações-aprovada-pelo-usuário-em-2026-10-22). Cada reação é um `.tres` em [`game/data/reactions/`](game/data/reactions/README.md), que explica como editar. O relatório de balanceamento está em [`docs/balance/2026-10-22-relatorio-reacoes.md`](docs/balance/2026-10-22-relatorio-reacoes.md).
+
+**Demo.** O `--demo-fatia` continua com `--quit-after 6000`. Com a rota atual, o último quadro fica entre 4024 e 4274 (sementes 1 a 5 e padrão), então 6000 tem folga.
+
 ## Controles
 
 No mapa:

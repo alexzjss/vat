@@ -1,6 +1,6 @@
 # Roteiro de desenvolvimento — núcleo, mecânicas e gameplay
 
-> **Data:** 2026-10-18 · **Estado:** M1 a M13 prontos (M13 são os elementos, concluídos em 2026-10-22; M12 é a fatia vertical, concluída em 2026-10-21). A base de mecânicas vem do M1 ao M11; o M12 junta tudo numa fatia jogável.
+> **Data:** 2026-10-18 · **Estado:** M1 a M14 prontos (M14 são as marcas e reações, concluídas em 2026-10-22; M13 são os elementos, concluídos em 2026-10-22; M12 é a fatia vertical, concluída em 2026-10-21). A base de mecânicas vem do M1 ao M11; o M12 junta tudo numa fatia jogável.
 > **Foco:** continuar construindo **sistemas** (regras, mecânicas, ciclo de jogo) com formas simples, sem arte nem conteúdo narrativo. Cada item vira um marco com design → plano → implementação → revisão, como no M1 e no M2.
 > **Como usar:** escolha os itens que quer; a ordem recomendada está no fim. Itens marcados **(spec)** já existem como regra confirmada ou proposta na spec do jogo e só faltam implementar; **(novo)** são ideias que ainda não estão na spec.
 
@@ -147,6 +147,26 @@ Entregue: corrida e grupo em fila (Shift/X), fuga segurando Q (barra, sem XP, ch
 **Vai para o M14 (Marcas e reações):** marcas elementais que duram N turnos ATB do alvo (o mesmo elemento só renova), reações (matriz de 28 pares, com nomes e efeitos placeholder para revisão), ícone de marca no alvo, popup com o nome da reação e IA que busca combos. O gancho já existe: todo dano elemental passa por `ElementMath.resolve`, e cada hit grava `element` e `affinity`.
 
 **Vai para o M15 (Estados e efeitos fora da batalha):** Queimadura, Congelado, Molhado/Encharcado, Petrificação, Provocar, Berserk, Contagem (Doom) e Reflexo; resistência a estados em % por herói, inimigo e equipamento; veneno no mapa, puzzles elementais, terreno e clima elemental na batalha; bestiário e Scan.
+
+**M14 — Marcas e reações** · **Concluído** (2026-10-22) · plano [`m14-marcas-reacoes`](../.claude/plans/2026-10-22-m14-marcas-reacoes.md) · relatório [`2026-10-22-relatorio-reacoes`](balance/2026-10-22-relatorio-reacoes.md)
+- Entregue:
+  - Marcas por alvo (`mark`, `mark_turns` = 3 turnos ATB do alvo); o mesmo elemento só renova.
+  - 28 reações em `game/data/reactions/` (`ReactionDef`, um `.tres` por par, com `tabela.tres`). O validador (`ReactionRules.errors`) roda nos testes.
+  - IA de combo (`CAN_REACT` e `REACTION_TARGET`), com regra de combo em inimigos da fatia e no Guardião.
+  - Interface: ícone de marca no alvo, nome da reação no popup e última reação no painel de debug.
+  - Simulador: a política `smart` tenta reação antes de área.
+- Notas:
+  - A matriz foi aprovada pelo usuário.
+  - Tempestade atrasa o ATB do alvo (−15%) e também tem área de 30% no raio G.
+  - Chama Negra usa Veneno e Sepultura usa Pare, até o M15 trazer Queimadura e Petrificação.
+  - Reações deixam as lutas comuns cerca de 20% mais rápidas: `enc_f34` leva 20,9 s com reações e 26,3 s sem.
+  - O chefe não muda (16,9 s nos dois casos), porque o núcleo fica protegido pelos Braços.
+  - O Teste C age pouco no chefe no simulador, porque age tarde.
+  - Pendências: os popups se sobrepõem em reações com área.
+  - Pergunta em aberto para o usuário: as reações devem contar contra o chefe?
+- Vai para o M15:
+  - Queimadura (no lugar do Veneno da Chama Negra) e Petrificação (no lugar do Pare da Sepultura), junto com os estados novos e as resistências a estados.
+  - Página "Reações" no menu de campo, junto com o bestiário.
 
 ## Ordem recomendada (original)
 
