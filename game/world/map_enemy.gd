@@ -38,6 +38,12 @@ var _revealed: bool = false
 ## Segundos restantes sem poder encostar (depois de uma fuga); o inimigo pisca.
 var _cooldown: float = 0.0
 
+## Sprite de mapa (M16): vem do primeiro inimigo do encontro que tiver `sprites` com folha de mapa. Null = o círculo.
+var map_sprite: MapSprite
+
+## Os pés ficam na borda de baixo do círculo (y = +14); a colisão não muda.
+const FEET_Y: float = 14.0
+
 @onready var _touch_area: Area2D = $TouchArea
 
 func setup(cfg: BalanceConfig, dice: Dice) -> void:
@@ -51,6 +57,7 @@ func setup(cfg: BalanceConfig, dice: Dice) -> void:
 	_cfg = cfg
 
 func _ready() -> void:
+	_build_sprite()
 	_touch_area.body_entered.connect(_on_touch_body_entered)
 	if lurking:
 		_set_hidden_state(true)
@@ -64,6 +71,8 @@ func _physics_process(delta: float) -> void:
 	_tick_cooldown(delta)
 	if frozen or movement == null:
 		velocity = Vector2.ZERO
+		if map_sprite != null:
+			map_sprite.apply_motion(Vector2.ZERO)
 		return
 	var player_pos: Vector2 = player.global_position if player != null else FAR
 	if lurking:
@@ -76,6 +85,8 @@ func _physics_process(delta: float) -> void:
 	if velocity != Vector2.ZERO:
 		facing = velocity.normalized()
 	move_and_slide()
+	if map_sprite != null:
+		map_sprite.apply_motion(get_real_velocity())
 
 ## Segue a flag exigida: aparece (e passa a tocar) quando ela deixa de ser 0. Só muda de estado na transição,
 ## então o esconde-esconde da batalha e do `lurking` não é desfeito.
@@ -155,5 +166,17 @@ func _emit_touch() -> void:
 	_touch_armed = false
 	touched.emit(self)
 
+func _build_sprite() -> void:
+	if encounter == null:
+		return
+	for e: EnemyDef in encounter.enemies:
+		map_sprite = MapSprite.create(e.sprites, FEET_Y)
+		if map_sprite != null:
+			add_child(map_sprite)
+			queue_redraw()
+			return
+
 func _draw() -> void:
+	if map_sprite != null:
+		return
 	draw_circle(Vector2.ZERO, 14.0, Color(0.85, 0.15, 0.15))

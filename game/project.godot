@@ -20,6 +20,12 @@ window/size/viewport_height=720
 
 enabled=PackedStringArray("res://addons/gut/plugin.cfg", "res://addons/vat_editor/plugin.cfg")
 
+[importer_defaults]
+
+texture={
+"mipmaps/generate": false
+}
+
 [input]
 
 move_up={
@@ -60,3 +66,6 @@ flee={
 
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
+2d/snap/snap_2d_transforms_to_pixel=true
+2d/snap/snap_2d_vertices_to_pixel=true
+textures/canvas_textures/default_texture_filter=0

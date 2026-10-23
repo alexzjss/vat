@@ -12,6 +12,7 @@
 [ext_resource type="PackedScene" path="res://world/player.tscn" id="e17"]
 [ext_resource type="Script" path="res://world/map_camera.gd" id="e18"]
 [ext_resource type="Resource" path="res://data/fatia/roteiro/cidade.roteiro" id="rot_cidade"]
+[ext_resource type="Resource" path="res://art/_exemplo/morador_a_exemplo.tres" id="spk_a"]
 
 [sub_resource type="RectangleShape2D" id="sh_2400x20"]
 size = Vector2(2400, 20)
@@ -361,6 +362,7 @@ prompt = "Falar"
 roteiro = ExtResource("rot_cidade")
 event_id = &"morador_a"
 display_name = "Morador A"
+speaker = ExtResource("spk_a")
 
 [node name="MoradorB" type="Area2D" parent="."]
 position = Vector2(560, 200)

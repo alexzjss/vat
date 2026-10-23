@@ -18,3 +18,5 @@ extends Resource
 @export var element_resist: Dictionary[StringName, float] = {}
 ## Resistencia base a estados por id (M15); soma com as passivas RESIST dos equipamentos. >= 1 = imune, < 0 = vulneravel.
 @export var status_resist: Dictionary[StringName, float] = {}
+## Arte opcional (M16); sem ela o jogo desenha as formas geométricas de sempre.
+@export var sprites: SpriteSet

@@ -31,3 +31,5 @@ enum Role { NORMAL, CORE, PART }
 @export var elements: Array[ElementDef] = []
 ## Afinidade por id de elemento: 0.3 = sofre 30% menos, -0.5 = sofre 50% mais, 1.0 = imune, >1 absorve.
 @export var element_resist: Dictionary[StringName, float] = {}
+## Arte opcional (M16); sem ela o jogo desenha as formas geométricas de sempre.
+@export var sprites: SpriteSet

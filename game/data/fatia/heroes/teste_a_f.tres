@@ -12,6 +12,7 @@
 [ext_resource type="Script" path="res://core/defs/element_def.gd" id="el_script"]
 [ext_resource type="Resource" path="res://data/test/abilities/golpe.tres" id="2_r"]
 [ext_resource type="Script" path="res://core/defs/character_def.gd" id="6_r"]
+[ext_resource type="Resource" path="res://art/_exemplo/teste_a.tres" id="spr_set"]
 
 [ext_resource type="Resource" path="res://data/test/equipment/lamina_simples.tres" id="w_r"]
 [ext_resource type="Resource" path="res://data/test/equipment/armadura_simples.tres" id="ar_r"]
@@ -67,6 +68,7 @@ level = 2
 script = ExtResource("6_r")
 id = &"teste_a_f"
 display_name = "Teste A"
+sprites = ExtResource("spr_set")
 base = SubResource("stats_1")
 basic_attack = ExtResource("2_r")
 limit_ability = ExtResource("lim_r")
