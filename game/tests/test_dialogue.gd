@@ -104,6 +104,13 @@ func test_system_line_hides_name_plate() -> void:
 	assert_true(box._plate.visible)
 	assert_eq(box._name.text, "Ana")
 
+func test_choice_shows_plate_only_with_a_speaker() -> void:
+	box.ask("Quer?", PackedStringArray(["A", "B"]), 100.0)
+	assert_false(box._plate.visible, "sem falante, como antes")
+	box.ask("Quer?", PackedStringArray(["A", "B"]), 100.0, "Ana")
+	assert_true(box._plate.visible)
+	assert_eq(box._name.text, "Ana")
+
 func test_choice_navigation_and_confirm() -> void:
 	watch_signals(box)
 	box.ask("Quer?", PackedStringArray(["A", "B", "C"]), 1000.0)

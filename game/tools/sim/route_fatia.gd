@@ -19,7 +19,8 @@ const TAG_OPTIONAL: StringName = &"opcional"
 
 const ENC_DIR: String = "res://data/fatia/encounters/%s.tres"
 const START_PROFILE: String = "res://data/fatia/start.tres"
-const QUEST_EVENT: String = "res://data/fatia/events/morador_c.tres"
+const QUEST_BOOK: String = "res://data/fatia/roteiro/cidade.roteiro"
+const QUEST_EVENT: StringName = &"morador_c"
 const BOSS_ENC: String = "chefe_fatia"
 const RECRUIT_D: String = "res://data/fatia/heroes/teste_d_f.tres"
 const SHOP: String = "res://data/fatia/shops/loja_cidade.tres"
@@ -399,7 +400,7 @@ static func _equip_best(state: GameState, e: EquipmentDef) -> void:
 ## Recompensa da missao lida do proprio evento (morador_c): Moedas, equipamento e XP narrativa ACTIVE.
 static func quest_reward() -> Dictionary:
 	var out: Dictionary = {"money": 0, "xp": 0, "equipment": null, "count": 0, "include_downed": false}
-	var ev: EventScript = load(QUEST_EVENT) as EventScript
+	var ev: EventScript = (load(QUEST_BOOK) as RoteiroBook).events[QUEST_EVENT]
 	for step: EventStep in ev.steps:
 		if step is GiveMoneyStep:
 			out["money"] = int(out["money"]) + (step as GiveMoneyStep).amount

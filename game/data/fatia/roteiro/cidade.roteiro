@@ -1,0 +1,59 @@
+# Cidade Teste (fatia). Textos placeholder; ver docs/roteiro.md para a sintaxe.
+@flag missao_estado
+
+=== morador_a
+Morador A: Texto de teste: bem-vindo à Cidade Teste.
+
+=== morador_b
+Morador B: Texto de teste: o que acha da Cidade Teste?
+: Gostou da cidade?
+* Sim -> gostou
+* Não -> nao
+== gostou
+Morador B: Texto de teste: que bom! Aproveite a loja.
+-> fim
+== nao
+Morador B: Texto de teste: é uma cidade de mentira mesmo.
+
+# Missão secundária: 0 = não aceita, 1 = ativa, 2 = concluída.
+=== morador_c
+? missao_estado != 2 -> ativa
+Morador C: Texto de teste: obrigado de novo pela ajuda.
+-> fim
+== ativa
+? missao_estado != 1 -> inicio
+? item erva_teste -> entrega
+Morador C: Texto de teste: ainda falta a Erva de Teste. Há um baú no andar 1 da dungeon.
+-> fim
+== entrega
+Morador C: Texto de teste: é a Erva de Teste! Pegue esta recompensa.
+@take item erva_teste
+@give moedas 40
+@give equip capacete_teste_b_f
+@xp 120
+@set missao_estado 2
+: Missão de teste concluída!
+-> fim
+== inicio
+Morador C: Texto de teste: preciso de uma Erva de Teste, que fica na dungeon.
+: Aceitar a missão?
+* Sim -> aceita
+* Não -> recusa
+== aceita
+@set missao_estado 1
+Morador C: Texto de teste: combinado. Volte com a erva.
+-> fim
+== recusa
+Morador C: Texto de teste: tudo bem, volte se mudar de ideia.
+
+=== morador_d
+Morador D: Texto de teste: a pousada cobra uma taxa, mas cura o grupo.
+
+=== morador_e
+Morador E: Texto de teste: a dungeon fica a leste, depois da estrada.
+
+=== pousadeiro
+Pousadeiro: Texto de teste: descanse no balcão. A taxa é cobrada na hora.
+
+=== placa_saida
+: Placa de teste: a saída leva ao mapa-múndi.

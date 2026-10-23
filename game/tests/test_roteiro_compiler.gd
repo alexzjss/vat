@@ -209,6 +209,27 @@ func test_choice_pattern() -> void:
 	assert_true(s[6] is LabelStep)
 	assert_eq((s[7] as GotoStep).label, &"r2", "a última opção é Goto direto")
 
+func test_choice_keeps_speaker_and_portrait() -> void:
+	var c: ChoiceStep = _event("=== e
+Ana [feliz]: Vamos?
+* Sim -> fim").steps[0] as ChoiceStep
+	assert_eq(c.speaker, "Ana")
+	assert_eq(c.portrait, &"feliz")
+	var sys: ChoiceStep = _event("=== e
+: Vamos?
+* Sim -> fim").steps[0] as ChoiceStep
+	assert_eq(sys.speaker, "", "pergunta de sistema fica sem nome")
+	assert_eq(sys.portrait, &"")
+
+func test_runner_passes_choice_speaker_to_the_request() -> void:
+	var r := EventRunner.new(_event("=== e
+Ana [feliz]: Vamos?
+* Sim -> fim"), g)
+	r.start()
+	assert_eq(r.current().kind, EventRequest.Kind.CHOICE)
+	assert_eq(r.current().speaker, "Ana")
+	assert_eq(r.current().portrait, &"feliz")
+
 func test_choice_with_two_options_goes_to_right_labels() -> void:
 	var ev: EventScript = _event(_choice_text(2))
 	assert_eq(_play(ev, [0] as Array[int]), ["?Vamos?", "caminho 0"] as Array[String])

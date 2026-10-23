@@ -13,6 +13,9 @@ signal event_requested(event: EventScript)
 ## Texto curto exibido sobre o objeto quando o jogador pode interagir (vazio = sem aviso).
 @export var prompt: String = ""
 @export var event: EventScript
+## Alternativa ao `event` (M16): o evento `event_id` de um `.roteiro` importado. Se os dois estiverem definidos, vale o roteiro.
+@export var roteiro: RoteiroBook
+@export var event_id: StringName = &""
 ## Bloqueia a passagem do jogador (NPCs, placas).
 @export var solid: bool = false
 
@@ -71,8 +74,13 @@ func request() -> bool:
 
 func _activate() -> void:
 	interacted.emit()
-	if event != null:
-		event_requested.emit(event)
+	var ev: EventScript = effective_event()
+	if ev != null:
+		event_requested.emit(ev)
+
+## O evento que roda: o do roteiro, se houver, senão o `event`.
+func effective_event() -> EventScript:
+	return RoteiroBook.pick(roteiro, event_id, event, String(name))
 
 ## Estado do jogo do mapa (null antes do setup). Objetos de dungeon guardam tudo em flags dele.
 func game_state() -> GameState:

@@ -1,0 +1,27 @@
+# Dungeon de teste (fatia). Textos placeholder.
+@flag recrutado_e
+
+=== placa_dungeon_1
+: Placa de teste: dungeon, andar 1. Cuidado com o chão.
+
+=== recruta_e
+? recrutado_e != 0 -> ja
+Teste E: Texto de teste: finalmente alguém chegou. Vou junto.
+@recrutar teste_e_f
+@set recrutado_e 1
+-> fim
+== ja
+Teste E: Texto de teste: já estou no grupo.
+
+=== placa_dungeon_2
+: Placa de teste: dungeon, andar 2. Dois interruptores abrem o portão.
+
+=== chefe_entrada
+@camera BossSpot
+: Texto de teste: o Guardião (fatia) bloqueia a sala.
+@esperar 0.6
+
+=== cena_final
+: Texto de teste: o Guardião (fatia) foi derrotado.
+@esperar 0.5
+@fim_demo

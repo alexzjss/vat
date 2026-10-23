@@ -7,7 +7,7 @@ extends RefCounted
 ## Segue compilando depois de um erro e junta todos. Mensagens: "<arquivo>:<linha>: <mensagem>".
 ##
 ## Padrões gerados:
-## - Escolha (`Nome: pergunta?` + `* opção -> rótulo`): ChoiceStep(flag oculta `_esc_<evento>_<n>`, índice 0-based),
+## - Escolha (`Nome [expr]: pergunta?` + `* opção -> rótulo`): ChoiceStep(speaker, portrait, flag oculta `_esc_<evento>_<n>`, índice 0-based),
 ##   depois, para cada opção menos a última, IfFlag(flag == i, else = _esc_<evento>_<n>_<i+1>) + Goto(rótulo) + Label(_esc_..._<i+1>);
 ##   a última opção é só Goto(rótulo).
 ## - `? flag op N -> r`: IfFlag(flag, op invertido, N, else = r) (o salto vai no else).
@@ -208,6 +208,8 @@ func _option(body: String, n: int) -> void:
 		_choice_count += 1
 		_choice = ChoiceStep.new()
 		_choice.prompt = _pending_say.text
+		_choice.speaker = _pending_say.speaker
+		_choice.portrait = _pending_say.portrait
 		_choice.flag = StringName("_esc_%s_%d" % [_ev_id, _choice_count])
 		_choice_line = _pending_line
 		_choice_opts = []

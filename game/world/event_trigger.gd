@@ -5,6 +5,9 @@ extends Area2D
 ## (a flag fica gravada, então vale também para o mapa reinstanciado e o save).
 
 @export var event: EventScript
+## Alternativa ao `event` (M16): o evento `event_id` de um `.roteiro` importado. Se os dois estiverem definidos, vale o roteiro.
+@export var roteiro: RoteiroBook
+@export var event_id: StringName = &""
 @export var once_flag: StringName = &""
 ## Cena de pós-batalha (M12): só roda depois que o encontro com esse `unique_id` foi derrotado (vazio = sem exigência).
 @export var requires_defeated: StringName = &""
@@ -41,16 +44,23 @@ func _process(_delta: float) -> void:
 	if not inside or done or trigger():
 		_pending = false
 
+## O evento que roda: o do roteiro, se houver, senão o `event`.
+func effective_event() -> EventScript:
+	return RoteiroBook.pick(roteiro, event_id, event, String(name))
+
 ## Roda o evento agora. False se já rodou (once_flag) ou se o mapa está ocupado.
 func trigger() -> bool:
 	var map: LocalMap = LocalMap.map_of(self)
-	if map == null or map.state == null or event == null:
+	if map == null or map.state == null:
+		return false
+	var ev: EventScript = effective_event()
+	if ev == null:
 		return false
 	if once_flag != &"" and map.state.get_flag(once_flag) != 0:
 		return false
 	if requires_defeated != &"" and not map.state.is_defeated(requires_defeated):
 		return false
-	if not map.run_event(event):
+	if not map.run_event(ev):
 		return false
 	if once_flag != &"":
 		map.state.set_flag(once_flag, 1)

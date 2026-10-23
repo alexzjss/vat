@@ -97,6 +97,8 @@ func _exec(step: EventStep) -> void:
 			return
 		var r := EventRequest.new()
 		r.kind = EventRequest.Kind.CHOICE
+		r.speaker = c.speaker
+		r.portrait = c.portrait
 		r.text = c.prompt
 		r.options = c.options
 		r.flag = c.flag

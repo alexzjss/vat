@@ -101,7 +101,7 @@ func _present(req: EventRequest, gen: int) -> int:
 			dialogue.say(req.speaker, req.text, _cps())
 		EventRequest.Kind.CHOICE:
 			dialogue.chosen.connect(_done_with.bind(gen), CONNECT_ONE_SHOT)
-			dialogue.ask(req.text, req.options, _cps())
+			dialogue.ask(req.text, req.options, _cps(), req.speaker)
 		EventRequest.Kind.MOVE_ACTOR:
 			if not _move_actor(req, gen):
 				return 0

@@ -1,0 +1,14 @@
+[remap]
+
+importer="vat.roteiro"
+type="Resource"
+uid="uid://7bo6hj6to34y"
+path="res://.godot/imported/cidade.roteiro-1e1fad187084a534c059e07fa22cedc5.res"
+
+[deps]
+
+source_file="res://data/fatia/roteiro/cidade.roteiro"
+dest_files=["res://.godot/imported/cidade.roteiro-1e1fad187084a534c059e07fa22cedc5.res"]
+
+[params]
+

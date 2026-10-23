@@ -1,0 +1,328 @@
+{
+	"scenarios": {
+		"cena_final": {
+			"padrao": {}
+		},
+		"chefe_entrada": {
+			"padrao": {}
+		},
+		"morador_a": {
+			"padrao": {}
+		},
+		"morador_b": {
+			"nao": {
+				"answers": [
+					1
+				]
+			},
+			"sim": {
+				"answers": [
+					0
+				]
+			}
+		},
+		"morador_c": {
+			"ativa_com_2_ervas": {
+				"erva": 2,
+				"flags": {
+					"missao_estado": 1
+				}
+			},
+			"ativa_com_erva": {
+				"erva": 1,
+				"flags": {
+					"missao_estado": 1
+				}
+			},
+			"ativa_sem_erva": {
+				"flags": {
+					"missao_estado": 1
+				}
+			},
+			"concluida": {
+				"flags": {
+					"missao_estado": 2
+				}
+			},
+			"estado_estranho": {
+				"flags": {
+					"missao_estado": 3
+				}
+			},
+			"inicio_aceita": {
+				"answers": [
+					0
+				]
+			},
+			"inicio_recusa": {
+				"answers": [
+					1
+				]
+			}
+		},
+		"morador_d": {
+			"padrao": {}
+		},
+		"morador_e": {
+			"padrao": {}
+		},
+		"morador_f": {
+			"padrao": {}
+		},
+		"placa_dungeon_1": {
+			"padrao": {}
+		},
+		"placa_dungeon_2": {
+			"padrao": {}
+		},
+		"placa_saida": {
+			"padrao": {}
+		},
+		"pousadeiro": {
+			"padrao": {}
+		},
+		"recruta_d": {
+			"ja": {
+				"flags": {
+					"recrutado_d": 1
+				}
+			},
+			"novo": {}
+		},
+		"recruta_e": {
+			"ja": {
+				"flags": {
+					"recrutado_e": 1
+				}
+			},
+			"novo": {}
+		}
+	},
+	"steps": {
+		"cena_final": [
+			"SayStep(portrait=&\"\", speaker=\"\", text=\"Texto de teste: o Guardião (fatia) foi derrotado.\")",
+			"WaitStep(seconds=0.5)",
+			"EndDemoStep()"
+		],
+		"chefe_entrada": [
+			"CameraToStep(marker=NodePath(\"BossSpot\"))",
+			"SayStep(portrait=&\"\", speaker=\"\", text=\"Texto de teste: o Guardião (fatia) bloqueia a sala.\")",
+			"WaitStep(seconds=0.6)"
+		],
+		"morador_a": [
+			"SayStep(portrait=&\"\", speaker=\"Morador A\", text=\"Texto de teste: bem-vindo à Cidade Teste.\")"
+		],
+		"morador_d": [
+			"SayStep(portrait=&\"\", speaker=\"Morador D\", text=\"Texto de teste: a pousada cobra uma taxa, mas cura o grupo.\")"
+		],
+		"morador_e": [
+			"SayStep(portrait=&\"\", speaker=\"Morador E\", text=\"Texto de teste: a dungeon fica a leste, depois da estrada.\")"
+		],
+		"morador_f": [
+			"SayStep(portrait=&\"\", speaker=\"Morador F\", text=\"Texto de teste: este baú é da casa. Pode levar.\")"
+		],
+		"placa_dungeon_1": [
+			"SayStep(portrait=&\"\", speaker=\"\", text=\"Placa de teste: dungeon, andar 1. Cuidado com o chão.\")"
+		],
+		"placa_dungeon_2": [
+			"SayStep(portrait=&\"\", speaker=\"\", text=\"Placa de teste: dungeon, andar 2. Dois interruptores abrem o portão.\")"
+		],
+		"placa_saida": [
+			"SayStep(portrait=&\"\", speaker=\"\", text=\"Placa de teste: a saída leva ao mapa-múndi.\")"
+		],
+		"pousadeiro": [
+			"SayStep(portrait=&\"\", speaker=\"Pousadeiro\", text=\"Texto de teste: descanse no balcão. A taxa é cobrada na hora.\")"
+		],
+		"recruta_d": [
+			"IfFlagStep(else_label=&\"ja\", flag=&\"recrutado_d\", op=0, value=0)",
+			"SayStep(portrait=&\"\", speaker=\"Teste D\", text=\"Texto de teste: posso me juntar ao grupo.\")",
+			"RecruitStep(hero=res:res://data/fatia/heroes/teste_d_f.tres, level=1, level_mode=0)",
+			"SetFlagStep(flag=&\"recrutado_d\", value=1)",
+			"GotoStep(label=&\"fim\")",
+			"LabelStep(label_name=&\"ja\")",
+			"SayStep(portrait=&\"\", speaker=\"Teste D\", text=\"Texto de teste: já estou no grupo.\")",
+			"LabelStep(label_name=&\"fim\")"
+		],
+		"recruta_e": [
+			"IfFlagStep(else_label=&\"ja\", flag=&\"recrutado_e\", op=0, value=0)",
+			"SayStep(portrait=&\"\", speaker=\"Teste E\", text=\"Texto de teste: finalmente alguém chegou. Vou junto.\")",
+			"RecruitStep(hero=res:res://data/fatia/heroes/teste_e_f.tres, level=1, level_mode=0)",
+			"SetFlagStep(flag=&\"recrutado_e\", value=1)",
+			"GotoStep(label=&\"fim\")",
+			"LabelStep(label_name=&\"ja\")",
+			"SayStep(portrait=&\"\", speaker=\"Teste E\", text=\"Texto de teste: já estou no grupo.\")",
+			"LabelStep(label_name=&\"fim\")"
+		]
+	},
+	"traces": {
+		"cena_final": {
+			"padrao": [
+				"SAY||Texto de teste: o Guardião (fatia) foi derrotado.",
+				"WAIT|0.5",
+				"END_DEMO",
+				"FINISHED|true|ABORTED|false",
+				"STATE|flags[] money=0 erva=0 capacete=0 heroes[teste_a_f:L1:xp0]"
+			]
+		},
+		"chefe_entrada": {
+			"padrao": [
+				"CAMERA|BossSpot",
+				"SAY||Texto de teste: o Guardião (fatia) bloqueia a sala.",
+				"WAIT|0.6",
+				"FINISHED|true|ABORTED|false",
+				"STATE|flags[] money=0 erva=0 capacete=0 heroes[teste_a_f:L1:xp0]"
+			]
+		},
+		"morador_a": {
+			"padrao": [
+				"SAY|Morador A|Texto de teste: bem-vindo à Cidade Teste.",
+				"FINISHED|true|ABORTED|false",
+				"STATE|flags[] money=0 erva=0 capacete=0 heroes[teste_a_f:L1:xp0]"
+			]
+		},
+		"morador_b": {
+			"nao": [
+				"SAY|Morador B|Texto de teste: o que acha da Cidade Teste?",
+				"CHOICE||Gostou da cidade?|Sim/Não",
+				"SAY|Morador B|Texto de teste: é uma cidade de mentira mesmo.",
+				"FINISHED|true|ABORTED|false",
+				"STATE|flags[morador_b_escolha=1] money=0 erva=0 capacete=0 heroes[teste_a_f:L1:xp0]"
+			],
+			"sim": [
+				"SAY|Morador B|Texto de teste: o que acha da Cidade Teste?",
+				"CHOICE||Gostou da cidade?|Sim/Não",
+				"SAY|Morador B|Texto de teste: que bom! Aproveite a loja.",
+				"FINISHED|true|ABORTED|false",
+				"STATE|flags[morador_b_escolha=0] money=0 erva=0 capacete=0 heroes[teste_a_f:L1:xp0]"
+			]
+		},
+		"morador_c": {
+			"ativa_com_2_ervas": [
+				"SAY|Morador C|Texto de teste: é a Erva de Teste! Pegue esta recompensa.",
+				"SAY||Entregou Erva de Teste!",
+				"SAY||Teste A subiu para o Nv 4!",
+				"SAY||Teste A aprendeu Golpe em área!",
+				"SAY||Teste A aprendeu Desafio!",
+				"SAY||Missão de teste concluída!",
+				"FINISHED|true|ABORTED|false",
+				"STATE|flags[missao_estado=2] money=40 erva=1 capacete=1 heroes[teste_a_f:L4:xp120]"
+			],
+			"ativa_com_erva": [
+				"SAY|Morador C|Texto de teste: é a Erva de Teste! Pegue esta recompensa.",
+				"SAY||Entregou Erva de Teste!",
+				"SAY||Teste A subiu para o Nv 4!",
+				"SAY||Teste A aprendeu Golpe em área!",
+				"SAY||Teste A aprendeu Desafio!",
+				"SAY||Missão de teste concluída!",
+				"FINISHED|true|ABORTED|false",
+				"STATE|flags[missao_estado=2] money=40 erva=0 capacete=1 heroes[teste_a_f:L4:xp120]"
+			],
+			"ativa_sem_erva": [
+				"SAY|Morador C|Texto de teste: ainda falta a Erva de Teste. Há um baú no andar 1 da dungeon.",
+				"FINISHED|true|ABORTED|false",
+				"STATE|flags[missao_estado=1] money=0 erva=0 capacete=0 heroes[teste_a_f:L1:xp0]"
+			],
+			"concluida": [
+				"SAY|Morador C|Texto de teste: obrigado de novo pela ajuda.",
+				"FINISHED|true|ABORTED|false",
+				"STATE|flags[missao_estado=2] money=0 erva=0 capacete=0 heroes[teste_a_f:L1:xp0]"
+			],
+			"estado_estranho": [
+				"SAY|Morador C|Texto de teste: preciso de uma Erva de Teste, que fica na dungeon.",
+				"CHOICE||Aceitar a missão?|Sim/Não",
+				"SAY|Morador C|Texto de teste: combinado. Volte com a erva.",
+				"FINISHED|true|ABORTED|false",
+				"STATE|flags[missao_escolha=0,missao_estado=1] money=0 erva=0 capacete=0 heroes[teste_a_f:L1:xp0]"
+			],
+			"inicio_aceita": [
+				"SAY|Morador C|Texto de teste: preciso de uma Erva de Teste, que fica na dungeon.",
+				"CHOICE||Aceitar a missão?|Sim/Não",
+				"SAY|Morador C|Texto de teste: combinado. Volte com a erva.",
+				"FINISHED|true|ABORTED|false",
+				"STATE|flags[missao_escolha=0,missao_estado=1] money=0 erva=0 capacete=0 heroes[teste_a_f:L1:xp0]"
+			],
+			"inicio_recusa": [
+				"SAY|Morador C|Texto de teste: preciso de uma Erva de Teste, que fica na dungeon.",
+				"CHOICE||Aceitar a missão?|Sim/Não",
+				"SAY|Morador C|Texto de teste: tudo bem, volte se mudar de ideia.",
+				"FINISHED|true|ABORTED|false",
+				"STATE|flags[missao_escolha=1] money=0 erva=0 capacete=0 heroes[teste_a_f:L1:xp0]"
+			]
+		},
+		"morador_d": {
+			"padrao": [
+				"SAY|Morador D|Texto de teste: a pousada cobra uma taxa, mas cura o grupo.",
+				"FINISHED|true|ABORTED|false",
+				"STATE|flags[] money=0 erva=0 capacete=0 heroes[teste_a_f:L1:xp0]"
+			]
+		},
+		"morador_e": {
+			"padrao": [
+				"SAY|Morador E|Texto de teste: a dungeon fica a leste, depois da estrada.",
+				"FINISHED|true|ABORTED|false",
+				"STATE|flags[] money=0 erva=0 capacete=0 heroes[teste_a_f:L1:xp0]"
+			]
+		},
+		"morador_f": {
+			"padrao": [
+				"SAY|Morador F|Texto de teste: este baú é da casa. Pode levar.",
+				"FINISHED|true|ABORTED|false",
+				"STATE|flags[] money=0 erva=0 capacete=0 heroes[teste_a_f:L1:xp0]"
+			]
+		},
+		"placa_dungeon_1": {
+			"padrao": [
+				"SAY||Placa de teste: dungeon, andar 1. Cuidado com o chão.",
+				"FINISHED|true|ABORTED|false",
+				"STATE|flags[] money=0 erva=0 capacete=0 heroes[teste_a_f:L1:xp0]"
+			]
+		},
+		"placa_dungeon_2": {
+			"padrao": [
+				"SAY||Placa de teste: dungeon, andar 2. Dois interruptores abrem o portão.",
+				"FINISHED|true|ABORTED|false",
+				"STATE|flags[] money=0 erva=0 capacete=0 heroes[teste_a_f:L1:xp0]"
+			]
+		},
+		"placa_saida": {
+			"padrao": [
+				"SAY||Placa de teste: a saída leva ao mapa-múndi.",
+				"FINISHED|true|ABORTED|false",
+				"STATE|flags[] money=0 erva=0 capacete=0 heroes[teste_a_f:L1:xp0]"
+			]
+		},
+		"pousadeiro": {
+			"padrao": [
+				"SAY|Pousadeiro|Texto de teste: descanse no balcão. A taxa é cobrada na hora.",
+				"FINISHED|true|ABORTED|false",
+				"STATE|flags[] money=0 erva=0 capacete=0 heroes[teste_a_f:L1:xp0]"
+			]
+		},
+		"recruta_d": {
+			"ja": [
+				"SAY|Teste D|Texto de teste: já estou no grupo.",
+				"FINISHED|true|ABORTED|false",
+				"STATE|flags[recrutado_d=1] money=0 erva=0 capacete=0 heroes[teste_a_f:L1:xp0]"
+			],
+			"novo": [
+				"SAY|Teste D|Texto de teste: posso me juntar ao grupo.",
+				"SAY||Teste D entrou no grupo!",
+				"FINISHED|true|ABORTED|false",
+				"STATE|flags[recrutado_d=1] money=0 erva=0 capacete=0 heroes[teste_a_f:L1:xp0,teste_d_f:L1:xp0]"
+			]
+		},
+		"recruta_e": {
+			"ja": [
+				"SAY|Teste E|Texto de teste: já estou no grupo.",
+				"FINISHED|true|ABORTED|false",
+				"STATE|flags[recrutado_e=1] money=0 erva=0 capacete=0 heroes[teste_a_f:L1:xp0]"
+			],
+			"novo": [
+				"SAY|Teste E|Texto de teste: finalmente alguém chegou. Vou junto.",
+				"SAY||Teste E entrou no grupo!",
+				"FINISHED|true|ABORTED|false",
+				"STATE|flags[recrutado_e=1] money=0 erva=0 capacete=0 heroes[teste_a_f:L1:xp0,teste_e_f:L1:xp0]"
+			]
+		}
+	}
+}

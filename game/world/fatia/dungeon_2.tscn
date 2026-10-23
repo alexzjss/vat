@@ -2,7 +2,6 @@
 
 [ext_resource type="Script" path="res://world/local_map.gd" id="e1"]
 [ext_resource type="Script" path="res://world/map_link.gd" id="e2"]
-[ext_resource type="Resource" path="res://data/fatia/events/placa_dungeon_2.tres" id="e3"]
 [ext_resource type="Script" path="res://world/sign.gd" id="e4"]
 [ext_resource type="Resource" path="res://data/fatia/items/pocao_f.tres" id="e5"]
 [ext_resource type="Script" path="res://world/chest.gd" id="e6"]
@@ -10,9 +9,7 @@
 [ext_resource type="Script" path="res://world/flag_gate.gd" id="e8"]
 [ext_resource type="Script" path="res://world/rest_point.gd" id="e9"]
 [ext_resource type="Resource" path="res://data/fatia/items/reviver_f.tres" id="e10"]
-[ext_resource type="Resource" path="res://data/fatia/events/chefe_entrada.tres" id="e11"]
 [ext_resource type="Script" path="res://world/event_trigger.gd" id="e12"]
-[ext_resource type="Resource" path="res://data/fatia/events/cena_final.tres" id="e13"]
 [ext_resource type="Resource" path="res://data/fatia/encounters/enc_f3.tres" id="e14"]
 [ext_resource type="PackedScene" path="res://world/map_enemy.tscn" id="e15"]
 [ext_resource type="Resource" path="res://data/fatia/encounters/enc_f4.tres" id="e16"]
@@ -30,6 +27,7 @@
 [ext_resource type="Resource" path="res://data/fatia/items/eter_f.tres" id="e_eter"]
 [ext_resource type="Resource" path="res://data/fatia/encounters/enc_raro.tres" id="e_raro"]
 [ext_resource type="Resource" path="res://data/fatia/terrain/calor.tres" id="e_terrain"]
+[ext_resource type="Resource" path="res://data/fatia/roteiro/dungeon.roteiro" id="rot_dungeon"]
 
 [sub_resource type="RectangleShape2D" id="sh_2400x20"]
 size = Vector2(2400, 20)
@@ -222,7 +220,8 @@ shape = SubResource("sh_40x160")
 position = Vector2(330, 290)
 script = ExtResource("e4")
 prompt = "Ler"
-event = ExtResource("e3")
+roteiro = ExtResource("rot_dungeon")
+event_id = &"placa_dungeon_2"
 
 [node name="BauA" type="Area2D" parent="."]
 position = Vector2(620, 100)
@@ -270,14 +269,16 @@ opened_flag = &"f2_bau_c"
 [node name="CenaChefeTrigger" type="Area2D" parent="."]
 position = Vector2(1900, 360)
 script = ExtResource("e12")
-event = ExtResource("e11")
+roteiro = ExtResource("rot_dungeon")
+event_id = &"chefe_entrada"
 once_flag = &"f2_cena_chefe"
 size = Vector2(40, 640)
 
 [node name="FinalTrigger" type="Area2D" parent="."]
 position = Vector2(2020, 360)
 script = ExtResource("e12")
-event = ExtResource("e13")
+roteiro = ExtResource("rot_dungeon")
+event_id = &"cena_final"
 once_flag = &"f2_fim"
 requires_defeated = &"chefe_fatia"
 size = Vector2(700, 640)

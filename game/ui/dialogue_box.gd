@@ -102,8 +102,8 @@ func say(speaker: String, text: String, cps: float = -1.0) -> void:
 	_open(speaker, text, PackedStringArray(), cps)
 
 ## Abre com uma pergunta e opções; o cursor começa na primeira.
-func ask(prompt: String, p_options: PackedStringArray, cps: float = -1.0) -> void:
-	_open("", prompt, p_options, cps)
+func ask(prompt: String, p_options: PackedStringArray, cps: float = -1.0, speaker: String = "") -> void:
+	_open(speaker, prompt, p_options, cps)
 
 func _open(speaker: String, text: String, p_options: PackedStringArray, cps: float) -> void:
 	if cps > 0.0:

@@ -18,7 +18,7 @@ Esta pasta guarda os dados da fatia vertical, o percurso que o **Novo jogo** abr
 | Itens | `items/` (`pocao_f`, `eter_f`, `remedio_f`, `reviver_f`, `chave_f`, `erva_teste`) | Preço em `price`; `erva_teste` é o item-chave da missão |
 | Equipamento | `equipment/` (`lamina_aco_f`, `bastao_carvalho_f`, `arco_longo_f`, `armadura_pesada_f`, `capacete_leve_f`, `capacete_teste_b_f`) | Preço em `price` |
 | Loja | `shops/loja_cidade.tres` | O que está à venda na cidade (estoque infinito) |
-| Eventos | `events/` (`morador_a` a `morador_f`, `pousadeiro`, `recruta_d`, `recruta_e`, `placa_dungeon_1`, `placa_dungeon_2`, `placa_saida`, `chefe_entrada`, `cena_final`) | Texto dos diálogos, flags e recrutamento |
+| Eventos | `roteiro/` (`cidade.roteiro`, `casas.roteiro`, `dungeon.roteiro`; eventos `morador_a` a `morador_f`, `pousadeiro`, `recruta_d`, `recruta_e`, `placa_dungeon_1`, `placa_dungeon_2`, `placa_saida`, `chefe_entrada`, `cena_final`) | Texto dos diálogos, flags e recrutamento, em roteiro (M16); importados pelo plugin `vat_editor` |
 | Perfil de início | `start.tres` | Heróis do grupo inicial, itens, Moedas (50), mapa e ponto de entrada |
 | Terrenos | `terrain/` (`chuva`, `calor`) | Multiplicador do dano elemental por elemento (`element_mult`); ver [Terreno](#terreno-terraindef) |
 | Obstáculos elementais | nos mapas `world/fatia/` (`dungeon_1.tscn`, `dungeon_2.tscn`) | Elemento, flag e textos de cada obstáculo; ver [Puzzles elementais](#puzzles-elementais-elementalobstacle) |

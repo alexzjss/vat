@@ -4,12 +4,12 @@
 [ext_resource type="Script" path="res://world/map_link.gd" id="e2"]
 [ext_resource type="Resource" path="res://data/fatia/items/eter_f.tres" id="e3"]
 [ext_resource type="Script" path="res://world/chest.gd" id="e4"]
-[ext_resource type="Resource" path="res://data/fatia/events/morador_f.tres" id="e5"]
 [ext_resource type="Script" path="res://world/npc.gd" id="e6"]
 [ext_resource type="Script" path="res://world/battle_arena.gd" id="e7"]
 [ext_resource type="Script" path="res://world/party_followers.gd" id="e8"]
 [ext_resource type="PackedScene" path="res://world/player.tscn" id="e9"]
 [ext_resource type="Script" path="res://world/map_camera.gd" id="e10"]
+[ext_resource type="Resource" path="res://data/fatia/roteiro/casas.roteiro" id="rot_casas"]
 
 [sub_resource type="RectangleShape2D" id="sh_1020x12"]
 size = Vector2(1020, 12)
@@ -158,7 +158,8 @@ opened_flag = &"bau_casa1"
 position = Vector2(900, 200)
 script = ExtResource("e6")
 prompt = "Falar"
-event = ExtResource("e5")
+roteiro = ExtResource("rot_casas")
+event_id = &"morador_f"
 display_name = "Morador F"
 
 [node name="Arena" type="Node2D" parent="."]

@@ -1,0 +1,14 @@
+# Casas da Cidade Teste (fatia). Textos placeholder.
+@flag recrutado_d
+
+=== morador_f
+Morador F: Texto de teste: este baú é da casa. Pode levar.
+
+=== recruta_d
+? recrutado_d != 0 -> ja
+Teste D: Texto de teste: posso me juntar ao grupo.
+@recrutar teste_d_f
+@set recrutado_d 1
+-> fim
+== ja
+Teste D: Texto de teste: já estou no grupo.

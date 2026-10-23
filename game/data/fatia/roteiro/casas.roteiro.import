@@ -1,0 +1,14 @@
+[remap]
+
+importer="vat.roteiro"
+type="Resource"
+uid="uid://c1tnvplxa2lb"
+path="res://.godot/imported/casas.roteiro-89515cd1b23226541363cdaf097517b1.res"
+
+[deps]
+
+source_file="res://data/fatia/roteiro/casas.roteiro"
+dest_files=["res://.godot/imported/casas.roteiro-89515cd1b23226541363cdaf097517b1.res"]
+
+[params]
+

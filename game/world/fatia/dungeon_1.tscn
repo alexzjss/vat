@@ -3,7 +3,6 @@
 [ext_resource type="Script" path="res://world/local_map.gd" id="e1"]
 [ext_resource type="Script" path="res://world/map_link.gd" id="e2"]
 [ext_resource type="Script" path="res://world/rest_point.gd" id="e3"]
-[ext_resource type="Resource" path="res://data/fatia/events/placa_dungeon_1.tres" id="e4"]
 [ext_resource type="Script" path="res://world/sign.gd" id="e5"]
 [ext_resource type="Resource" path="res://data/fatia/items/pocao_f.tres" id="e6"]
 [ext_resource type="Script" path="res://world/chest.gd" id="e7"]
@@ -15,7 +14,6 @@
 [ext_resource type="Script" path="res://world/flag_gate.gd" id="e13"]
 [ext_resource type="Resource" path="res://data/fatia/encounters/enc_f12.tres" id="e14"]
 [ext_resource type="Resource" path="res://data/fatia/items/eter_f.tres" id="e15"]
-[ext_resource type="Resource" path="res://data/fatia/events/recruta_e.tres" id="e16"]
 [ext_resource type="Script" path="res://world/event_trigger.gd" id="e17"]
 [ext_resource type="Script" path="res://world/npc.gd" id="e18"]
 [ext_resource type="Resource" path="res://data/fatia/encounters/enc_f1.tres" id="e19"]
@@ -29,6 +27,7 @@
 [ext_resource type="Script" path="res://world/chest.gd" id="e_chest"]
 [ext_resource type="Script" path="res://world/elemental_obstacle.gd" id="e_obst"]
 [ext_resource type="Resource" path="res://data/elements/kagutsuchi.tres" id="e_kagu"]
+[ext_resource type="Resource" path="res://data/fatia/roteiro/dungeon.roteiro" id="rot_dungeon"]
 
 [sub_resource type="RectangleShape2D" id="sh_2400x20"]
 size = Vector2(2400, 20)
@@ -246,7 +245,8 @@ position = Vector2(150, 520)
 position = Vector2(330, 290)
 script = ExtResource("e5")
 prompt = "Ler"
-event = ExtResource("e4")
+roteiro = ExtResource("rot_dungeon")
+event_id = &"placa_dungeon_1"
 
 [node name="BauPocao" type="Area2D" parent="."]
 position = Vector2(620, 100)
@@ -310,7 +310,8 @@ opened_flag = &"f1_bau_eter"
 [node name="CenaETrigger" type="Area2D" parent="."]
 position = Vector2(2050, 360)
 script = ExtResource("e17")
-event = ExtResource("e16")
+roteiro = ExtResource("rot_dungeon")
+event_id = &"recruta_e"
 once_flag = &"f1_cena_e"
 size = Vector2(40, 640)
 
@@ -318,7 +319,8 @@ size = Vector2(40, 640)
 position = Vector2(2150, 200)
 script = ExtResource("e18")
 prompt = "Falar"
-event = ExtResource("e16")
+roteiro = ExtResource("rot_dungeon")
+event_id = &"recruta_e"
 display_name = "Teste E"
 
 [node name="Patrulheiro" parent="." instance=ExtResource("e20")]

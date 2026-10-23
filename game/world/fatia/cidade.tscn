@@ -2,22 +2,16 @@
 
 [ext_resource type="Script" path="res://world/local_map.gd" id="e1"]
 [ext_resource type="Script" path="res://world/map_link.gd" id="e2"]
-[ext_resource type="Resource" path="res://data/fatia/events/placa_saida.tres" id="e3"]
 [ext_resource type="Script" path="res://world/sign.gd" id="e4"]
-[ext_resource type="Resource" path="res://data/fatia/events/morador_a.tres" id="e5"]
 [ext_resource type="Script" path="res://world/npc.gd" id="e6"]
-[ext_resource type="Resource" path="res://data/fatia/events/morador_b.tres" id="e7"]
-[ext_resource type="Resource" path="res://data/fatia/events/morador_c.tres" id="e8"]
-[ext_resource type="Resource" path="res://data/fatia/events/morador_d.tres" id="e9"]
-[ext_resource type="Resource" path="res://data/fatia/events/morador_e.tres" id="e10"]
 [ext_resource type="Resource" path="res://data/fatia/shops/loja_cidade.tres" id="e11"]
 [ext_resource type="Script" path="res://world/shop_keeper.gd" id="e12"]
 [ext_resource type="Script" path="res://world/inn.gd" id="e13"]
-[ext_resource type="Resource" path="res://data/fatia/events/pousadeiro.tres" id="e14"]
 [ext_resource type="Script" path="res://world/battle_arena.gd" id="e15"]
 [ext_resource type="Script" path="res://world/party_followers.gd" id="e16"]
 [ext_resource type="PackedScene" path="res://world/player.tscn" id="e17"]
 [ext_resource type="Script" path="res://world/map_camera.gd" id="e18"]
+[ext_resource type="Resource" path="res://data/fatia/roteiro/cidade.roteiro" id="rot_cidade"]
 
 [sub_resource type="RectangleShape2D" id="sh_2400x20"]
 size = Vector2(2400, 20)
@@ -357,41 +351,47 @@ shape = SubResource("sh_40x160")
 position = Vector2(2230, 290)
 script = ExtResource("e4")
 prompt = "Ler"
-event = ExtResource("e3")
+roteiro = ExtResource("rot_cidade")
+event_id = &"placa_saida"
 
 [node name="MoradorA" type="Area2D" parent="."]
 position = Vector2(400, 520)
 script = ExtResource("e6")
 prompt = "Falar"
-event = ExtResource("e5")
+roteiro = ExtResource("rot_cidade")
+event_id = &"morador_a"
 display_name = "Morador A"
 
 [node name="MoradorB" type="Area2D" parent="."]
 position = Vector2(560, 200)
 script = ExtResource("e6")
 prompt = "Falar"
-event = ExtResource("e7")
+roteiro = ExtResource("rot_cidade")
+event_id = &"morador_b"
 display_name = "Morador B"
 
 [node name="MoradorC" type="Area2D" parent="."]
 position = Vector2(2000, 220)
 script = ExtResource("e6")
 prompt = "Falar"
-event = ExtResource("e8")
+roteiro = ExtResource("rot_cidade")
+event_id = &"morador_c"
 display_name = "Morador C"
 
 [node name="MoradorD" type="Area2D" parent="."]
 position = Vector2(1060, 250)
 script = ExtResource("e6")
 prompt = "Falar"
-event = ExtResource("e9")
+roteiro = ExtResource("rot_cidade")
+event_id = &"morador_d"
 display_name = "Morador D"
 
 [node name="MoradorE" type="Area2D" parent="."]
 position = Vector2(700, 560)
 script = ExtResource("e6")
 prompt = "Falar"
-event = ExtResource("e10")
+roteiro = ExtResource("rot_cidade")
+event_id = &"morador_e"
 display_name = "Morador E"
 
 [node name="Lojista" type="Area2D" parent="."]
@@ -410,7 +410,8 @@ script = ExtResource("e13")
 position = Vector2(1910, 520)
 script = ExtResource("e6")
 prompt = "Falar"
-event = ExtResource("e14")
+roteiro = ExtResource("rot_cidade")
+event_id = &"pousadeiro"
 display_name = "Pousadeiro"
 
 [node name="Arena" type="Node2D" parent="."]

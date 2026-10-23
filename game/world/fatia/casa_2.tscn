@@ -2,12 +2,12 @@
 
 [ext_resource type="Script" path="res://world/local_map.gd" id="e1"]
 [ext_resource type="Script" path="res://world/map_link.gd" id="e2"]
-[ext_resource type="Resource" path="res://data/fatia/events/recruta_d.tres" id="e3"]
 [ext_resource type="Script" path="res://world/npc.gd" id="e4"]
 [ext_resource type="Script" path="res://world/battle_arena.gd" id="e5"]
 [ext_resource type="Script" path="res://world/party_followers.gd" id="e6"]
 [ext_resource type="PackedScene" path="res://world/player.tscn" id="e7"]
 [ext_resource type="Script" path="res://world/map_camera.gd" id="e8"]
+[ext_resource type="Resource" path="res://data/fatia/roteiro/casas.roteiro" id="rot_casas"]
 
 [sub_resource type="RectangleShape2D" id="sh_1020x12"]
 size = Vector2(1020, 12)
@@ -150,7 +150,8 @@ shape = SubResource("sh_90x24")
 position = Vector2(1200, 220)
 script = ExtResource("e4")
 prompt = "Falar"
-event = ExtResource("e3")
+roteiro = ExtResource("rot_casas")
+event_id = &"recruta_d"
 display_name = "Teste D"
 
 [node name="Arena" type="Node2D" parent="."]

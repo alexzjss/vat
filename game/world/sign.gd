@@ -11,7 +11,7 @@ func _init() -> void:
 	solid = true
 
 func _activate() -> void:
-	if event == null and text != "":
+	if event == null and roteiro == null and text != "":
 		var say := SayStep.new()
 		say.text = text
 		var script := EventScript.new()

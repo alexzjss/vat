@@ -52,10 +52,23 @@ func _list_tres(dir_path: String) -> Array[String]:
 			out.append(dir_path + "/" + f)
 	return out
 
+## Os eventos da fatia, por id, lidos dos `.roteiro` importados (M16).
+func _slice_events() -> Dictionary:
+	var out: Dictionary = {}
+	for f: String in DirAccess.get_files_at(DATA + "/roteiro"):
+		if f.ends_with(".roteiro"):
+			var book: RoteiroBook = load(DATA + "/roteiro/" + f) as RoteiroBook
+			assert_not_null(book, "%s importado" % f)
+			out.merge(book.events)
+	return out
+
+func _slice_event(id: String) -> EventScript:
+	return _slice_events().get(StringName(id)) as EventScript
+
 ## Roda um evento no EventRunner puro; `answers` responde às escolhas em ordem. Devolve as falas e o runner.
-func _drive(path: String, answers: Array[int] = []) -> Dictionary:
-	var ev: EventScript = load(path) as EventScript
-	assert_not_null(ev, path)
+func _drive(id: String, answers: Array[int] = []) -> Dictionary:
+	var ev: EventScript = _slice_event(id)
+	assert_not_null(ev, id)
 	var r := EventRunner.new(ev, game.state)
 	r.start()
 	var texts: Array[String] = []
@@ -96,13 +109,13 @@ func test_every_fatia_tres_loads() -> void:
 
 func test_every_event_runs_to_the_end_without_aborting() -> void:
 	await _start_game()
-	var events: Array[String] = _list_tres(DATA + "/events")
-	assert_gt(events.size(), 8)
-	for f: String in events:
-		var res: Dictionary = _drive(f)
+	var events: Dictionary = _slice_events()
+	assert_eq(events.size(), 14, "os 14 eventos da fatia")
+	for id: StringName in events:
+		var res: Dictionary = _drive(String(id))
 		var r: EventRunner = res["runner"]
-		assert_true(r.finished, f)
-		assert_false(r.aborted, f)
+		assert_true(r.finished, String(id))
+		assert_false(r.aborted, String(id))
 
 func test_new_maps_are_registered() -> void:
 	for id: StringName in NEW_MAPS:
@@ -154,8 +167,9 @@ func test_town_has_residents_and_houses() -> void:
 		if npc == null or npc is ShopKeeper or npc.name == &"Pousadeiro":
 			continue
 		npcs += 1
-		assert_not_null(npc.event, "%s fala" % npc.name)
-		for s: EventStep in npc.event.steps:
+		var npc_event: EventScript = npc.effective_event()
+		assert_not_null(npc_event, "%s fala" % npc.name)
+		for s: EventStep in npc_event.steps:
 			if s is ChoiceStep:
 				with_choice += 1
 				break
@@ -288,7 +302,7 @@ func test_going_out_from_the_town_still_enters_the_road_by_its_west_end() -> voi
 
 # --- missão secundária ----------------------------------------------------------------
 
-const QUEST: String = DATA + "/events/morador_c.tres"
+const QUEST: String = "morador_c"
 
 func test_quest_before_asks_and_accepting_starts_it() -> void:
 	await _start_game()
@@ -373,7 +387,7 @@ func test_recruit_d_joins_the_active_party_at_party_avg_level() -> void:
 		XpCalculator.grant(h, XpCalculator.xp_for_level(3, game.state.cfg), game.state.cfg)
 	var avg: int = game.state.party_avg_level()
 	assert_eq(game.state.heroes.size(), 3)
-	var res: Dictionary = _drive(DATA + "/events/recruta_d.tres")
+	var res: Dictionary = _drive("recruta_d")
 	assert_eq(game.state.heroes.size(), 4, "vaga nos ativos")
 	var d: HeroState = game.state.heroes[3]
 	assert_eq(d.def.id, &"teste_d_f")
@@ -382,19 +396,19 @@ func test_recruit_d_joins_the_active_party_at_party_avg_level() -> void:
 
 func test_recruit_d_is_idempotent() -> void:
 	await _start_game()
-	_drive(DATA + "/events/recruta_d.tres")
-	_drive(DATA + "/events/recruta_d.tres")
+	_drive("recruta_d")
+	_drive("recruta_d")
 	assert_eq(game.state.roster().size(), 4)
 
 func test_recruit_e_goes_to_reserve_when_active_is_full() -> void:
 	await _start_game()
-	_drive(DATA + "/events/recruta_d.tres")
-	var res: Dictionary = _drive(DATA + "/events/recruta_e.tres")
+	_drive("recruta_d")
+	var res: Dictionary = _drive("recruta_e")
 	assert_eq(game.state.heroes.size(), 4)
 	assert_eq(game.state.reserve.size(), 1, "E vai para a reserva")
 	assert_eq(game.state.reserve[0].def.id, &"teste_e_f")
 	assert_true(_has_text(res, "entrou no grupo"))
-	_drive(DATA + "/events/recruta_e.tres")
+	_drive("recruta_e")
 	assert_eq(game.state.roster().size(), 5, "só uma vez")
 
 func test_recruit_d_npc_is_in_house_two_and_e_in_the_dungeon() -> void:
@@ -402,8 +416,8 @@ func test_recruit_d_npc_is_in_house_two_and_e_in_the_dungeon() -> void:
 	var has_recruit: bool = false
 	for n: Node in casa2.find_children("*", "Area2D", true, false):
 		var npc: Npc = n as Npc
-		if npc != null and npc.event != null:
-			for s: EventStep in npc.event.steps:
+		if npc != null and npc.effective_event() != null:
+			for s: EventStep in npc.effective_event().steps:
 				if s is RecruitStep and (s as RecruitStep).hero.id == &"teste_d_f":
 					has_recruit = true
 	assert_true(has_recruit, "evento de recrutamento do D na casa 2")
@@ -411,7 +425,7 @@ func test_recruit_d_npc_is_in_house_two_and_e_in_the_dungeon() -> void:
 	var d1: Node = (Game.MAPS[&"dungeon_1"] as PackedScene).instantiate()
 	var trig: EventTrigger = d1.get_node("CenaETrigger") as EventTrigger
 	var found: bool = false
-	for s: EventStep in trig.event.steps:
+	for s: EventStep in trig.effective_event().steps:
 		if s is RecruitStep and (s as RecruitStep).hero.id == &"teste_e_f":
 			found = true
 	assert_true(found, "evento de recrutamento do E no fim do andar 1")
@@ -531,7 +545,7 @@ func test_final_scene_only_after_the_boss_is_defeated_and_ends_the_demo() -> voi
 	assert_false(fin.trigger(), "só uma vez")
 
 func test_final_scene_has_an_end_demo_step() -> void:
-	var ev: EventScript = load(DATA + "/events/cena_final.tres") as EventScript
+	var ev: EventScript = _slice_event("cena_final")
 	var ends: bool = false
 	for s: EventStep in ev.steps:
 		ends = ends or s is EndDemoStep
@@ -594,7 +608,7 @@ func test_slice_heroes_are_used_by_the_start_profile_and_recruits() -> void:
 	for d: CharacterDef in p.party:
 		assert_true(d.resource_path.begins_with(DATA + "/heroes/"), d.id)
 	for ev: String in ["recruta_d", "recruta_e"]:
-		var s: EventScript = load("%s/events/%s.tres" % [DATA, ev]) as EventScript
+		var s: EventScript = _slice_event(ev)
 		for st: EventStep in s.steps:
 			if st is RecruitStep:
 				assert_true((st as RecruitStep).hero.resource_path.begins_with(DATA + "/heroes/"), ev)

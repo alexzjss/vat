@@ -1,0 +1,14 @@
+[remap]
+
+importer="vat.roteiro"
+type="Resource"
+uid="uid://cbpvlv31caqsf"
+path="res://.godot/imported/dungeon.roteiro-f328047a31660429dc3e5955dca9fb38.res"
+
+[deps]
+
+source_file="res://data/fatia/roteiro/dungeon.roteiro"
+dest_files=["res://.godot/imported/dungeon.roteiro-f328047a31660429dc3e5955dca9fb38.res"]
+
+[params]
+
