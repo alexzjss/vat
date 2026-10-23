@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="AbilityDef" format=3]
+
+[ext_resource type="Script" path="res://core/defs/ability_def.gd" id="1_def"]
+
+[resource]
+script = ExtResource("1_def")
+id = &"nova_habilidade"
+display_name = "Nova habilidade"
+ap_cost = 0

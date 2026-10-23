@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="ReactionDef" format=3]
+
+[ext_resource type="Script" path="res://core/defs/reaction_def.gd" id="1_def"]
+
+[resource]
+script = ExtResource("1_def")
+id = &"nova_reacao"
+display_name = "Nova reação"
+bonus_pct = 0.25

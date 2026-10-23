@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="ElementDef" format=3]
+
+[ext_resource type="Script" path="res://core/defs/element_def.gd" id="1_def"]
+
+[resource]
+script = ExtResource("1_def")
+id = &"novo_elemento"
+display_name = "Novo elemento"
+short_name = "Novo"
+icon_text = "N"
+color = Color(0.8, 0.8, 0.8, 1)

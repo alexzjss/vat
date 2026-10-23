@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="EnemyDef" format=3]
+
+[ext_resource type="Script" path="res://core/defs/enemy_def.gd" id="1_def"]
+[ext_resource type="Script" path="res://core/defs/stats.gd" id="2_stats"]
+[ext_resource type="Resource" path="res://data/test/abilities/golpe.tres" id="3_atk"]
+
+[sub_resource type="Resource" id="stats_1"]
+script = ExtResource("2_stats")
+strength = 5
+speed = 5
+vitality = 5
+aura = 5
+
+[resource]
+script = ExtResource("1_def")
+id = &"novo_inimigo"
+display_name = "Novo inimigo"
+level = 1
+base = SubResource("stats_1")
+xp_base = 100
+money = 0
+abilities = [ExtResource("3_atk")]

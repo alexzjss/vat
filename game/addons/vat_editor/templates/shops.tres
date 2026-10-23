@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="ShopDef" format=3]
+
+[ext_resource type="Script" path="res://core/defs/shop_def.gd" id="1_def"]
+
+[resource]
+script = ExtResource("1_def")
+id = &"nova_loja"
+display_name = "Nova loja"

@@ -293,6 +293,15 @@ func test_hero_and_enemy_without_battle_art_get_a_warning() -> void:
 	assert_string_contains(_msgs(issues), "herói 'h'")
 	assert_string_contains(_msgs(issues), "inimigo 'e'")
 
+func test_test_data_is_exempt_from_the_battle_art_warning() -> void:
+	var h: CharacterDef = _hero(&"h")
+	h.resource_path = "res://data/test/heroes/h.tres"
+	var e: EnemyDef = _enemy(&"e")
+	e.resource_path = "res://data/fatia/enemies/e.tres"
+	var issues: Array[ValidationIssue] = ContentChecks.missing_battle_art([h, e])
+	assert_eq(issues.size(), 1, "só o da fatia avisa")
+	assert_string_contains(_msgs(issues), "inimigo 'e'")
+
 func test_sprites_without_a_battle_sheet_still_warn() -> void:
 	var h: CharacterDef = _hero(&"h")
 	h.sprites = SpriteSet.new()

@@ -39,6 +39,23 @@ func to_text() -> String:
 	var loc: String = location()
 	return "%s: %s" % [loc, message] if loc != "" else message
 
+## Uma linha de texto por achado, para um processo filho devolver o resultado (o painel VAT roda o validador à parte):
+## `VATISSUE {"s":<gravidade>,"m":<mensagem>,"p":<caminho>,"l":<linha>}`.
+const LINE_PREFIX: String = "VATISSUE "
+
+func to_line() -> String:
+	return LINE_PREFIX + JSON.stringify({"s": int(severity), "m": message, "p": path, "l": line})
+
+## O achado de uma linha de [method to_line], ou null se a linha é outra coisa.
+static func from_line(text: String) -> ValidationIssue:
+	if not text.begins_with(LINE_PREFIX):
+		return null
+	var json := JSON.new()
+	if json.parse(text.trim_prefix(LINE_PREFIX)) != OK or not json.data is Dictionary:
+		return null
+	var d: Dictionary = json.data
+	return make(int(d.get("s", 0)) as Severity, str(d.get("m", "")), str(d.get("p", "")), int(d.get("l", 0)))
+
 ## Só os erros / só os avisos.
 static func errors_of(issues: Array[ValidationIssue]) -> Array[ValidationIssue]:
 	return _only(issues, Severity.ERROR)

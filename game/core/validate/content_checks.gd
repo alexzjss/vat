@@ -348,7 +348,10 @@ static func sprite_sets(resources: Array) -> Array[ValidationIssue]:
 			out.append(ValidationIssue.error(m, path))
 	return out
 
-## AVISO: herói ou inimigo sem arte de batalha (o jogo usa o desenho geométrico).
+## AVISO: herói ou inimigo sem arte de batalha (o jogo usa o desenho geométrico). O conteúdo de `res://data/test/`
+## não recebe arte e fica de fora.
+const TEST_DATA_PREFIX: String = "res://data/test/"
+
 static func missing_battle_art(resources: Array) -> Array[ValidationIssue]:
 	var out: Array[ValidationIssue] = []
 	for v: Variant in resources:
@@ -362,6 +365,8 @@ static func missing_battle_art(resources: Array) -> Array[ValidationIssue]:
 			s = (res as EnemyDef).sprites
 			label = "inimigo '%s'" % (res as EnemyDef).id
 		else:
+			continue
+		if res.resource_path.begins_with(TEST_DATA_PREFIX):
 			continue
 		if s == null or not s.has_battle_art():
 			out.append(ValidationIssue.warning("%s sem arte de batalha" % label, res.resource_path))
