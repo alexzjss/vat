@@ -273,29 +273,20 @@ func _find_all(root: Node, type: String) -> Array[Node]:
 func _scene_of(map_id: StringName) -> Node:
 	return (Game.MAPS[map_id] as PackedScene).instantiate()
 
+## A varredura mora em MapChecks.links (M16); o ContentLoader resume cada mapa (ligacoes, zonas, saidas, pousadas, descansos).
 func test_every_map_link_exit_and_zone_points_to_an_existing_spawn() -> void:
 	assert_gt(Game.MAPS.size(), 0)
+	var maps: Dictionary[StringName, Dictionary] = {}
+	var total_refs: int = 0
 	for map_id: StringName in Game.MAPS:
-		var scene: Node = _scene_of(map_id)
-		for n: Node in _find_all(scene, "Area2D"):
-			var link: MapLink = n as MapLink
-			if link != null:
-				_assert_target(map_id, "MapLink %s" % link.name, link.target_map, link.target_spawn)
-			var zone: Zone = n as Zone
-			if zone != null and scene is Overworld:
-				_assert_target(map_id, "Zone %s" % zone.name, zone.zone_id, zone.spawn)
-		var local: LocalMap = scene as LocalMap
-		if local != null and local.get_node_or_null(^"Exit") != null:
-			_assert_target(map_id, "saída", &"overworld", Game.EXIT_SPAWNS.get(map_id, &"Start"))
-		if local != null:
-			for i: Node in _find_all(scene, "Area2D"):
-				var inn: Inn = i as Inn
-				if inn != null:
-					assert_not_null(scene.get_node_or_null(NodePath(String(inn.spawn_name))), "%s: pousada %s tem marcador" % [map_id, inn.name])
-			var rp: RestPoint = local.get_node_or_null(^"RestPoint") as RestPoint
-			if rp != null:
-				assert_not_null(scene.get_node_or_null(NodePath(String(rp.spawn_name))), "%s: descanso tem marcador" % map_id)
+		var packed: PackedScene = Game.MAPS[map_id]
+		var scene: Node = packed.instantiate()
+		maps[map_id] = ContentLoader.scan_map(map_id, packed.resource_path, scene)
+		total_refs += (maps[map_id]["refs"] as Array).size()
 		scene.free()
+	assert_gt(total_refs, 10, "a varredura acha as ligacoes")
+	var issues: Array[ValidationIssue] = MapChecks.links(maps)
+	assert_eq(issues.size(), 0, "\n".join(issues.map(func(i: ValidationIssue) -> String: return i.to_text())))
 
 func _assert_target(from_map: StringName, what: String, target_map: StringName, target_spawn: StringName) -> void:
 	assert_true(Game.MAPS.has(target_map), "%s: %s -> mapa '%s' existe" % [from_map, what, target_map])

@@ -74,6 +74,16 @@ func party_avg_level() -> int:
 		total += h.level
 	return maxi(1, total / heroes.size())
 
+## Leva todo o roster (ativos e reserva) ao nível `target`, com a XP, os pontos e as técnicas desse nível e HP/AP cheios
+## (flag de desenvolvimento `--battle --level`). Quem já está nesse nível ou acima não muda.
+func set_party_level(target: int) -> void:
+	for h: HeroState in roster():
+		if h.level >= target:
+			continue
+		XpCalculator.grant(h, XpCalculator.xp_for_level(target, cfg) - h.xp, cfg)
+		h.last_learned = []
+		h.rest(cfg)
+
 ## Recruta `d` (M12): ativo se houver vaga, senão reserva. `level` <= 0 = nível médio dos ativos; o recruta chega
 ## com a XP, os pontos e as técnicas desse nível e HP/AP cheios. Devolve o HeroState novo; null se `d` é nulo ou já está no roster.
 func recruit(d: CharacterDef, level: int = 0) -> HeroState:

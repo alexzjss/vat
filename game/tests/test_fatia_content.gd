@@ -817,9 +817,14 @@ func test_every_boss_role_enemy_is_immune_to_doom_and_petrify() -> void:
 		if e.role == EnemyDef.Role.NORMAL:
 			continue
 		seen += 1
-		assert_true(e.immunities.has(&"doom"), "%s imune a Contagem" % e.id)
-		assert_true(e.immunities.has(&"petrify"), "%s imune a Petrificacao" % e.id)
 	assert_gte(seen, 2, "o Guardiao e o Braco")
+	# A regra mora em ContentChecks.bosses (M16): imune a Contagem e Petrificacao.
+	var fighters: Array = []
+	for f: String in _list_tres(DATA + "/enemies"):
+		fighters.append(load(f))
+	fighters.append_array((load(DATA + "/encounters/chefe_fatia.tres") as EncounterDef).enemies)
+	var issues: Array[ValidationIssue] = ContentChecks.bosses(fighters)
+	assert_eq(issues.size(), 0, "\n".join(issues.map(func(i: ValidationIssue) -> String: return i.to_text())))
 	for e: EnemyDef in (load(DATA + "/encounters/chefe_fatia.tres") as EncounterDef).enemies:
 		assert_true(e.immunities.has(&"doom") and e.immunities.has(&"petrify"), String(e.id))
 

@@ -32,4 +32,5 @@ xp_base = 150
 abilities = Array[ExtResource("s_ab")]([ExtResource("ab_golpe")])
 ai_rules = Array[ExtResource("s_rule")]([SubResource("sub_2")])
 role = 2
+immunities = Array[StringName]([&"doom", &"petrify"])
 shields_core = true

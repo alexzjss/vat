@@ -17,8 +17,21 @@ extends Node
 ## Tela de fim (M12): um EndDemoStep abre o EndScreen; antes disso a flag `fatia_concluida` é gravada no save já existente do
 ## último slot usado (`last_slot`; 0 ou slot vazio = nada é gravado), sem mexer no resto: Continuar volta ao ponto de antes do chefe. Enter volta ao título.
 
-## Saves das demos (`--demo-*`) vão para cá, nunca para os slots reais.
+## Saves das demos (`--demo-*`) e dos flags de desenvolvimento (`--start-map`, `--battle`) vão para cá, nunca para os slots reais.
 const DEMO_SAVE_DIR: String = "user://demo_saves/"
+
+## Flags de desenvolvimento (M16; só para testar daqui, o painel do editor os usa). Rodam no perfil da fatia, sem título,
+## e gravam em DEMO_SAVE_DIR:
+## `--start-map=<mapa> [--spawn=<marcador>]` abre o jogo direto nesse mapa (sem --spawn: o do perfil, ou `Entry`/`Start`);
+## `--battle=<encontro> [--level=N]` leva o grupo ao nível N (padrão DEV_BATTLE_LEVEL) e começa o encontro na arena do mapa
+## inicial (ou do --start-map); ao fim, o jogo segue no mapa. Mapa, marcador ou encontro desconhecido: erro e volta ao título.
+## Ignorados junto de qualquer `--demo-*`.
+const FLAG_START_MAP: String = "--start-map="
+const FLAG_SPAWN: String = "--spawn="
+const FLAG_BATTLE: String = "--battle="
+const FLAG_LEVEL: String = "--level="
+## Nível médio da fatia, usado por `--battle` sem `--level`.
+const DEV_BATTLE_LEVEL: int = 5
 
 ## Única demo que NÃO usa o perfil de teste: percorre a fatia, do título ao fim (usa o `start_profile` e o título).
 const FATIA_DEMO_FLAG: String = "--demo-fatia"
@@ -51,6 +64,8 @@ const EXIT_SPAWNS: Dictionary[StringName, StringName] = {&"area_teste": &"AreaTe
 ## Semente do Dice do jogo (-1 = aleatório).
 @export var world_seed: int = -1
 
+## Argumentos do usuário da linha de comando (depois de `--`); os testes trocam antes de entrar na árvore.
+var user_args: PackedStringArray = OS.get_cmdline_user_args()
 ## Arquivo das configurações do jogador (testes apontam para um caminho temporário).
 var settings_path: String = SettingsStore.DEFAULT_PATH
 ## Diretório dos slots de save (testes apontam para um diretório temporário, nunca os slots reais).
@@ -94,9 +109,10 @@ func _ready() -> void:
 	if _registry_cache == null:
 		_registry_cache = SaveStore.build_registry()
 	registry = _registry_cache
-	var args: PackedStringArray = OS.get_cmdline_user_args()
+	var args: PackedStringArray = user_args
 	use_test_profile = uses_test_profile(args)
-	if is_demo(args):
+	var dev: Dictionary = {} if is_demo(args) else parse_dev_flags(args)
+	if is_demo(args) or not dev.is_empty():
 		save_dir = DEMO_SAVE_DIR
 	store = SaveStore.new(save_dir, registry, balance)
 	settings = GameSettings.new(balance)
@@ -118,7 +134,10 @@ func _ready() -> void:
 	event_player = EventPlayer.new()
 	event_player.end_demo_requested.connect(_on_end_demo_requested)
 	add_child(event_player)
-	if skip_title or use_test_profile:
+	if not dev.is_empty():
+		if not _start_dev(dev):
+			_show_title()
+	elif skip_title or use_test_profile:
 		start_new_game()
 	else:
 		_show_title()
@@ -154,6 +173,81 @@ static func is_demo(args: PackedStringArray) -> bool:
 			return true
 	return false
 
+## Flags de desenvolvimento dos argumentos: {start_map, spawn, battle: StringName, level: String}, só as chaves presentes.
+## Vazio se não há `--start-map` nem `--battle` (sozinhos, `--spawn` e `--level` não fazem nada).
+static func parse_dev_flags(args: PackedStringArray) -> Dictionary:
+	var out: Dictionary = {}
+	for a: String in args:
+		if a.begins_with(FLAG_START_MAP):
+			out["start_map"] = StringName(a.trim_prefix(FLAG_START_MAP))
+		elif a.begins_with(FLAG_SPAWN):
+			out["spawn"] = StringName(a.trim_prefix(FLAG_SPAWN))
+		elif a.begins_with(FLAG_BATTLE):
+			out["battle"] = StringName(a.trim_prefix(FLAG_BATTLE))
+		elif a.begins_with(FLAG_LEVEL):
+			out["level"] = a.trim_prefix(FLAG_LEVEL)
+	if not (out.has("start_map") or out.has("battle")):
+		return {}
+	return out
+
+## Novo jogo no perfil da fatia pelos flags de desenvolvimento. False (com erro no log) se algo não existe;
+## nesse caso nada foi iniciado e o chamador cai no título.
+func _start_dev(dev: Dictionary) -> bool:
+	var p: StartProfile = start_profile
+	if p == null:
+		push_error("Game: flags de desenvolvimento precisam do perfil da fatia")
+		return false
+	var map: StringName = dev.get("start_map", p.map)
+	if not maps.has(map):
+		push_error("Game: --start-map: mapa desconhecido '%s' (mapas: %s)" % [map, ", ".join(maps.keys())])
+		return false
+	var probe: Node = maps[map].instantiate()
+	var spawn: StringName = _dev_spawn(dev, p, map, probe)
+	var is_local: bool = probe is LocalMap
+	probe.free()
+	if spawn == &"":
+		return false
+	var encounter: EncounterDef = null
+	var level: int = DEV_BATTLE_LEVEL
+	if dev.has("battle"):
+		encounter = SaveStore.find_encounter(dev["battle"])
+		if encounter == null:
+			push_error("Game: --battle: encontro desconhecido '%s'" % dev["battle"])
+			return false
+		if not is_local:
+			push_error("Game: --battle: o mapa '%s' não tem arena (use um mapa local)" % map)
+			return false
+		if dev.has("level"):
+			var text: String = dev["level"]
+			if not text.is_valid_int() or text.to_int() < 1:
+				push_error("Game: --level: nível inválido '%s'" % text)
+				return false
+			level = text.to_int()
+	start_new_game(map, spawn)
+	if encounter != null:
+		state.set_party_level(level)
+		(current as LocalMap).start_event_battle(encounter)
+	return true
+
+## Marcador de entrada do `--start-map`: o de `--spawn`; sem ele, o do perfil (se o mapa é o dele) ou `Entry` / `Start`.
+## Vazio (com erro no log) se o marcador não existe em `probe`.
+func _dev_spawn(dev: Dictionary, p: StartProfile, map: StringName, probe: Node) -> StringName:
+	var candidates: Array[StringName] = []
+	if dev.has("spawn"):
+		candidates.append(dev["spawn"])
+	elif map == p.map:
+		candidates.append(p.spawn)
+	else:
+		candidates.append_array([&"Entry", &"Start"] as Array[StringName])
+	for c: StringName in candidates:
+		if probe.get_node_or_null(NodePath(String(c))) is Marker2D:
+			return c
+	var names: PackedStringArray = []
+	for m: Node in probe.find_children("*", "Marker2D", true, false):
+		names.append(String(probe.get_path_to(m)))
+	push_error("Game: marcador '%s' não existe em '%s' (marcadores: %s)" % [candidates[0], map, ", ".join(names)])
+	return &""
+
 func _process(delta: float) -> void:
 	if state != null and not in_title and game_over_screen == null and end_screen == null:
 		state.play_time += delta
@@ -163,18 +257,21 @@ func active_profile() -> StartProfile:
 	return test_profile if use_test_profile or start_profile == null else start_profile
 
 ## Começa um jogo novo no local do perfil de início (sai do título, se estiver nele).
-func start_new_game() -> void:
+## `map` e `spawn` (flags de desenvolvimento) trocam o local; vazio = o do perfil.
+func start_new_game(map: StringName = &"", spawn: StringName = &"") -> void:
 	var p: StartProfile = active_profile()
 	if p == null:
 		push_error("Game: sem perfil de início")
 		return
 	_close_title()
+	var start_map: StringName = map if map != &"" else p.map
+	var start_spawn: StringName = spawn if map != &"" else p.spawn
 	state = GameState.new_game(balance, p.party, p.items, p.item_counts, Dice.new(world_seed),
-			p.map, p.spawn, GameState.MAX_ACTIVE, p.equipment, p.equipment_counts, p.money)
+			start_map, start_spawn, GameState.MAX_ACTIVE, p.equipment, p.equipment_counts, p.money)
 	state.settings = settings
 	in_title = false
 	last_slot = 0
-	go_to(p.map, p.spawn, false)
+	go_to(start_map, start_spawn, false)
 
 ## Continua do slot `slot` do disco. False se o slot não carregar.
 func continue_from_slot(slot: int) -> bool:

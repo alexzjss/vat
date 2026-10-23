@@ -34,6 +34,14 @@ static func build_registry(root: String = DATA_ROOT) -> DefRegistry:
 			equips.append(res)
 	return DefRegistry.create(chars, items, equips)
 
+## O EncounterDef de `id` em `root` (recursivo); null se não existe. Só para os flags de desenvolvimento.
+static func find_encounter(id: StringName, root: String = DATA_ROOT) -> EncounterDef:
+	for path: String in _tres_files(root):
+		var res: Resource = load(path)
+		if res is EncounterDef and (res as EncounterDef).id == id:
+			return res
+	return null
+
 static func _tres_files(root: String) -> Array[String]:
 	var out: Array[String] = []
 	for f: String in DirAccess.get_files_at(root):

@@ -128,4 +128,5 @@ counter = ExtResource("ab_contra_ataque")
 counter_chance = 0.5
 counter_only_basic = true
 role = 1
+immunities = Array[StringName]([&"doom", &"petrify"])
 shields_core = false
