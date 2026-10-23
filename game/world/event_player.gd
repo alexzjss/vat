@@ -84,6 +84,15 @@ func _finish(completed: bool) -> void:
 func _cps() -> float:
 	return DialogueBox.speed_for(_state.cfg, _state.settings.text_speed)
 
+## Arte do retrato de quem fala (M16): herói da party pelo nome ou SpeakerDef; null = sem retrato.
+func _speaker_art(speaker: String) -> SpriteSet:
+	if speaker == "":
+		return null
+	var heroes: Array[CharacterDef] = []
+	for h: HeroState in _state.roster():
+		heroes.append(h.def)
+	return SpeakerResolver.resolve(speaker, heroes, SpeakerRegistry.speakers())
+
 func _done(gen: int, answer: int) -> void:
 	if gen == _gen:
 		_step_done.emit(answer)
@@ -98,10 +107,10 @@ func _present(req: EventRequest, gen: int) -> int:
 	match req.kind:
 		EventRequest.Kind.SAY:
 			dialogue.advanced.connect(_done.bind(gen, 0), CONNECT_ONE_SHOT)
-			dialogue.say(req.speaker, req.text, _cps())
+			dialogue.say(req.speaker, req.text, _cps(), _speaker_art(req.speaker), req.portrait)
 		EventRequest.Kind.CHOICE:
 			dialogue.chosen.connect(_done_with.bind(gen), CONNECT_ONE_SHOT)
-			dialogue.ask(req.text, req.options, _cps(), req.speaker)
+			dialogue.ask(req.text, req.options, _cps(), req.speaker, _speaker_art(req.speaker), req.portrait)
 		EventRequest.Kind.MOVE_ACTOR:
 			if not _move_actor(req, gen):
 				return 0

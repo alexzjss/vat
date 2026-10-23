@@ -6,6 +6,8 @@ extends CanvasLayer
 ## com ele completo, avança (fala) ou escolhe (opções); cima/baixo movem o cursor.
 ## O teclado é lido em _input e consumido enquanto a caixa está aberta, então o mesmo `accept`
 ## nunca chega ao mapa (interact, menu de campo, movimento). A tecla que abriu a caixa, no mesmo quadro, é ignorada.
+## Retrato (M16): `say`/`ask` recebem o [SpriteSet] de quem fala e a expressão; o retrato (`portrait_size`) aparece à
+## esquerda do texto, que só se desloca quando ele aparece. Sem retrato a caixa fica como sempre foi.
 ## O teclado chama accept()/move(), que também servem aos testes; tick() revela o texto.
 
 signal advanced
@@ -27,6 +29,7 @@ var _opened_frame: int = -1
 
 var _root: Control
 var _plate: PanelContainer
+var _portrait: TextureRect
 var _name: Label
 var _body: Label
 var _list: VBoxContainer
@@ -70,9 +73,21 @@ func _init() -> void:
 	panel.custom_minimum_size = Vector2(0.0, 120.0)
 	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	column.add_child(panel)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 14)
+	panel.add_child(row)
+	_portrait = TextureRect.new()
+	_portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_portrait.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	_portrait.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	_portrait.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_portrait.visible = false
+	row.add_child(_portrait)
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 6)
-	panel.add_child(box)
+	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(box)
 	_body = Label.new()
 	_body.add_theme_font_size_override("font_size", 20)
 	_body.add_theme_color_override("font_color", TEXT_COLOR)
@@ -98,14 +113,15 @@ static func _style(bg: Color, margin: float) -> StyleBoxFlat:
 	return style
 
 ## Abre com uma fala. `speaker` vazio = texto de sistema (sem placa).
-func say(speaker: String, text: String, cps: float = -1.0) -> void:
-	_open(speaker, text, PackedStringArray(), cps)
+## `art` e `expression`: o retrato de quem fala (ver [SpeakerResolver]); vazio = sem retrato.
+func say(speaker: String, text: String, cps: float = -1.0, art: SpriteSet = null, expression: StringName = &"") -> void:
+	_open(speaker, text, PackedStringArray(), cps, art, expression)
 
 ## Abre com uma pergunta e opções; o cursor começa na primeira.
-func ask(prompt: String, p_options: PackedStringArray, cps: float = -1.0, speaker: String = "") -> void:
-	_open(speaker, prompt, p_options, cps)
+func ask(prompt: String, p_options: PackedStringArray, cps: float = -1.0, speaker: String = "", art: SpriteSet = null, expression: StringName = &"") -> void:
+	_open(speaker, prompt, p_options, cps, art, expression)
 
-func _open(speaker: String, text: String, p_options: PackedStringArray, cps: float) -> void:
+func _open(speaker: String, text: String, p_options: PackedStringArray, cps: float, art: SpriteSet = null, expression: StringName = &"") -> void:
 	if cps > 0.0:
 		chars_per_second = cps
 	is_open = true
@@ -118,9 +134,32 @@ func _open(speaker: String, text: String, p_options: PackedStringArray, cps: flo
 	_plate.visible = speaker != ""
 	_name.text = speaker
 	_body.text = text
+	_show_portrait(art, expression)
 	_body.visible_characters = 0
 	_rebuild_options()
 	_refresh()
+
+func _show_portrait(art: SpriteSet, expression: StringName) -> void:
+	var tex: Texture2D = SpeakerResolver.portrait_of(art, expression)
+	_portrait.texture = tex
+	_portrait.visible = tex != null
+	if tex != null:
+		_portrait.custom_minimum_size = Vector2(art.portrait_size)
+
+## O retrato está na tela?
+func portrait_visible() -> bool:
+	return is_open and _portrait.visible
+
+## A textura do retrato mostrado (null sem retrato).
+func portrait_texture() -> Texture2D:
+	return _portrait.texture if _portrait.visible else null
+
+func portrait_rect() -> Rect2:
+	return _portrait.get_global_rect()
+
+## Retângulo global do texto da fala.
+func body_rect() -> Rect2:
+	return _body.get_global_rect()
 
 func close() -> void:
 	is_open = false

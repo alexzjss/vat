@@ -3,6 +3,8 @@ extends Node2D
 
 ## Geometria provisória de um combatente: quadrado azul (herói) / círculo vermelho (inimigo),
 ## nome, barras HP/AP/ATB, estados em texto; cinza quando caído; números flutuantes.
+## Com arte (M16: o def do combatente tem `sprites.battle_sheet`) um [BattleSprite] substitui a forma geométrica;
+## HUD, barras, marca, estados e números ficam onde estão. Sem folha, nada muda.
 
 const SIZE: float = 64.0
 const BAR_W: float = 96.0
@@ -19,6 +21,8 @@ const ENEMY_COLOR: Color = Color(0.9, 0.25, 0.25)
 const LIMIT_COLOR: Color = Color(0.95, 0.55, 0.15)
 const LIMIT_FULL_COLOR: Color = Color(1.0, 0.95, 0.5)
 const DOWN_COLOR: Color = Color(0.4, 0.4, 0.4)
+## Tom do sprite de quem está petrificado.
+const PETRIFY_TINT: Color = Color(0.6, 0.6, 0.6)
 const CONTAM_COLOR: Color = Color(0.75, 0.95, 0.3)
 const BLEED_COLOR: Color = Color(0.85, 0.12, 0.2)
 const SELF_DAMAGE_COLOR: Color = Color(1.0, 0.55, 0.45)
@@ -70,22 +74,104 @@ var cfg: BalanceConfig
 var highlighted: bool = false
 ## Nucleo de chefe protegido por uma parte (M11): a cena atualiza todo quadro; o HUD avisa "Protegido".
 var shielded: bool = false
+## Sprite de batalha (M16); null = desenho geométrico de hoje.
+var sprite: BattleSprite
+
+var _down_shown: bool = false
+var _frozen: bool = false
 
 func bind(c: Combatant, p_cfg: BalanceConfig) -> void:
 	combatant = c
 	cfg = p_cfg
 	position = c.position
+	if sprite != null:
+		sprite.queue_free()
+		sprite = null
+	var art: SpriteSet = sprites_of(c)
+	if art != null:
+		# Herói fica à esquerda e inimigo à direita, ambos virados para o centro.
+		var faces_right: bool = art.battle_faces_right
+		sprite = BattleSprite.create(art, faces_right == (c.team == Combatant.Team.ENEMY))
+	if sprite != null:
+		sprite.animation_finished.connect(_on_anim_finished)
+		add_child(sprite)
+	_down_shown = false
+	_frozen = false
+	sync_sprite()
 	queue_redraw()
 
+## O [SpriteSet] do def do combatante (herói ou inimigo); null se não tem.
+static func sprites_of(c: Combatant) -> SpriteSet:
+	if c == null:
+		return null
+	if c.hero_state != null and c.hero_state.def != null:
+		return c.hero_state.def.sprites
+	if c.enemy_def != null:
+		return c.enemy_def.sprites
+	return null
+
 func _process(_delta: float) -> void:
+	sync_sprite()
 	queue_redraw()
+
+## Acompanha o combatente: caído/petrificado mostra `down` (e volta a `idle` se reviver), petrificado escurece e
+## quem está parado (Pare, Congelado, petrificado) congela a animação.
+func sync_sprite() -> void:
+	if sprite == null or combatant == null:
+		return
+	var out: bool = combatant.is_out()
+	if out and not _down_shown:
+		_down_shown = true
+		sprite.show_anim(BattleSprite.DOWN)
+		if combatant.is_petrified() and sprite.sprite_frames != null and sprite.animation != &"":
+			sprite.set_frame_and_progress(sprite.sprite_frames.get_frame_count(sprite.animation) - 1, 0.0)
+	elif not out and _down_shown:
+		_down_shown = false
+		sprite.show_anim(BattleSprite.IDLE)
+	sprite.modulate = PETRIFY_TINT if combatant.is_petrified() else Color.WHITE
+	var stopped: bool = combatant.is_stopped()
+	if stopped and not _frozen:
+		_frozen = true
+		sprite.pause()
+	elif not stopped and _frozen:
+		_frozen = false
+		if SpriteSet.loops(sprite.anim) and not _down_shown:
+			sprite.play()
+		else:
+			sprite.show_anim(BattleSprite.DOWN if _down_shown else BattleSprite.IDLE)
+
+## True se a animação pode ser trocada agora (tem sprite, está de pé e não está congelada).
+func can_animate() -> bool:
+	return sprite != null and combatant != null and not combatant.is_out() and not _frozen
+
+## A ação `a` deste combatente começou: attack (golpe de Força / ataque básico) ou cast.
+func play_action(a: PendingAction) -> void:
+	if can_animate():
+		sprite.show_anim(BattleSprite.anim_for_action(a))
+
+## Levou dano.
+func play_hit() -> void:
+	if can_animate():
+		sprite.show_anim(BattleSprite.HIT)
+
+## Fim de uma batalha vencida: quem ficou de pé comemora.
+func play_victory() -> void:
+	if can_animate():
+		sprite.show_anim(BattleSprite.VICTORY)
+
+func _on_anim_finished() -> void:
+	if sprite == null or combatant == null or combatant.is_out() or _frozen:
+		return
+	sprite.show_anim(BattleSprite.IDLE)
 
 func _draw() -> void:
 	if combatant == null:
 		return
 	var down: bool = combatant.is_out()
 	var half: float = SIZE / 2.0
-	if combatant.team == Combatant.Team.HERO:
+	if sprite != null:
+		pass
+	elif combatant.team == Combatant.Team.HERO:
 		draw_rect(Rect2(-half, -half, SIZE, SIZE), DOWN_COLOR if down else HERO_COLOR)
 	else:
 		draw_circle(Vector2.ZERO, half, DOWN_COLOR if down else ENEMY_COLOR)
@@ -248,6 +334,7 @@ func show_hit(hit: Dictionary) -> void:
 				# Ex.: Barreira absorveu todo o dano.
 				float_text("Bloqueado", Color.WHITE)
 			else:
+				play_hit()
 				float_text(("Protegido -%d" if hit.get("shielded", false) else "-%d") % amount, Color(1.0, 0.4, 0.4))
 				if aff_label != "":
 					float_text(aff_label, tint, LABEL_LIFT)

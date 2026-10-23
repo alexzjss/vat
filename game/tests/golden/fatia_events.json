@@ -110,7 +110,7 @@
 			"WaitStep(seconds=0.6)"
 		],
 		"morador_a": [
-			"SayStep(portrait=&\"\", speaker=\"Morador A\", text=\"Texto de teste: bem-vindo à Cidade Teste.\")"
+			"SayStep(portrait=&\"neutro\", speaker=\"Morador A\", text=\"Texto de teste: bem-vindo à Cidade Teste.\")"
 		],
 		"morador_d": [
 			"SayStep(portrait=&\"\", speaker=\"Morador D\", text=\"Texto de teste: a pousada cobra uma taxa, mas cura o grupo.\")"

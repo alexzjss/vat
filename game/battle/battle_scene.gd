@@ -443,6 +443,9 @@ func _set_highlight_off() -> void:
 ## Suporte: o reserva aparece (fade-in) na posicao dele enquanto a acao executa.
 func _on_action_started(a: PendingAction) -> void:
 	if a.caller == null:
+		var v: CombatantView = views.get(a.actor.id)
+		if v != null:
+			v.play_action(a)
 		return
 	_remove_support_view()
 	_support_view = VIEW_SCENE.instantiate() as CombatantView
@@ -450,6 +453,7 @@ func _on_action_started(a: PendingAction) -> void:
 	_support_view.bind(a.actor, balance)
 	_support_view.modulate.a = 0.0
 	_support_view.create_tween().tween_property(_support_view, "modulate:a", 1.0, balance.support_fade_time)
+	_support_view.play_action(a)
 
 func _on_action_finished(a: PendingAction) -> void:
 	if a.caller != null:
@@ -549,6 +553,10 @@ func _on_battle_ended(outcome: BattleController.Outcome) -> void:
 		# Veneno no mapa (M15): quem sai vivo com um estado persistente o leva; quem foi curado sai sem ele.
 		c.hero_state.store_field_statuses(c)
 	if outcome == BattleController.Outcome.VICTORY:
+		for hc: Combatant in b.heroes:
+			var hv: CombatantView = views.get(hc.id)
+			if hv != null:
+				hv.play_victory()
 		_grant_victory(b)
 	elif outcome == BattleController.Outcome.FLED:
 		# Sem XP; HP/AP já foram gravados acima e os itens gastos continuam gastos.

@@ -2,7 +2,7 @@
 @flag missao_estado
 
 === morador_a
-Morador A: Texto de teste: bem-vindo à Cidade Teste.
+Morador A [neutro]: Texto de teste: bem-vindo à Cidade Teste.
 
 === morador_b
 Morador B: Texto de teste: o que acha da Cidade Teste?

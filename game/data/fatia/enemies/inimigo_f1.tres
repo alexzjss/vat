@@ -7,6 +7,7 @@
 [ext_resource type="Script" path="res://core/defs/stats.gd" id="3_r"]
 [ext_resource type="Script" path="res://core/defs/ability_def.gd" id="4_r"]
 [ext_resource type="Script" path="res://core/defs/enemy_def.gd" id="5_r"]
+[ext_resource type="Resource" path="res://art/_exemplo/inimigo_f1.tres" id="6_spr"]
 
 [sub_resource type="Resource" id="ai_rule_1"]
 script = ExtResource("2_r")
@@ -33,6 +34,7 @@ script = ExtResource("5_r")
 id = &"inimigo_f1"
 display_name = "Inimigo F1"
 level = 1
+sprites = ExtResource("6_spr")
 base = SubResource("stats_2")
 xp_base = 100
 money = 6

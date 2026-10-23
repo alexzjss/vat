@@ -22,6 +22,9 @@ const LOOPING_ANIMS: Array[StringName] = [&"idle", &"victory"]
 @export_group("Batalha")
 @export var battle_sheet: Texture2D
 @export var battle_frame: Vector2i = Vector2i(64, 64)
+## A folha está desenhada virada para a direita? A batalha espelha o que ficar do lado errado
+## (inimigos olham para a esquerda, heróis para a direita).
+@export var battle_faces_right: bool = true
 ## nome -> (linha, quadros, fps).
 @export var anims: Dictionary[StringName, Vector3i] = {
 	&"idle": Vector3i(0, 4, 6),

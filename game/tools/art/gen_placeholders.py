@@ -6,6 +6,10 @@ Uso: python game/tools/art/gen_placeholders.py [pasta_de_saida]
 - teste_a_map.png: 4 direcoes (baixo, esquerda, direita, cima) x 3 quadros de 32x48.
   Cada quadro mostra a letra da direcao (D/L/R/U) e o numero do quadro (1..3); o 2 e o quadro parado.
 - npc_map.png: mesma grade, tons de verde, letra N e o numero do quadro.
+- teste_a_battle.png / inimigo_f1_battle.png: folhas de batalha 64x64, viradas para a direita. Linhas (a ordem do
+  SpriteSet): idle 2 quadros, attack 3, cast 3, hit 2, down 1, victory 2. Cada quadro leva a letra da animacao
+  (I, A, C, H, D, V) e o numero do quadro.
+- teste_a_portrait_neutro.png, teste_a_portrait_feliz.png, morador_a_portrait_neutro.png: retratos 96x96.
 Sao blocos de cor, so para provar o pipeline. Arte final entra em art/characters/<id>/ etc.
 """
 import os
@@ -27,7 +31,19 @@ FONT = {
     "R": ["110", "101", "110", "101", "101"],
     "U": ["101", "101", "101", "101", "111"],
     "N": ["101", "111", "111", "111", "101"],
+    "I": ["111", "010", "010", "010", "111"],
+    "A": ["010", "101", "111", "101", "101"],
+    "C": ["111", "100", "100", "100", "111"],
+    "H": ["101", "101", "111", "101", "101"],
+    "V": ["101", "101", "101", "101", "010"],
+    "F": ["111", "100", "110", "100", "100"],
 }
+
+BATTLE = 64
+# (letra, quadros), na ordem das linhas da folha de batalha.
+BATTLE_ROWS = [("I", 2), ("A", 3), ("C", 3), ("H", 2), ("D", 1), ("V", 2)]
+BATTLE_COLS = 3
+PORTRAIT = 96
 
 
 def write_png(path, width, height, pixels):
@@ -81,11 +97,71 @@ def make_sheet(path, body, head, dark, letter):
     write_png(path, FRAME_W * COLS, FRAME_H * ROWS, img)
 
 
+def make_battle(path, body, head, dark):
+    """Folha de batalha: figura virada para a direita (um 'olho' branco do lado direito da cabeca)."""
+    img = [[(0, 0, 0, 0)] * (BATTLE * BATTLE_COLS) for _ in range(BATTLE * len(BATTLE_ROWS))]
+    for row, (letter, count) in enumerate(BATTLE_ROWS):
+        for col in range(count):
+            ox, oy = col * BATTLE, row * BATTLE
+            dx, dy = 0, 0
+            if letter == "I":
+                dy = col  # respira
+            elif letter == "A":
+                dx = [-4, 8, 14][col]  # recua, avanca, estica
+            elif letter == "C":
+                dy = -3 * col  # sobe
+            elif letter == "H":
+                dx = -6 - 2 * col  # leva o golpe
+            elif letter == "V":
+                dy = -4 * col  # pula
+            if letter == "D":
+                fill(img, ox + 8, oy + 40, 48, 16, body)      # deitado
+                fill(img, ox + 40, oy + 32, 14, 12, head)
+            else:
+                fill(img, ox + 18 + dx, oy + 24 + dy, 28, 30, body)   # corpo
+                fill(img, ox + 22 + dx, oy + 8 + dy, 20, 16, head)    # cabeca
+                fill(img, ox + 34 + dx, oy + 13 + dy, 4, 4, (255, 255, 255, 255))  # olho (lado direito)
+                fill(img, ox + 20 + dx, oy + 54 + dy, 8, 6, dark)    # pes
+                fill(img, ox + 36 + dx, oy + 54 + dy, 8, 6, dark)
+            fill(img, ox, oy, BATTLE, 1, dark)
+            fill(img, ox, oy + BATTLE - 1, BATTLE, 1, dark)
+            fill(img, ox, oy, 1, BATTLE, dark)
+            fill(img, ox + BATTLE - 1, oy, 1, BATTLE, dark)
+            blit_text(img, letter, ox + 4, oy + 4, 2, (255, 255, 255, 255))
+            blit_text(img, str(col + 1), ox + 4, oy + 18, 2, (255, 255, 255, 255))
+    write_png(path, BATTLE * BATTLE_COLS, BATTLE * len(BATTLE_ROWS), img)
+
+
+def make_portrait(path, bg, skin, dark, letter, happy):
+    img = [[bg] * PORTRAIT for _ in range(PORTRAIT)]
+    fill(img, 0, 0, PORTRAIT, 2, dark)
+    fill(img, 0, PORTRAIT - 2, PORTRAIT, 2, dark)
+    fill(img, 0, 0, 2, PORTRAIT, dark)
+    fill(img, PORTRAIT - 2, 0, 2, PORTRAIT, dark)
+    fill(img, 14, 62, 68, 30, dark)            # ombros
+    fill(img, 26, 12, 44, 50, skin)            # rosto
+    fill(img, 36, 28, 6, 6, dark)              # olhos
+    fill(img, 54, 28, 6, 6, dark)
+    if happy:
+        fill(img, 36, 46, 24, 4, dark)         # boca larga
+        fill(img, 34, 44, 4, 4, dark)
+        fill(img, 58, 44, 4, 4, dark)
+    else:
+        fill(img, 40, 48, 16, 3, dark)         # boca reta
+    blit_text(img, letter, 6, 6, 3, (255, 255, 255, 255))
+    write_png(path, PORTRAIT, PORTRAIT, img)
+
+
 def main():
     out = sys.argv[1] if len(sys.argv) > 1 else os.path.join(os.path.dirname(__file__), "..", "..", "art", "_exemplo")
     os.makedirs(out, exist_ok=True)
     make_sheet(os.path.join(out, "teste_a_map.png"), (60, 110, 230, 255), (240, 200, 160, 255), (20, 30, 90, 255), "dir")
     make_sheet(os.path.join(out, "npc_map.png"), (70, 190, 90, 255), (245, 215, 170, 255), (20, 80, 30, 255), "N")
+    make_battle(os.path.join(out, "teste_a_battle.png"), (60, 110, 230, 255), (240, 200, 160, 255), (20, 30, 90, 255))
+    make_battle(os.path.join(out, "inimigo_f1_battle.png"), (200, 60, 60, 255), (230, 150, 120, 255), (90, 20, 20, 255))
+    make_portrait(os.path.join(out, "teste_a_portrait_neutro.png"), (50, 80, 170, 255), (240, 200, 160, 255), (20, 30, 90, 255), "N", False)
+    make_portrait(os.path.join(out, "teste_a_portrait_feliz.png"), (60, 100, 200, 255), (245, 210, 170, 255), (20, 30, 90, 255), "F", True)
+    make_portrait(os.path.join(out, "morador_a_portrait_neutro.png"), (50, 140, 70, 255), (245, 215, 170, 255), (20, 80, 30, 255), "N", False)
     print("ok:", os.path.abspath(out))
 
 

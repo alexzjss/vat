@@ -1,8 +1,24 @@
-[gd_resource type="Resource" script_class="SpriteSet" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="SpriteSet" load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://core/defs/sprite_set.gd" id="1_set"]
 [ext_resource type="Texture2D" path="res://art/_exemplo/teste_a_map.png" id="2_map"]
+[ext_resource type="Texture2D" path="res://art/_exemplo/teste_a_battle.png" id="3_battle"]
+[ext_resource type="Texture2D" path="res://art/_exemplo/teste_a_portrait_neutro.png" id="4_neutro"]
+[ext_resource type="Texture2D" path="res://art/_exemplo/teste_a_portrait_feliz.png" id="5_feliz"]
 
 [resource]
 script = ExtResource("1_set")
 map_sheet = ExtResource("2_map")
+battle_sheet = ExtResource("3_battle")
+anims = Dictionary[StringName, Vector3i]({
+&"idle": Vector3i(0, 2, 4),
+&"attack": Vector3i(1, 3, 10),
+&"cast": Vector3i(2, 3, 8),
+&"hit": Vector3i(3, 2, 8),
+&"down": Vector3i(4, 1, 1),
+&"victory": Vector3i(5, 2, 4)
+})
+portraits = Dictionary[StringName, Texture2D]({
+&"neutro": ExtResource("4_neutro"),
+&"feliz": ExtResource("5_feliz")
+})
