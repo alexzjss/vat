@@ -158,3 +158,9 @@ func test_event_problems() -> void:
 	assert_string_contains(Picks.event_problem(book, "b"), "não tem")
 	assert_string_contains(Picks.event_problem(null, "a"), "precisa")
 	assert_eq(Picks.event_problem(null, ""), "")
+
+func test_resource_for_key_ignores_anything_that_is_not_an_existing_res_path() -> void:
+	assert_null(Picks.resource_for_key(""), "vazio limpa")
+	assert_not_null(Picks.resource_for_key("res://data/maps/cidade.tres"))
+	for bad: String in ["(embutido)", "res://nao/existe.tres", "user://x.tres", "cidade"]:
+		assert_eq(Picks.resource_for_key(bad), Picks.NO_CHANGE, bad)

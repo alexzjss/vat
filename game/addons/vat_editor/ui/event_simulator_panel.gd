@@ -28,6 +28,8 @@ var money_spin: SpinBox
 var answers_edit: LineEdit
 var result: Tree
 var summary: Label
+var run_button: Button
+var _running: bool = false
 var _paths: Array[String] = []
 var _loaded: bool = false
 
@@ -73,6 +75,7 @@ func _ready() -> void:
 	answers_edit.placeholder_text = "auto"
 	left.add_child(answers_edit)
 	var run := _button(left, "Rodar", run_simulation)
+	run_button = run
 	run.custom_minimum_size = Vector2(0, 32)
 	var right := VBoxContainer.new()
 	right.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -228,7 +231,19 @@ static func parse_answers(text: String) -> Variant:
 
 ## Roda a simulação num Godot headless à parte (os scripts do jogo não são `@tool`, então o `EventRunner` não executa
 ## dentro do editor; o mesmo motivo do "Validar tudo") e mostra o resultado. Público para a captura de tela.
+## Roda o evento escolhido. Não reentra: enquanto uma simulação está rodando, o botão fica desligado e outra chamada não faz nada.
 func run_simulation() -> void:
+	if _running:
+		return
+	_running = true
+	if run_button != null:
+		run_button.disabled = true
+	await _simulate()
+	_running = false
+	if is_instance_valid(run_button):
+		run_button.disabled = false
+
+func _simulate() -> void:
 	var path: String = _selected_path()
 	var event_id: String = _selected_event()
 	result.clear()

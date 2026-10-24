@@ -22,6 +22,7 @@ signal delete_requested
 signal touched
 
 const COLOR_RAW: Color = Color(1.0, 0.85, 0.4)
+const COLOR_ERROR: Color = Color(1.0, 0.4, 0.4)
 const COLOR_TITLE: Color = Color(0.75, 0.85, 1.0)
 const KIND_OF_FIELD: Dictionary = {
 	"item": &"item", "equip": &"equip", "hero": &"hero", "ability": &"ability", "encounter": &"encounter",
@@ -30,6 +31,8 @@ const KIND_OF_FIELD: Dictionary = {
 var block: RoteiroBlock
 var ctx: Dictionary = {}
 var _style: StyleBoxFlat
+## Avisos em vermelho por campo (`field_error`), criados junto com os controles.
+var _hints: Dictionary = {}
 
 func setup(p_block: RoteiroBlock, p_ctx: Dictionary) -> void:
 	block = p_block
@@ -92,6 +95,11 @@ func _icon_button(parent: Node, text: String, tip: String, handler: Callable) ->
 	parent.add_child(b)
 
 func _write(field: String, value: Variant) -> void:
+	var error: String = Logic.field_error(block, field, value)
+	var hint: Label = _hints.get(field) as Label
+	if hint != null:
+		hint.text = error
+		hint.visible = error != ""
 	Logic.set_field(block, field, value)
 	touched.emit()
 	edited.emit()
@@ -145,7 +153,17 @@ func _combo(field: String, source: Callable) -> Control:
 	cf.suggestions = source
 	cf.text = str(Logic.get_field(block, field))
 	cf.value_changed.connect(func(t: String) -> void: _write(field, t))
-	return cf
+	if field != "speaker":
+		return cf
+	# O falante recusado (começa com `# @ ? * | = -`) mantém o valor anterior: o aviso vermelho diz por quê.
+	var col := VBoxContainer.new()
+	col.add_child(cf)
+	var hint := Label.new()
+	hint.add_theme_color_override("font_color", COLOR_ERROR)
+	hint.visible = false
+	col.add_child(hint)
+	_hints[field] = hint
+	return col
 
 func _multiline(field: String) -> Control:
 	var te := TextEdit.new()

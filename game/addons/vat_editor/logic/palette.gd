@@ -140,8 +140,9 @@ static func next_flag(prefix: String, map_id: String, existing: Array[String]) -
 
 ## Para um nó (`props`: nome -> valor das propriedades de flag): as trocas {propriedade: flag nova}. Valores provisórios
 ## sempre trocam; as propriedades "de identidade" (`OWN_ID_PROPS`) também trocam quando a flag já existe em `taken`
-## (as flags dos outros nós). As flags novas não repetem nem `taken` nem as já dadas neste nó.
-static func flag_changes(props: Dictionary, map_id: String, taken: Array[String]) -> Dictionary:
+## (as flags dos outros nós). As flags novas não repetem nem `taken` nem as já dadas neste nó. `partner` (se houver) é a
+## flag que o provisório do portão/interruptor (`portao_novo`) usa em vez de uma nova, para formar o par.
+static func flag_changes(props: Dictionary, map_id: String, taken: Array[String], partner: String = "") -> Dictionary:
 	var out: Dictionary = {}
 	var used: Array[String] = taken.duplicate()
 	for k: Variant in props:
@@ -153,10 +154,40 @@ static func flag_changes(props: Dictionary, map_id: String, taken: Array[String]
 			prefix = "bau"
 		if prefix == "":
 			continue
+		if partner != "" and v == "portao_novo":
+			out[k] = StringName(partner)
+			continue
 		var fresh: String = next_flag(prefix, map_id, used)
 		used.append(fresh)
 		out[k] = StringName(fresh)
 	return out
+
+## O par de um objeto novo: o `interruptor` (`Switch`) e o `portao_flag` (`FlagGate`) só funcionam juntos quando têm a mesma
+## flag. Devolve a flag de um objeto do tipo oposto que ainda não tem par no mapa (o primeiro na ordem da cena), ou "".
+const PAIRS: Dictionary = {&"interruptor": "FlagGate", &"portao_flag": "Switch"}
+const PAIR_OF: Dictionary = {"FlagGate": "Switch", "Switch": "FlagGate"}
+
+static func partner_flag(root: Node, id: StringName) -> String:
+	if root == null or not PAIRS.has(id):
+		return ""
+	var wanted: String = String(PAIRS[id])
+	var mine: String = String(PAIR_OF[wanted])
+	var all: Array[Node] = root.find_children("*", "", true, false)
+	var paired: Array[String] = []
+	for n: Node in all:
+		if script_chain(n.get_script() as Script).has(mine):
+			paired.append(String(n.get(&"flag")))
+	for n: Node in all:
+		if script_chain(n.get_script() as Script).has(wanted):
+			var f: String = String(n.get(&"flag"))
+			if f != "" and not paired.has(f):
+				return f
+	return ""
+
+## As trocas de flag de um prefab recém-instanciado `node` (do prefab `id`) para colocar em `root`: as de `flag_changes`,
+## mas o interruptor e o portão novos reaproveitam a flag do par sem par do mapa (`partner_flag`).
+static func flags_for_new(root: Node, node: Node, id: StringName, map_id: String) -> Dictionary:
+	return flag_changes(flag_props_of(node), map_id, collect_flags(root), partner_flag(root, id))
 
 ## As propriedades de flag de um nó: as exportadas StringName cujo nome é `flag` ou termina em `_flag`.
 static func flag_props_of(node: Node) -> Dictionary:

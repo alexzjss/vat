@@ -56,6 +56,10 @@ static func register(registry: MapRegistry, plan: Dictionary, scene: PackedScene
 static func write(plan: Dictionary, scene: PackedScene, registry: MapRegistry, registry_path: String) -> String:
 	var scene_path: String = str(plan["scene_path"])
 	var def_path: String = str(plan["def_path"])
+	# Nada pré-existente é sobrescrito (e, por isso, também nada pré-existente é apagado ao desfazer).
+	for p: String in [scene_path, def_path]:
+		if FileAccess.file_exists(p):
+			return "Já existe um arquivo em %s." % p
 	DirAccess.make_dir_recursive_absolute(scene_path.get_base_dir())
 	DirAccess.make_dir_recursive_absolute(def_path.get_base_dir())
 	var err: Error = ResourceSaver.save(scene, scene_path, ResourceSaver.FLAG_CHANGE_PATH)
@@ -68,13 +72,21 @@ static func write(plan: Dictionary, scene: PackedScene, registry: MapRegistry, r
 	def.kind = int(plan["kind"]) as MapDef.Kind
 	err = ResourceSaver.save(def, def_path, ResourceSaver.FLAG_CHANGE_PATH)
 	if err != OK:
+		_discard([scene_path, def_path])
 		return "Não foi possível salvar %s (erro %d)." % [def_path, err]
 	registry.maps.append(def)
 	err = ResourceSaver.save(registry, registry_path)
 	if err != OK:
 		registry.maps.erase(def)
+		_discard([scene_path, def_path])
 		return "Não foi possível salvar o registro %s (erro %d)." % [registry_path, err]
 	return ""
+
+## Apaga os arquivos que `write` acabou de criar, para uma gravação que falhou não deixar mapa solto no disco.
+static func _discard(paths: Array[String]) -> void:
+	for p: String in paths:
+		if FileAccess.file_exists(p):
+			DirAccess.remove_absolute(p)
 
 ## Tira o mapa `id` do registro e grava `registry_path`; a cena e o `MapDef` ficam no disco. Devolve "" ou a mensagem de erro.
 static func unregister(registry: MapRegistry, id: StringName, registry_path: String) -> String:

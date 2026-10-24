@@ -73,6 +73,17 @@ static func spawns_for_map(registry: MapRegistry, map_id: StringName) -> Array[S
 		return []
 	return spawns_of(registry.scene_of(map_id))
 
+## O recurso que uma chave do menu de recursos/livros nomeia: `null` para "" (limpar) e o recurso carregado para um caminho
+## `res://` que existe. Qualquer outra chave (o valor inválido mostrado, "(embutido)") devolve `NO_CHANGE`: não mexe na propriedade.
+const NO_CHANGE: StringName = &"__vat_sem_mudanca__"
+
+static func resource_for_key(key: String) -> Variant:
+	if key == "":
+		return null
+	if key.begins_with("res://") and ResourceLoader.exists(key):
+		return load(key)
+	return NO_CHANGE
+
 ## Os ids dos eventos de um livro, em ordem alfabética (livro nulo: vazio).
 static func event_ids(book: RoteiroBook) -> Array[String]:
 	var out: Array[String] = []

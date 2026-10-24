@@ -182,3 +182,48 @@ func test_a_new_chest_gets_a_flag_not_used_by_the_scene() -> void:
 	assert_eq(ch[&"opened_flag"], &"bau_dungeon_1_2")
 	fresh.free()
 	root.free()
+
+# --- interruptor e portão com a mesma flag (M17) ---
+
+## Coloca o prefab `id` em `root` como a paleta faz (flags do `flags_for_new`).
+func _place(root: Node, id: StringName) -> Node:
+	var node: Node = (load(Palette.prefab_path(id)) as PackedScene).instantiate()
+	var changes: Dictionary = Palette.flags_for_new(root, node, id, "m")
+	for k: Variant in changes:
+		node.set(k, changes[k])
+	root.add_child(node)
+	return node
+
+func test_switch_placed_after_a_gate_reuses_its_flag() -> void:
+	var root := Node2D.new()
+	add_child_autofree(root)
+	var gate: Node = _place(root, &"portao_flag")
+	var sw: Node = _place(root, &"interruptor")
+	assert_eq(gate.get(&"flag"), &"portao_m_1")
+	assert_eq(sw.get(&"flag"), gate.get(&"flag"))
+
+func test_gate_placed_after_a_switch_reuses_its_flag() -> void:
+	var root := Node2D.new()
+	add_child_autofree(root)
+	var sw: Node = _place(root, &"interruptor")
+	var gate: Node = _place(root, &"portao_flag")
+	assert_eq(gate.get(&"flag"), sw.get(&"flag"))
+
+func test_a_second_pair_gets_a_new_shared_flag() -> void:
+	var root := Node2D.new()
+	add_child_autofree(root)
+	var g1: Node = _place(root, &"portao_flag")
+	var s1: Node = _place(root, &"interruptor")
+	var g2: Node = _place(root, &"portao_flag")
+	assert_ne(g2.get(&"flag"), g1.get(&"flag"), "o primeiro portão já tem par")
+	var s2: Node = _place(root, &"interruptor")
+	assert_eq(s2.get(&"flag"), g2.get(&"flag"))
+	assert_eq(s1.get(&"flag"), g1.get(&"flag"))
+	assert_eq(g2.get(&"flag"), &"portao_m_2")
+
+func test_two_switches_in_a_row_do_not_share_a_gate_flag_twice() -> void:
+	var root := Node2D.new()
+	add_child_autofree(root)
+	var s1: Node = _place(root, &"interruptor")
+	var s2: Node = _place(root, &"interruptor")
+	assert_ne(s1.get(&"flag"), s2.get(&"flag"))

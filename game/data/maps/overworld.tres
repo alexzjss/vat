@@ -8,4 +8,4 @@ script = ExtResource("1_def")
 id = &"overworld"
 display_name = "overworld"
 scene = ExtResource("2_scene")
-kind = 3
+kind = 4

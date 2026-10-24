@@ -247,6 +247,33 @@ func test_write_saves_scene_def_and_registry_in_a_temp_dir() -> void:
 	assert_true(FileAccess.file_exists(TMP.path_join("mapas/gravado.tscn")))
 	assert_ne(Builder.unregister(reg, &"gravado", reg_path), "")
 
+func test_write_refuses_an_existing_def_or_scene_and_leaves_it_alone() -> void:
+	var reg := MapRegistry.new()
+	var p: Dictionary = Wizard.plan(_params("ocupado", MapDef.Kind.CIDADE), reg, TMP.path_join("mapas"), TMP.path_join("maps"))
+	DirAccess.make_dir_recursive_absolute(TMP.path_join("maps"))
+	var f: FileAccess = FileAccess.open(TMP.path_join("maps/ocupado.tres"), FileAccess.WRITE)
+	f.store_string("meu")
+	f.close()
+	assert_ne(Builder.write(p, Builder.build(p), reg, TMP.path_join("registro.tres")), "")
+	assert_false(FileAccess.file_exists(TMP.path_join("mapas/ocupado.tscn")), "a cena nem chega a ser gravada")
+	assert_eq(FileAccess.get_file_as_string(TMP.path_join("maps/ocupado.tres")), "meu")
+	assert_eq(reg.maps.size(), 0)
+
+func test_write_deletes_the_saved_scene_when_the_registry_cannot_be_saved() -> void:
+	var reg := MapRegistry.new()
+	var p: Dictionary = Wizard.plan(_params("falha", MapDef.Kind.CIDADE), reg, TMP.path_join("mapas"), TMP.path_join("maps"))
+	# Um arquivo no lugar da pasta do registro: o ResourceSaver não consegue gravar lá dentro.
+	DirAccess.make_dir_recursive_absolute(TMP)
+	var blocker: FileAccess = FileAccess.open(TMP.path_join("bloqueio"), FileAccess.WRITE)
+	blocker.store_string("x")
+	blocker.close()
+	var err: String = Builder.write(p, Builder.build(p), reg, TMP.path_join("bloqueio/registro.tres"))
+	assert_ne(err, "")
+	assert_engine_error_count(1, "o ResourceSaver registra a falha de gravar o registro")
+	assert_false(FileAccess.file_exists(TMP.path_join("mapas/falha.tscn")), "a cena gravada é apagada")
+	assert_false(FileAccess.file_exists(TMP.path_join("maps/falha.tres")), "e o MapDef também")
+	assert_eq(reg.maps.size(), 0)
+
 func test_real_registry_and_data_are_untouched_by_the_tests() -> void:
 	assert_false(Game.default_registry().has(&"gravado"))
 	assert_false(FileAccess.file_exists("res://world/mapas/gravado.tscn"))

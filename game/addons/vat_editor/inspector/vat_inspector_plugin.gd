@@ -96,7 +96,7 @@ func _setup_book(prop: EditorProperty) -> void:
 		var book: RoteiroBook = o.get(&"roteiro") as RoteiroBook
 		return "" if book == null else book.resource_path)
 	prop.set(&"labeler", func(k: String) -> String: return k.get_file())
-	prop.set(&"writer", func(k: String) -> Variant: return null if k == "" else load(k))
+	prop.set(&"writer", func(k: String) -> Variant: return Picks.resource_for_key(k))
 	prop.set(&"problem", func(_o: Object, k: String) -> String: return "" if k == "" or ResourceLoader.exists(k) else "o arquivo não existe")
 
 func _setup_event(prop: EditorProperty) -> void:
@@ -138,7 +138,7 @@ func _setup_resource(prop: EditorProperty, resource_class: String) -> void:
 			return ""
 		return res.resource_path if res.resource_path != "" else "(embutido)")
 	prop.set(&"labeler", func(k: String) -> String: return String(by_path.get(k, k.get_file())))
-	prop.set(&"writer", func(k: String) -> Variant: return null if k == "" else load(k))
+	prop.set(&"writer", func(k: String) -> Variant: return Picks.resource_for_key(k))
 
 func _all_resources() -> Array[Resource]:
 	if not _scanned:

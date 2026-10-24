@@ -447,3 +447,46 @@ func test_open_of_a_missing_file_is_null_and_save_to_a_bad_path_fails() -> void:
 	session.doc.add_event("b")
 	assert_ne(session.save(), OK)
 	assert_true(session.dirty(), "falhou: continua sujo")
+
+# --- falante e expressão livres (M17) ---
+
+func test_speaker_and_expression_lose_the_characters_that_change_the_line() -> void:
+	var say: RoteiroBlock = Logic.new_block(Kind.FALA)
+	Logic.set_field(say, "speaker", "Dr: Silva")
+	assert_eq(say.speaker, "Dr Silva")
+	Logic.set_field(say, "expr", " [feliz]\n ")
+	assert_eq(say.expr, "feliz")
+	Logic.set_field(say, "speaker", "A[b]\nc ")
+	assert_eq(say.speaker, "Abc")
+
+func test_speaker_starting_with_a_reserved_character_is_rejected_and_keeps_the_old_value() -> void:
+	var say: RoteiroBlock = Logic.new_block(Kind.FALA)
+	Logic.set_field(say, "speaker", "Ana")
+	for bad: String in ["*Voz*", "#x", "@x", "?x", "|x", "=x", "-x", " [*Voz]"]:
+		assert_ne(Logic.field_error(say, "speaker", bad), "", bad)
+		Logic.set_field(say, "speaker", bad)
+		assert_eq(say.speaker, "Ana", bad)
+	assert_eq(Logic.field_error(say, "speaker", "Dr: Silva"), "")
+	assert_eq(Logic.field_error(say, "speaker", ""), "")
+	assert_eq(Logic.field_error(say, "text", "*qualquer coisa"), "")
+
+func test_sanitized_speech_round_trips_through_the_text() -> void:
+	var doc: RoteiroDoc = _doc("=== e\nAna: oi\n")
+	var say: RoteiroBlock = doc.events[0].blocks[0]
+	Logic.set_field(say, "speaker", "Dr: Silva")
+	Logic.set_field(say, "expr", "[neutro]")
+	var text: String = RoteiroDoc.to_text(doc)
+	var back: RoteiroBlock = _doc(text).events[0].blocks[0]
+	assert_eq(back.kind, Kind.FALA)
+	assert_eq(back.speaker, "Dr Silva")
+	assert_eq(back.expr, "neutro")
+	assert_eq(RoteiroDoc.to_text(_doc(text)), text, "estável")
+
+func test_option_text_is_one_trimmed_line_and_round_trips() -> void:
+	var doc: RoteiroDoc = _doc("=== e\nAna: e então?\n* sim -> fim\n")
+	var choice: RoteiroBlock = doc.events[0].blocks[0]
+	Logic.set_option(choice, 0, "  -> # @ ?\nvamos  ", "fim")
+	assert_eq(choice.options[0].text, "-> # @ ? vamos")
+	var back: RoteiroBlock = _doc(RoteiroDoc.to_text(doc)).events[0].blocks[0]
+	assert_eq(back.kind, Kind.ESCOLHA)
+	assert_eq(back.options[0].text, "-> # @ ? vamos")

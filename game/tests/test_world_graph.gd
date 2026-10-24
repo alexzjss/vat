@@ -115,7 +115,7 @@ func test_real_registry_has_no_unreachable_maps() -> void:
 	var graph: Dictionary = WorldGraph.build(Game.default_registry())
 	assert_eq(graph["start"], &"cidade")
 	assert_eq(graph["unreachable"], [] as Array[String])
-	assert_eq(_sorted(graph["test_ids"]), _sorted(["area_teste", "dungeon_teste"] as Array[String]))
+	assert_eq(_sorted(graph["test_ids"]), _sorted(["area_teste", "dungeon_teste", "overworld"] as Array[String]))
 
 func test_exit_edge_uses_exit_spawn_or_start() -> void:
 	var local: PackedScene = load("res://world/local_map.tscn")
@@ -176,7 +176,7 @@ func test_unreachable_excludes_start_tests_and_self_links() -> void:
 
 func test_without_tests_drops_test_nodes_and_their_edges() -> void:
 	var graph: Dictionary = WorldGraph.without_tests(WorldGraph.build(Game.default_registry()))
-	assert_eq((graph["nodes"] as Array).size(), 8)
+	assert_eq((graph["nodes"] as Array).size(), 7)
 	assert_eq(_keys(graph).size(), 14)
 	for e: Dictionary in graph["edges"]:
 		assert_ne(e["to"], "overworld")

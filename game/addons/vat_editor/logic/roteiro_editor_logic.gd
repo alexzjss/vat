@@ -118,10 +118,33 @@ static func get_field(b: RoteiroBlock, name: String) -> Variant:
 		_:
 			return b.get(name)
 
-## Grava um campo, convertendo o tipo e respeitando os limites do campo. Nome desconhecido: não faz nada.
+## Caracteres que mudariam o sentido da linha de fala (`Nome [expressão]: texto`) se ficassem no falante ou na expressão.
+const HEAD_FORBIDDEN: Array[String] = [":", "[", "]", "\n", "\r"]
+## Falante que começa com isto viraria outro tipo de linha ao reler o texto (comentário, comando, opção, rótulo...).
+const SPEAKER_RESERVED_START: String = "#@?*|=-"
+
+## O falante ou a expressão como vai para o arquivo: sem `:`, `[`, `]` nem quebras de linha, aparado.
+static func clean_head(text: String) -> String:
+	var out: String = text
+	for ch: String in HEAD_FORBIDDEN:
+		out = out.replace(ch, "")
+	return out.strip_edges()
+
+## Por que `set_field` recusaria `value` neste campo ("" se aceita). Só o falante recusa: um nome que começa com
+## `# @ ? * | = -` mudaria de sentido ao reler o arquivo. A UI mostra a mensagem em vermelho no cartão.
+static func field_error(b: RoteiroBlock, name: String, value: Variant) -> String:
+	if name != "speaker" or field_spec(b.kind, name).is_empty():
+		return ""
+	var cleaned: String = clean_head(str(value))
+	if cleaned != "" and SPEAKER_RESERVED_START.contains(cleaned[0]):
+		return "O falante não pode começar com '%s'." % cleaned[0]
+	return ""
+
+## Grava um campo, convertendo o tipo e respeitando os limites do campo. Nome desconhecido ou valor recusado
+## (`field_error`): não faz nada e o valor anterior fica.
 static func set_field(b: RoteiroBlock, name: String, value: Variant) -> void:
 	var spec: Dictionary = field_spec(b.kind, name)
-	if spec.is_empty():
+	if spec.is_empty() or field_error(b, name, value) != "":
 		return
 	match str(spec["type"]):
 		"int", "pct":
@@ -132,7 +155,9 @@ static func set_field(b: RoteiroBlock, name: String, value: Variant) -> void:
 			b.set(name, bool(value))
 		"line":
 			b.set(name, str(value).replace("\n", " "))
-		"multiline", "speaker", "expr", "raw":
+		"speaker", "expr":
+			b.set(name, clean_head(str(value)))
+		"multiline", "raw":
 			b.set(name, str(value))
 		_:
 			if name in ["target", "ref", "ref2"]:
@@ -165,7 +190,7 @@ static func remove_option(b: RoteiroBlock, i: int) -> bool:
 
 static func set_option(b: RoteiroBlock, i: int, text: String, label: String) -> void:
 	if i >= 0 and i < b.options.size():
-		b.options[i].text = text.replace("\n", " ")
+		b.options[i].text = text.replace("\n", " ").strip_edges()
 		b.options[i].label = StringName(label.strip_edges())
 
 # --- edições numa lista de blocos (evento ou cabeçalho do arquivo) ------------------------

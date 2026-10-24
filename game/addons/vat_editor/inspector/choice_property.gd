@@ -73,4 +73,7 @@ func _update_property() -> void:
 func _on_selected(index: int) -> void:
 	if _updating or index < 0 or index >= _keys.size():
 		return
-	emit_changed(get_edited_property(), writer.call(_keys[index]) if writer.is_valid() else StringName(_keys[index]))
+	var value: Variant = writer.call(_keys[index]) if writer.is_valid() else StringName(_keys[index])
+	if value is StringName and value == Picks.NO_CHANGE:
+		return # chave inválida (ex.: o valor inválido mostrado): a propriedade não muda
+	emit_changed(get_edited_property(), value)
