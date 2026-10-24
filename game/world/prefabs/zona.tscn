@@ -1,0 +1,15 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://world/zone.gd" id="1"]
+
+[sub_resource type="RectangleShape2D" id="shape"]
+size = Vector2(200, 160)
+
+[node name="Zona" type="Area2D"]
+script = ExtResource("1")
+zone_id = &""
+label_text = "Zona"
+spawn = &"Entry"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("shape")

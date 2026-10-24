@@ -1,0 +1,67 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://world/local_map.gd" id="e_root"]
+[ext_resource type="Script" path="res://world/battle_arena.gd" id="e_arena"]
+[ext_resource type="Script" path="res://world/party_followers.gd" id="e_fol"]
+[ext_resource type="PackedScene" path="res://world/player.tscn" id="e_player"]
+[ext_resource type="Script" path="res://world/map_camera.gd" id="e_cam"]
+[ext_resource type="TileSet" path="res://art/tiles/placeholder_32.tres" id="e_tiles"]
+
+[node name="Mapa" type="Node2D"]
+script = ExtResource("e_root")
+
+[node name="Chão" type="TileMapLayer" parent="."]
+tile_set = ExtResource("e_tiles")
+
+[node name="Paredes" type="TileMapLayer" parent="."]
+tile_set = ExtResource("e_tiles")
+
+[node name="Decoração" type="TileMapLayer" parent="."]
+tile_set = ExtResource("e_tiles")
+
+[node name="Start" type="Marker2D" parent="."]
+position = Vector2(656, 368)
+
+[node name="Entry" type="Marker2D" parent="."]
+position = Vector2(656, 624)
+
+[node name="Arena" type="Node2D" parent="."]
+position = Vector2(640, 368)
+script = ExtResource("e_arena")
+
+[node name="HeroSpot1" type="Marker2D" parent="Arena"]
+position = Vector2(-280, -225)
+
+[node name="HeroSpot2" type="Marker2D" parent="Arena"]
+position = Vector2(-340, -75)
+
+[node name="HeroSpot3" type="Marker2D" parent="Arena"]
+position = Vector2(-280, 75)
+
+[node name="HeroSpot4" type="Marker2D" parent="Arena"]
+position = Vector2(-340, 225)
+
+[node name="SupportSpot" type="Marker2D" parent="Arena"]
+position = Vector2(-460, 0)
+
+[node name="EnemySpot1" type="Marker2D" parent="Arena"]
+position = Vector2(180, -90)
+
+[node name="EnemySpot2" type="Marker2D" parent="Arena"]
+position = Vector2(180, 90)
+
+[node name="EnemySpot3" type="Marker2D" parent="Arena"]
+position = Vector2(260, -180)
+
+[node name="EnemySpot4" type="Marker2D" parent="Arena"]
+position = Vector2(260, 180)
+
+[node name="Followers" type="Node2D" parent="."]
+script = ExtResource("e_fol")
+
+[node name="Player" parent="." instance=ExtResource("e_player")]
+position = Vector2(656, 368)
+
+[node name="MapCamera" type="Camera2D" parent="."]
+position = Vector2(656, 368)
+script = ExtResource("e_cam")

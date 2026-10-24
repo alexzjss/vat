@@ -1,0 +1,15 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://world/map_link.gd" id="1"]
+
+[sub_resource type="RectangleShape2D" id="shape"]
+size = Vector2(56, 30)
+
+[node name="Ligacao" type="Area2D"]
+script = ExtResource("1")
+target_map = &""
+target_spawn = &"Entry"
+label_text = "Ligação"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("shape")

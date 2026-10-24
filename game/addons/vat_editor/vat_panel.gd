@@ -6,6 +6,7 @@ extends VBoxContainer
 ## roteiro. Nada daqui roda no jogo.
 ##
 ## Abas: Banco (lista os `.tres` por categoria, mostra no Inspector, Novo / Duplicar / Mostrar no FileSystem),
+## Mapas (o registro de mapas e o assistente Novo mapa, M17),
 ## Roteiros (sub-vistas Lista, os eventos e erros dos `.roteiro`; Editor, o editor de blocos; e Simular, o simulador de
 ## eventos, M17), Validar (tools/validate/check_all.gd num processo à parte) e Testar
 ## (roda o jogo com os flags de dev).
@@ -29,6 +30,7 @@ const Issues: GDScript = preload("res://addons/vat_editor/logic/vat_issues.gd")
 const Roteiros: GDScript = preload("res://addons/vat_editor/logic/vat_roteiros.gd")
 const RoteiroEditor: GDScript = preload("res://addons/vat_editor/ui/roteiro_editor.gd")
 const EventSimulatorPanel: GDScript = preload("res://addons/vat_editor/ui/event_simulator_panel.gd")
+const MapsPanel: GDScript = preload("res://addons/vat_editor/ui/maps_panel.gd")
 
 const COLOR_ERROR: Color = Color(1.0, 0.45, 0.4)
 const COLOR_WARNING: Color = Color(1.0, 0.85, 0.4)
@@ -63,6 +65,9 @@ var roteiro_editor: HSplitContainer
 var simulator: HSplitContainer
 var _content_index: ContentIndex
 
+# Mapas
+var maps_panel: VBoxContainer
+
 # Validar
 var validate_tree: Tree
 var validate_summary: Label
@@ -90,6 +95,7 @@ func _ready() -> void:
 	add_child(status)
 	_build_bank()
 	_build_roteiros()
+	_build_maps()
 	_build_validate()
 	_build_test()
 	tabs.tab_changed.connect(_on_tab_changed)
@@ -104,6 +110,8 @@ func _on_tab_changed(index: int) -> void:
 	var title: String = tabs.get_tab_title(index)
 	if title == "Roteiros" and roteiro_tree.get_root() == null:
 		_scan_roteiros()
+	elif title == "Mapas":
+		maps_panel.call(&"refresh")
 
 func _say(text: String) -> void:
 	status.text = text
@@ -424,6 +432,19 @@ func _open_roteiro(path: String, line: int) -> void:
 	_say("%s%s aberto no editor de texto do sistema." % [path, ":%d" % line if line > 0 else ""])
 
 # --- Validar ---------------------------------------------------------------------------
+
+func _build_maps() -> void:
+	maps_panel = MapsPanel.new()
+	maps_panel.connect(&"status", _say)
+	tabs.add_child(maps_panel)
+
+## Para a captura de tela: mostra a aba Mapas e, com `wizard`, abre o diálogo Novo mapa (com `wizard_id` no campo de id).
+func show_maps(wizard: bool = false, wizard_id: String = "") -> void:
+	for i: int in tabs.get_tab_count():
+		if tabs.get_tab_title(i) == "Mapas":
+			tabs.current_tab = i
+	if wizard:
+		maps_panel.call(&"open_wizard", wizard_id)
 
 func _build_validate() -> void:
 	var page := VBoxContainer.new()

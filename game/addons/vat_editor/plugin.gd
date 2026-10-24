@@ -6,6 +6,7 @@ extends EditorPlugin
 ##
 ## Captura de tela para conferência: `godot --path game --editor -- --vat-capture=<arquivo.png> [--vat-tab=<aba>]`
 ## abre o editor, mostra a aba VAT (e a sub-aba pedida: Banco, Roteiros, Validar ou Testar), salva a imagem e sai.
+## Na aba Mapas: `--vat-wizard[=<id>]` abre o diálogo Novo mapa (com esse id).
 ## Na aba Roteiros: `--vat-sub=Lista|Editor|Simular` escolhe a sub-vista, `--vat-event=<id>` abre esse evento (no primeiro
 ## arquivo que o tem) e `--vat-answers=<0,1,..>` roda a simulação com essas respostas (no Simular).
 
@@ -16,6 +17,7 @@ const TAB_FLAG: String = "--vat-tab="
 const SUB_FLAG: String = "--vat-sub="
 const EVENT_FLAG: String = "--vat-event="
 const ANSWERS_FLAG: String = "--vat-answers="
+const WIZARD_FLAG: String = "--vat-wizard"
 
 var _roteiro_importer: EditorImportPlugin
 var _panel: Control
@@ -59,6 +61,8 @@ func _capture_if_asked() -> void:
 	var sub: String = ""
 	var event_id: String = ""
 	var answers: String = ""
+	var wizard: bool = false
+	var wizard_id: String = ""
 	for a: String in OS.get_cmdline_user_args():
 		if a.begins_with(CAPTURE_FLAG):
 			out = a.trim_prefix(CAPTURE_FLAG)
@@ -70,6 +74,10 @@ func _capture_if_asked() -> void:
 			event_id = a.trim_prefix(EVENT_FLAG)
 		elif a.begins_with(ANSWERS_FLAG):
 			answers = a.trim_prefix(ANSWERS_FLAG)
+		elif a == WIZARD_FLAG or a.begins_with(WIZARD_FLAG + "="):
+			wizard = true
+			tab = "Mapas"
+			wizard_id = a.trim_prefix(WIZARD_FLAG + "=") if a.contains("=") else ""
 	if sub != "":
 		tab = "Roteiros"
 	if out == "":
@@ -81,6 +89,8 @@ func _capture_if_asked() -> void:
 	for i: int in tabs.get_tab_count():
 		if tabs.get_tab_title(i) == tab:
 			tabs.current_tab = i
+	if tab == "Mapas":
+		_panel.show_maps(wizard, wizard_id)
 	if tab == "Validar":
 		await _panel.run_validation()
 	if sub != "":
@@ -90,4 +100,8 @@ func _capture_if_asked() -> void:
 	var img: Image = EditorInterface.get_base_control().get_viewport().get_texture().get_image()
 	var err: Error = img.save_png(out)
 	print("vat-capture: %s (%d)" % [out, err])
+	if wizard:
+		# O diálogo é uma janela própria no editor: a captura da janela principal não o mostra, então grava a dele ao lado.
+		var dlg: Image = _panel.maps_panel.wizard.get_texture().get_image()
+		print("vat-capture (diálogo): %d" % dlg.save_png(out.get_basename() + "_dialogo.png"))
 	get_tree().quit(0 if err == OK else 1)

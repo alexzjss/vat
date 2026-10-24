@@ -7,6 +7,9 @@ signal location_entered(zone_id: StringName, spawn: StringName)
 
 const MAP_RECT: Rect2 = Rect2(0, 0, 2560, 1440)
 
+## Limites deste mapa para a câmera. Tamanho zero (o padrão) = `MAP_RECT`; o assistente de mapa novo (M17) grava o tamanho escolhido.
+@export var map_bounds: Rect2 = Rect2()
+
 var state: GameState
 
 @onready var player: Player = $Player
@@ -28,9 +31,13 @@ func setup(game_state: GameState, spawn: StringName) -> void:
 		marker = $Start as Node2D
 	player.global_position = marker.global_position
 	camera.follow = player
-	camera.set_bounds(MAP_RECT)
+	camera.set_bounds(bounds_rect())
 	camera.global_position = player.global_position
 	camera.reset_smoothing()
+
+## Os limites do mapa: `map_bounds`, ou `MAP_RECT` se não foram definidos.
+func bounds_rect() -> Rect2:
+	return map_bounds if map_bounds.size != Vector2.ZERO else MAP_RECT
 
 ## Põe o jogador numa posição exata (restauração de save) e recentra a câmera.
 func place_player(pos: Vector2) -> void:

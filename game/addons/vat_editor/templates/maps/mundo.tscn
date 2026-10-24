@@ -1,0 +1,31 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://world/overworld.gd" id="e_root"]
+[ext_resource type="PackedScene" path="res://world/player.tscn" id="e_player"]
+[ext_resource type="Script" path="res://world/map_camera.gd" id="e_cam"]
+[ext_resource type="TileSet" path="res://art/tiles/placeholder_32.tres" id="e_tiles"]
+
+[node name="Mapa" type="Node2D"]
+script = ExtResource("e_root")
+
+[node name="Chão" type="TileMapLayer" parent="."]
+tile_set = ExtResource("e_tiles")
+
+[node name="Paredes" type="TileMapLayer" parent="."]
+tile_set = ExtResource("e_tiles")
+
+[node name="Decoração" type="TileMapLayer" parent="."]
+tile_set = ExtResource("e_tiles")
+
+[node name="Start" type="Marker2D" parent="."]
+position = Vector2(656, 368)
+
+[node name="Entry" type="Marker2D" parent="."]
+position = Vector2(656, 624)
+
+[node name="Player" parent="." instance=ExtResource("e_player")]
+position = Vector2(656, 368)
+
+[node name="MapCamera" type="Camera2D" parent="."]
+position = Vector2(656, 368)
+script = ExtResource("e_cam")

@@ -28,6 +28,9 @@ signal event_finished
 const BATTLE_SCENE: PackedScene = preload("res://battle/battle_scene.tscn")
 const MAP_RECT: Rect2 = Rect2(0, 0, 2400, 720)
 
+## Limites deste mapa para a câmera. Tamanho zero (o padrão) = `MAP_RECT`; o assistente de mapa novo (M17) grava o tamanho escolhido.
+@export var map_bounds: Rect2 = Rect2()
+
 ## Batalha em andamento (null fora de batalha).
 var battle: BattleScene
 ## Repassado à batalha (testes/demo).
@@ -94,6 +97,10 @@ static func map_of(node: Node) -> LocalMap:
 		n = n.get_parent()
 	return null
 
+## Os limites do mapa: `map_bounds`, ou `MAP_RECT` se não foram definidos.
+func bounds_rect() -> Rect2:
+	return map_bounds if map_bounds.size != Vector2.ZERO else MAP_RECT
+
 ## Estado do jogo do mapa que contém `node` (null enquanto o mapa não foi configurado).
 static func state_of(node: Node) -> GameState:
 	var m: LocalMap = map_of(node)
@@ -111,7 +118,7 @@ func setup(game_state: GameState, spawn: StringName) -> void:
 	if followers != null:
 		followers.setup(state, player)
 	camera.follow = player
-	camera.set_bounds(MAP_RECT)
+	camera.set_bounds(bounds_rect())
 	camera.global_position = player.global_position
 	camera.reset_smoothing()
 	for e: MapEnemy in enemies():
