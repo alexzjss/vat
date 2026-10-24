@@ -5,8 +5,8 @@ extends VBoxContainer
 ## `logic/` (categorias, listagem, linhas, criação, argumentos de teste, achados) e aos validadores e ao compilador do
 ## roteiro. Nada daqui roda no jogo.
 ##
-## Abas: Banco (lista os `.tres` por categoria, mostra no Inspector, Novo / Duplicar / Mostrar no FileSystem; heróis, inimigos
-## e encontros ganham também um formulário à direita da lista, M17),
+## Abas: Banco (lista os `.tres` por categoria, mostra no Inspector, Novo / Duplicar / Mostrar no FileSystem; heróis, inimigos,
+## encontros, lojas, itens, equipamentos, falantes e a arte (`SpriteSet`) ganham também um formulário à direita da lista, M17),
 ## Mapas (o registro de mapas e o assistente Novo mapa, M17),
 ## Roteiros (sub-vistas Lista, os eventos e erros dos `.roteiro`; Editor, o editor de blocos; e Simular, o simulador de
 ## eventos, M17), Validar (tools/validate/check_all.gd num processo à parte) e Testar
@@ -36,9 +36,18 @@ const WorldPanel: GDScript = preload("res://addons/vat_editor/ui/world_graph_pan
 const HeroForm: GDScript = preload("res://addons/vat_editor/ui/forms/hero_form.gd")
 const EnemyForm: GDScript = preload("res://addons/vat_editor/ui/forms/enemy_form.gd")
 const EncounterForm: GDScript = preload("res://addons/vat_editor/ui/forms/encounter_form.gd")
+const ShopForm: GDScript = preload("res://addons/vat_editor/ui/forms/shop_form.gd")
+const ItemForm: GDScript = preload("res://addons/vat_editor/ui/forms/item_form.gd")
+const EquipmentForm: GDScript = preload("res://addons/vat_editor/ui/forms/equipment_form.gd")
+const SpeakerForm: GDScript = preload("res://addons/vat_editor/ui/forms/speaker_form.gd")
+const SpriteSetForm: GDScript = preload("res://addons/vat_editor/ui/forms/sprite_set_form.gd")
+const SpriteWizardDialog: GDScript = preload("res://addons/vat_editor/ui/sprite_wizard_dialog.gd")
 
 ## Categoria do Banco -> formulário (as demais só têm o Inspector).
-const FORM_SCRIPTS: Dictionary = {&"heroes": HeroForm, &"enemies": EnemyForm, &"encounters": EncounterForm}
+const FORM_SCRIPTS: Dictionary = {
+	&"heroes": HeroForm, &"enemies": EnemyForm, &"encounters": EncounterForm, &"shops": ShopForm, &"items": ItemForm,
+	&"equipment": EquipmentForm, &"speakers": SpeakerForm, &"sprites": SpriteSetForm,
+}
 
 const COLOR_ERROR: Color = Color(1.0, 0.45, 0.4)
 const COLOR_WARNING: Color = Color(1.0, 0.85, 0.4)
@@ -55,6 +64,8 @@ var count_label: Label
 var new_button: Button
 var duplicate_button: Button
 var reveal_button: Button
+var art_button: Button
+var _art_wizard: ConfirmationDialog
 var _resources: Dictionary = {}
 var _category: StringName = &""
 var _loaded_once: bool = false
@@ -194,6 +205,8 @@ func _build_bank() -> void:
 	duplicate_button = _button(buttons, "Duplicar...", _on_duplicate_pressed)
 	reveal_button = _button(buttons, "Mostrar no FileSystem", _on_reveal_pressed)
 	_button(buttons, "Atualizar", func() -> void: _guard_dirty(_reload_all))
+	art_button = _button(buttons, "Criar a partir de uma imagem…", _on_art_wizard_pressed)
+	art_button.visible = false
 	form_holder = VBoxContainer.new()
 	form_holder.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	form_holder.size_flags_stretch_ratio = 1.2
@@ -206,6 +219,9 @@ func _build_bank() -> void:
 	form_holder.add_child(form_hint)
 	_build_guard_dialog()
 	_build_new_dialog()
+	_art_wizard = SpriteWizardDialog.new()
+	_art_wizard.connect(&"created", _on_art_created)
+	add_child(_art_wizard)
 
 func _button(parent: Node, text: String, handler: Callable) -> Button:
 	var b := Button.new()
@@ -254,6 +270,7 @@ func _on_category_changed(index: int) -> void:
 
 func _switch_category(index: int) -> void:
 	_category = Categories.keys()[index]
+	art_button.visible = _category == &"sprites"
 	_open_path = ""
 	_show_form(null)
 	_refresh_list()
@@ -334,6 +351,8 @@ func _make_form(category: StringName) -> Control:
 	form.connect(&"status", _say)
 	form.connect(&"saved", _on_form_saved)
 	form.connect(&"reverted", func(r: Resource) -> void: EditorInterface.edit_resource(r))
+	form.connect(&"sprites_requested", _on_sprites_requested)
+	form.connect(&"files_written", _on_files_written)
 	if form.has_signal(&"play_requested"):
 		form.connect(&"play_requested", _on_form_play)
 	return form
@@ -346,6 +365,68 @@ func _active_form() -> Control:
 func _on_form_saved(path: String) -> void:
 	EditorInterface.get_resource_filesystem().update_file(path)
 	_refresh_list(path)
+
+## Arquivos além do aberto que o formulário gravou (os preços da loja vão nos itens e equipamentos): o FileSystem do editor os relê.
+func _on_files_written(paths: PackedStringArray) -> void:
+	var fs: EditorFileSystem = EditorInterface.get_resource_filesystem()
+	for p: String in paths:
+		fs.update_file(p)
+
+## "Editar arte…" de um formulário: abre o `SpriteSet` na categoria Arte (pergunta antes se o formulário atual tem alterações).
+func _on_sprites_requested(sprites: Resource) -> void:
+	if sprites == null:
+		return
+	var path: String = sprites.resource_path
+	if path == "" or path.contains("::"):
+		_say("Esta arte está embutida no recurso: edite pelo Inspector.")
+		return
+	_guard_dirty(func() -> void: open_art(path))
+
+## Vai para a categoria Arte e abre o `SpriteSet` de `path` no formulário.
+func open_art(path: String) -> void:
+	if not _loaded_once:
+		_loaded_once = true
+		_reload_all()
+	var keys: Array[StringName] = Categories.keys()
+	var at: int = keys.find(&"sprites")
+	_restoring = true
+	category_bar.current_tab = at
+	_restoring = false
+	_switch_category(at)
+	search.text = ""
+	_refresh_list(path)
+	_open_in_forms(path)
+
+func _on_art_wizard_pressed() -> void:
+	_guard_dirty(func() -> void: _art_wizard.call(&"open_fresh"))
+
+## O assistente gravou o `SpriteSet` novo: atualiza a lista e o abre no formulário.
+func _on_art_created(path: String) -> void:
+	var fs: EditorFileSystem = EditorInterface.get_resource_filesystem()
+	fs.update_file(path)
+	fs.scan()
+	_resources[&"sprites"] = Catalog.load_category(&"sprites")
+	_say("Criado %s" % path)
+	open_art(path)
+
+## Para a conferência visual: o resumo do formulário aberto, se ele sabe dar (a prévia da arte), ou "".
+func form_report() -> String:
+	var form: Control = _active_form()
+	if form != null and form.has_method(&"preview_report"):
+		return str(form.call(&"preview_report"))
+	return ""
+
+## Para a conferência visual: a imagem da janela do assistente de arte.
+func art_wizard_image() -> Image:
+	return _art_wizard.get_texture().get_image()
+
+## Para a conferência visual: abre o assistente já com a imagem.
+func show_art_wizard(image_path: String) -> void:
+	if not _loaded_once:
+		_loaded_once = true
+		_reload_all()
+	_art_wizard.call(&"open_fresh")
+	_art_wizard.call(&"set_image", image_path)
 
 ## "Testar encontro" do formulário: escolhe o encontro na aba Testar e roda (nível e arena dessa aba).
 func _on_form_play(encounter_id: StringName) -> void:
@@ -423,7 +504,7 @@ func show_bank(category: String, pick_id: String) -> void:
 	if pick_id == "":
 		return
 	for r: Variant in _resources.get(_category, []):
-		if str((r as Resource).get(&"id")) == pick_id:
+		if Rows.id_of(r as Resource) == pick_id:
 			_refresh_list((r as Resource).resource_path)
 			_open_in_forms((r as Resource).resource_path)
 			return
@@ -455,7 +536,7 @@ func _open_new_dialog(source: Resource) -> void:
 		_new_info.text = "Cria a partir do modelo %s." % str(cat["template"]).get_file()
 		_new_folder.text = cat["new_folder"]
 	else:
-		_new_dialog.title = "Duplicar: %s" % str(source.get(&"id"))
+		_new_dialog.title = "Duplicar: %s" % Rows.id_of(source)
 		_new_info.text = "Copia %s com um id novo." % source.resource_path
 		_new_folder.text = source.resource_path.get_base_dir()
 	_new_id.text = ""

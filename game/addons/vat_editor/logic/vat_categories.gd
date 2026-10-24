@@ -44,6 +44,8 @@ static func all() -> Array[Dictionary]:
 				"res://data/fatia/terrain", [_col("Elementos", &"element_mult", "count")]),
 		_cat(&"speakers", "Falantes", &"SpeakerDef", ["res://art"],
 				"res://art/falantes", [_col("Arte", &"sprites", "ids")]),
+		_cat(&"sprites", "Arte", &"SpriteSet", ["res://art"],
+				"res://art", [_col("Mapa", &"map_sheet", "ids"), _col("Batalha", &"battle_sheet", "ids"), _col("Retratos", &"portraits", "count")]),
 	]
 
 static func keys() -> Array[StringName]:

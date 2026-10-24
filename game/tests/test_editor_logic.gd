@@ -40,9 +40,9 @@ func _item(id: StringName, price: int = 0) -> ItemDef:
 
 # --- categorias ---
 
-func test_there_are_twelve_categories_in_tab_order() -> void:
+func test_there_are_thirteen_categories_in_tab_order() -> void:
 	var expected: Array[StringName] = [&"heroes", &"enemies", &"abilities", &"items", &"equipment", &"encounters",
-			&"shops", &"statuses", &"elements", &"reactions", &"terrain", &"speakers"]
+			&"shops", &"statuses", &"elements", &"reactions", &"terrain", &"speakers", &"sprites"]
 	assert_eq(Categories.keys(), expected)
 
 func test_every_category_has_a_template_that_loads_and_matches() -> void:
@@ -78,7 +78,8 @@ func test_templates_save_and_reload_with_the_new_id() -> void:
 		assert_eq(ResourceSaver.save(built["resource"], path), OK, "salva %s" % key)
 		var back: Resource = ResourceLoader.load(path, "", ResourceLoader.CACHE_MODE_IGNORE)
 		assert_not_null(back)
-		assert_eq(back.get(&"id"), StringName("tmp_%s" % key))
+		# a arte (SpriteSet) não tem id: a linha usa o nome do arquivo
+		assert_eq(StringName(Rows.id_of(back)), StringName("tmp_%s" % key))
 		assert_true(Categories.matches(key, back))
 
 # --- listagem ---

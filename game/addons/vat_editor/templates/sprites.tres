@@ -1,0 +1,6 @@
+[gd_resource type="Resource" script_class="SpriteSet" format=3]
+
+[ext_resource type="Script" path="res://core/defs/sprite_set.gd" id="1_set"]
+
+[resource]
+script = ExtResource("1_set")

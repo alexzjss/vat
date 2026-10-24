@@ -58,7 +58,8 @@ static func same(a: Variant, b: Variant) -> bool:
 func _label_of_value(value: Variant) -> String:
 	if value is Resource:
 		var r: Resource = value
-		var id: String = str(r.get(&"id"))
+		var raw: Variant = r.get(&"id")
+		var id: String = str(raw) if raw != null else ""
 		return id if id != "" else r.resource_path.get_file()
 	return str(value)
 

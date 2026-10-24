@@ -488,3 +488,484 @@ func test_sprite_animations_read_the_properties() -> void:
 	assert_false(anims[&"attack"]["loop"])
 	assert_eq(Forms.sprite_animations(null), {})
 	assert_eq(Forms.sprite_animations(SpriteSet.new()), {})
+
+# --- nomes dos estados ---
+
+func test_status_names_are_in_portuguese() -> void:
+	assert_eq(StatusNames.name_of(&"barrier"), "Barreira")
+	assert_eq(StatusNames.name_of(&"berserk"), "Berserk")
+	assert_eq(StatusNames.name_of(&"poison"), "Veneno")
+	assert_eq(StatusNames.name_of(&"veneno"), "Veneno")
+	assert_eq(StatusNames.name_of(&"regen"), "Regeneração")
+	assert_eq(StatusNames.name_of(&"algo_novo"), "Algo Novo", "sem nome no mapa: o id com inicial maiúscula")
+
+func test_the_game_page_and_the_editor_share_the_status_names() -> void:
+	assert_eq(EquipPage.STATUS_NAMES, StatusNames.NAMES)
+	for id: StringName in StatusNames.NAMES:
+		assert_eq(EquipPage.status_name(id), StatusNames.name_of(id), String(id))
+	assert_eq(EquipPage.status_name(&"desconhecido"), "Desconhecido")
+
+func test_status_choices_show_names_and_tell_homonyms_apart() -> void:
+	var list: Array[Dictionary] = [{"id": &"poison", "label": "poison"}, {"id": &"veneno", "label": "veneno"}, {"id": &"barrier", "label": "barrier"}]
+	Forms.status_labels(list)
+	assert_eq(list[0]["label"], "Veneno (poison)")
+	assert_eq(list[1]["label"], "Veneno (veneno)")
+	assert_eq(list[2]["label"], "Barreira")
+	for c: Dictionary in Forms.choices(Forms.SRC_STATUS):
+		assert_ne(c["label"], String(c["id"]).to_lower() if String(c["id"]) in StatusNames.NAMES else "", "o rótulo de %s não é o id cru" % c["id"])
+
+# --- descritores novos ---
+
+func _prop_names(res: Object) -> Array[String]:
+	var out: Array[String] = []
+	for p: Dictionary in res.get_property_list():
+		out.append(p["name"])
+	return out
+
+func test_new_descriptors_point_to_real_properties() -> void:
+	var targets: Dictionary = {&"shops": ShopDef.new(), &"items": ItemDef.new(), &"equipment": EquipmentDef.new(),
+			&"speakers": SpeakerDef.new(), &"sprites": SpriteSet.new()}
+	for kind: StringName in targets:
+		var names: Array[String] = _prop_names(targets[kind])
+		var fields: Array[Dictionary] = Forms.fields(kind)
+		assert_false(fields.is_empty(), String(kind))
+		for d: Dictionary in fields:
+			assert_true(names.has(String(d["prop"])), "%s.%s" % [kind, d["prop"]])
+	for row: StringName in [Forms.ROW_EFFECT, Forms.ROW_PASSIVE]:
+		var sample: Resource = Forms.new_row(row)
+		assert_not_null(sample, String(row))
+		for d: Dictionary in Forms.columns(row):
+			assert_true(_prop_names(sample).has(String(d["prop"])), "%s.%s" % [row, d["prop"]])
+
+func test_new_enum_labels_match_the_enums() -> void:
+	assert_eq(Forms.EFFECT_KIND_LABELS.size(), EffectDef.Kind.size())
+	assert_eq(Forms.EFFECT_SCALE_LABELS.size(), EffectDef.Scale.size())
+	assert_eq(Forms.PASSIVE_KIND_LABELS.size(), EquipmentPassive.Kind.size())
+	assert_eq(Forms.SHAPE_LABELS.size(), AbilityDef.Shape.size())
+	assert_eq(Forms.SIDE_LABELS.size(), AbilityDef.Side.size())
+	var slots: Array[StringName] = []
+	for c: Dictionary in Forms.SLOT_CHOICES:
+		slots.append(c["value"])
+	assert_eq(slots, EquipmentRules.SLOTS)
+
+func test_effect_columns_follow_the_kind() -> void:
+	assert_true(Forms.effect_column_visible(EffectDef.Kind.DAMAGE, &"potency"))
+	assert_true(Forms.effect_column_visible(EffectDef.Kind.DAMAGE, &"dodgeable"))
+	assert_true(Forms.effect_column_visible(EffectDef.Kind.REVIVE, &"potency"))
+	assert_false(Forms.effect_column_visible(EffectDef.Kind.REVIVE, &"scale"))
+	assert_false(Forms.effect_column_visible(EffectDef.Kind.SCAN, &"potency"))
+	assert_false(Forms.effect_column_visible(EffectDef.Kind.DAMAGE, &"status"))
+	assert_false(Forms.effect_column_visible(EffectDef.Kind.HEAL, &"dodgeable"))
+	assert_true(Forms.effect_column_visible(EffectDef.Kind.APPLY_STATUS, &"status"))
+	assert_true(Forms.effect_column_visible(EffectDef.Kind.APPLY_STATUS, &"chance"))
+	assert_false(Forms.effect_column_visible(EffectDef.Kind.APPLY_STATUS, &"statuses"))
+	assert_true(Forms.effect_column_visible(EffectDef.Kind.REMOVE_STATUS, &"statuses"))
+	assert_true(Forms.effect_column_visible(EffectDef.Kind.REMOVE_STATUS, &"status"))
+	assert_false(Forms.effect_column_visible(EffectDef.Kind.REVIVE, &"status"))
+	assert_true(Forms.effect_column_visible(EffectDef.Kind.REVIVE, &"kind"))
+	assert_true(Forms.passive_column_visible(EquipmentPassive.Kind.RESIST, &"amount"))
+	assert_false(Forms.passive_column_visible(EquipmentPassive.Kind.IMMUNE, &"amount"))
+	assert_true(Forms.passive_column_visible(EquipmentPassive.Kind.START_WITH, &"status"))
+
+func test_every_real_effect_keeps_its_meaningful_columns_visible() -> void:
+	# nada que o jogo usa pode ficar escondido: um efeito real mostra todas as colunas com valor fora do padrão
+	for path: String in _tres_in(["res://data/fatia/items", "res://data/test/items"]):
+		var item: ItemDef = load(path)
+		for e: EffectDef in item.effects:
+			if e.status != null:
+				assert_true(Forms.effect_column_visible(e.kind, &"status"), path)
+			if not e.statuses.is_empty():
+				assert_true(Forms.effect_column_visible(e.kind, &"statuses"), path)
+			if e.kind == EffectDef.Kind.DAMAGE or e.kind == EffectDef.Kind.HEAL or e.kind == EffectDef.Kind.REVIVE or e.kind == EffectDef.Kind.RESTORE_AP:
+				assert_true(Forms.effect_column_visible(e.kind, &"potency"), path)
+			if e.kind == EffectDef.Kind.DAMAGE or e.kind == EffectDef.Kind.HEAL:
+				assert_true(Forms.effect_column_visible(e.kind, &"scale"), path)
+			if e.dodgeable:
+				assert_true(Forms.effect_column_visible(e.kind, &"dodgeable"), path)
+
+func _tres_in(folders: Array[String]) -> Array[String]:
+	var out: Array[String] = []
+	for f: String in folders:
+		for file_name: String in DirAccess.get_files_at(f):
+			if file_name.get_extension() == "tres":
+				out.append(f.path_join(file_name))
+	return out
+
+func test_copying_an_effect_is_independent() -> void:
+	var fx: EffectDef = load("res://data/fatia/items/pocao_f.tres").effects[0]
+	var poison: StatusDef = load("res://data/test/statuses/poison.tres")
+	var src: EffectDef = Forms.new_effect(EffectDef.Kind.REMOVE_STATUS)
+	src.statuses.append(poison)
+	var copy: EffectDef = Forms.copy_row(src) as EffectDef
+	copy.statuses.clear()
+	assert_eq(src.statuses.size(), 1)
+	assert_eq(Forms.copy_row(fx).potency, fx.potency)
+
+# --- lojas: venda, quem veste, arquivos ---
+
+func test_sell_value_matches_the_game_rules() -> void:
+	var cfg := BalanceConfig.new()
+	for path: String in _tres_in(["res://data/fatia/items", "res://data/fatia/equipment", "res://data/test/items", "res://data/test/equipment"]):
+		var def: Resource = load(path)
+		var price: int = int(def.get(&"price"))
+		assert_eq(Forms.sell_value(price, cfg.sell_ratio), ShopRules.sell_value(def, cfg), path)
+		assert_eq(Forms.can_sell(def, cfg.sell_ratio), ShopRules.can_sell(def, cfg), path)
+	assert_eq(Forms.sell_value(10, 0.5), 5)
+	assert_eq(Forms.sell_value(7, 0.5), 3, "arredonda para baixo")
+	assert_eq(Forms.sell_value(0, 0.5), 0)
+	assert_false(Forms.can_sell(null, 0.5))
+
+func test_sell_ratio_is_the_one_the_game_loads() -> void:
+	var cfg: BalanceConfig = load(Forms.BALANCE_PATH)
+	assert_eq(Forms.sell_ratio(), cfg.sell_ratio)
+
+func test_who_can_equip_matches_the_game_rules() -> void:
+	var heroes: Array[Resource] = []
+	for path: String in _tres_in(["res://data/fatia/heroes", "res://data/test/heroes"]):
+		heroes.append(load(path))
+	var equipment: Array[String] = _tres_in(["res://data/fatia/equipment", "res://data/test/equipment"])
+	assert_gt(equipment.size(), 3)
+	for path: String in equipment:
+		var e: EquipmentDef = load(path)
+		for h: CharacterDef in heroes:
+			assert_eq(Forms.hero_can_equip(h, e), EquipmentRules.can_equip(h, e, e.slot), "%s x %s" % [h.id, e.id])
+	# acessório vale para todos; sem herói ou sem equipamento, ninguém
+	var acc := EquipmentDef.new()
+	acc.slot = &"accessory"
+	assert_true(Forms.hero_can_equip(heroes[0], acc))
+	assert_false(Forms.hero_can_equip(null, acc))
+	assert_false(Forms.hero_can_equip(heroes[0], null))
+
+func test_equipment_offers_the_heroes_of_its_own_data_tree() -> void:
+	var all: Array[Dictionary] = Forms.choices(Forms.SRC_HERO)
+	var slice_ids: Array[StringName] = Forms.choice_ids(Forms.heroes_near(all, "res://data/fatia/equipment/lamina_aco_f.tres"))
+	assert_eq(slice_ids.size(), 5)
+	assert_true(slice_ids.has(&"teste_a_f") and not slice_ids.has(&"teste_a"))
+	var test_ids: Array[StringName] = Forms.choice_ids(Forms.heroes_near(all, "res://data/test/equipment/lamina.tres"))
+	assert_true(test_ids.has(&"teste_a") and not test_ids.has(&"teste_a_f"))
+	assert_eq(Forms.heroes_near([] as Array[Dictionary], "res://data/fatia/x.tres").size(), 0)
+
+func test_equippers_text() -> void:
+	var slice: Array[Resource] = Forms.slice_heroes(Forms.choices(Forms.SRC_HERO).map(func(c: Dictionary) -> Variant: return c["value"]))
+	assert_eq(slice.size(), 5, "os 5 heróis da fatia, sem os de teste")
+	var blade: EquipmentDef = load("res://data/fatia/equipment/lamina_aco_f.tres")
+	var who: String = Forms.equippers_text(blade, slice)
+	assert_true(who.contains("Teste A") and who.contains("Teste D"), who)
+	assert_false(who.contains("Teste B"), who)
+	var acc := EquipmentDef.new()
+	acc.slot = &"accessory"
+	assert_eq(Forms.equippers_text(acc, slice), "todos")
+	var nobody := EquipmentDef.new()
+	nobody.slot = &"weapon"
+	nobody.weapon_type = &"espada_inexistente"
+	assert_eq(Forms.equippers_text(nobody, slice), "ninguém")
+	assert_eq(Forms.equippers_text(null, slice), "—")
+
+func test_shop_rows_of_the_slice_shop() -> void:
+	var shop: ShopDef = load("res://data/fatia/shops/loja_cidade.tres")
+	var slice: Array[Resource] = Forms.slice_heroes(Forms.choices(Forms.SRC_HERO).map(func(c: Dictionary) -> Variant: return c["value"]))
+	var potion: Dictionary = Forms.shop_row(shop.items[0], 0.5, slice)
+	assert_eq(potion["price"], shop.items[0].price)
+	assert_eq(potion["sell"], shop.items[0].price / 2)
+	assert_false(potion["equipment"])
+	var blade: Dictionary = Forms.shop_row(shop.equipment[0], 0.5, slice)
+	assert_true(blade["equipment"])
+	assert_ne(blade["who"], "")
+	var empty: Dictionary = Forms.shop_row(null, 0.5, slice)
+	assert_eq(empty["name"], "(escolha)")
+	assert_eq(empty["price"], 0)
+	assert_false(empty["sellable"])
+	var key: ItemDef = ItemDef.new()
+	key.key_item = true
+	key.price = 100
+	assert_false(Forms.shop_row(key, 0.5, slice)["sellable"], "item-chave não vende")
+
+func test_shop_save_paths_lists_only_what_changed() -> void:
+	var shop: ShopDef = load("res://data/fatia/shops/loja_cidade.tres")
+	var a: ItemDef = load("res://data/fatia/items/pocao_f.tres")
+	var b: EquipmentDef = load("res://data/fatia/equipment/lamina_aco_f.tres")
+	var originals: Dictionary = {a: a.price, b: b.price}
+	assert_eq(Forms.shop_save_paths(shop, originals), [shop.resource_path] as Array[String])
+	var saved_price: int = a.price
+	a.price = saved_price + 5
+	assert_eq(Forms.shop_save_paths(shop, originals), [shop.resource_path, a.resource_path] as Array[String])
+	b.price += 1
+	var paths: Array[String] = Forms.shop_save_paths(shop, originals)
+	assert_eq(paths.size(), 3)
+	assert_eq(paths[0], shop.resource_path)
+	a.price = saved_price
+	b.price -= 1
+	assert_eq(Forms.shop_save_paths(shop, originals).size(), 1, "voltar ao preço original tira o arquivo da lista")
+	assert_eq(Forms.shop_save_paths(null, {}).size(), 0)
+
+# --- ida e volta: loja, item, equipamento ---
+
+## Copia `src` para user:// trocando as referências `res://...` de `swap` pelas cópias (já em user://).
+func _copy_swapping(src: String, swap: Dictionary) -> String:
+	DirAccess.make_dir_recursive_absolute(TMP)
+	var dst: String = TMP.path_join(src.get_file())
+	var text: String = FileAccess.get_file_as_string(src)
+	for from: String in swap:
+		text = text.replace(from, swap[from])
+	var f: FileAccess = FileAccess.open(dst, FileAccess.WRITE)
+	f.store_string(text)
+	f.close()
+	return dst
+
+func test_shop_round_trip_writes_the_edited_price_to_the_item() -> void:
+	var potion_src: String = "res://data/fatia/items/pocao_f.tres"
+	var blade_src: String = "res://data/fatia/equipment/lamina_aco_f.tres"
+	var real_potion_price: int = (load(potion_src) as ItemDef).price
+	var real_blade_price: int = (load(blade_src) as EquipmentDef).price
+	var potion_path: String = _copy(potion_src)
+	var blade_path: String = _copy(blade_src)
+	var shop_path: String = _copy_swapping("res://data/fatia/shops/loja_cidade.tres", {potion_src: potion_path, blade_src: blade_path})
+	var potion: ItemDef = _open(potion_path) as ItemDef
+	var blade: EquipmentDef = _open(blade_path) as EquipmentDef
+	var shop: ShopDef = _open(shop_path) as ShopDef
+	assert_eq(shop.items[0], potion, "a loja usa a cópia")
+	assert_eq(shop.equipment[0], blade)
+	var originals: Dictionary = {potion: potion.price, blade: blade.price}
+	var before: Dictionary = Forms.snapshot(shop)
+	# editar os preços na tabela escreve no item e no equipamento, e a loja ganha uma linha e perde outra
+	potion.price = 25
+	blade.price = 120
+	Forms.list_remove(shop.items, 4)
+	Forms.list_add(shop.items, load("res://data/fatia/items/chave_f.tres"))
+	var paths: Array[String] = Forms.shop_save_paths(shop, originals)
+	assert_eq(paths.size(), 3)
+	assert_eq(paths[0], shop_path)
+	assert_true(paths.has(potion_path) and paths.has(blade_path))
+	for p: String in paths:
+		assert_eq(Forms.save(_resource_at(p, [shop, potion, blade])), OK, p)
+	assert_eq((_fresh(potion_path) as ItemDef).price, 25)
+	assert_eq((_fresh(blade_path) as EquipmentDef).price, 120)
+	assert_true(FileAccess.get_file_as_string(potion_path).contains("price = 25"))
+	var back: ShopDef = _fresh(shop_path) as ShopDef
+	assert_eq(back.items.size(), 5)
+	assert_eq(back.items[4].resource_path, "res://data/fatia/items/chave_f.tres")
+	assert_eq(back.items.get_typed_script(), ItemDef)
+	assert_eq(back.equipment.get_typed_script(), EquipmentDef)
+	assert_eq(back.id, &"loja_cidade")
+	assert_eq(_diff_keys(before, Forms.snapshot(back)), ["items"])
+	# os arquivos de verdade não mudaram
+	assert_eq((load(potion_src) as ItemDef).price, real_potion_price)
+	assert_eq((load(blade_src) as EquipmentDef).price, real_blade_price)
+	assert_true(FileAccess.get_file_as_string(potion_src).contains("price = %d" % real_potion_price))
+
+func _resource_at(path: String, candidates: Array) -> Resource:
+	for r: Resource in candidates:
+		if r.resource_path == path:
+			return r
+	return null
+
+func test_item_round_trip_with_effects() -> void:
+	var path: String = _copy("res://data/fatia/items/pocao_f.tres")
+	var item: ItemDef = _open(path) as ItemDef
+	var before: Dictionary = Forms.snapshot(item)
+	var poison: StatusDef = load("res://data/test/statuses/poison.tres")
+	var fx: EffectDef = Forms.new_effect(EffectDef.Kind.REMOVE_STATUS)
+	fx.status = poison
+	fx.statuses.append(poison)
+	fx.chance = 0.75
+	var dmg: EffectDef = Forms.new_effect()
+	dmg.scale = EffectDef.Scale.AURA
+	dmg.potency = 2.5
+	dmg.dodgeable = true
+	Forms.list_add(item.effects, fx)
+	Forms.list_add(item.effects, dmg)
+	Forms.list_move(item.effects, 2, -1)
+	item.shape = AbilityDef.Shape.GROUP
+	item.side = AbilityDef.Side.BOTH
+	item.key_item = true
+	item.price = 33
+	item.display_name = "Poção Forte"
+	var expected: Dictionary = Forms.snapshot(item)
+	assert_eq(Forms.save(item), OK)
+	var back: ItemDef = _fresh(path) as ItemDef
+	assert_eq(Forms.snapshot(back), expected)
+	assert_eq(back.effects.size(), 3)
+	assert_eq(back.effects.get_typed_script(), EffectDef)
+	assert_eq(back.effects[1].potency, 2.5)
+	assert_eq(back.effects[1].scale, EffectDef.Scale.AURA)
+	assert_true(back.effects[1].dodgeable)
+	assert_eq(back.effects[2].kind, EffectDef.Kind.REMOVE_STATUS)
+	assert_eq(back.effects[2].chance, 0.75)
+	assert_eq(back.effects[2].status.resource_path, "res://data/test/statuses/poison.tres")
+	assert_eq(back.effects[2].statuses.size(), 1)
+	assert_eq(back.effects[2].statuses.get_typed_script(), StatusDef)
+	assert_eq(back.shape, AbilityDef.Shape.GROUP)
+	assert_eq(back.side, AbilityDef.Side.BOTH)
+	assert_true(back.key_item)
+	assert_eq(back.price, 33)
+	assert_eq(back.display_name, "Poção Forte")
+	assert_eq(back.id, &"pocao_f")
+	assert_eq(_diff_keys(before, expected), ["display_name", "effects", "key_item", "price", "shape", "side"])
+	assert_eq(ValidationIssue.errors_of(Forms.validate(back)).size(), 0)
+	var text: String = FileAccess.get_file_as_string(path)
+	assert_eq(_count(text, "script_class=\"ItemDef\""), 1)
+	assert_eq(_count(text, "[sub_resource"), 3)
+
+func test_item_effects_can_be_removed_and_duplicated() -> void:
+	var path: String = _copy("res://data/fatia/items/pocao_f.tres")
+	var item: ItemDef = _open(path) as ItemDef
+	Forms.list_duplicate(item.effects, 0)
+	assert_eq(item.effects.size(), 2)
+	assert_ne(item.effects[0], item.effects[1])
+	item.effects[1].potency = 99.0
+	assert_ne(item.effects[0].potency, 99.0)
+	Forms.list_remove(item.effects, 0)
+	assert_eq(Forms.save(item), OK)
+	var back: ItemDef = _fresh(path) as ItemDef
+	assert_eq(back.effects.size(), 1)
+	assert_eq(back.effects[0].potency, 99.0)
+
+func test_equipment_round_trip_with_passives_and_element_resist() -> void:
+	var path: String = _copy("res://data/fatia/equipment/lamina_aco_f.tres")
+	var equip: EquipmentDef = _open(path) as EquipmentDef
+	var before: Dictionary = Forms.snapshot(equip)
+	var poison: StatusDef = load("res://data/test/statuses/poison.tres")
+	var fire: ElementDef = load("res://data/elements/amaterasu.tres")
+	Forms.list_add(equip.passives, Forms.new_passive(EquipmentPassive.Kind.RESIST, poison))
+	equip.passives[0].amount = 0.4
+	Forms.list_add(equip.passives, Forms.new_passive(EquipmentPassive.Kind.IMMUNE, poison))
+	Forms.list_add(equip.passives, Forms.new_passive(EquipmentPassive.Kind.START_WITH, poison))
+	Forms.dict_set_percent(equip.element_resist, fire.id, 30.0)
+	Forms.dict_set_percent(equip.element_resist, &"kagutsuchi", -50.0)
+	Forms.names_toggle(equip.allowed_ids, &"teste_a_f", true)
+	Forms.names_toggle(equip.allowed_ids, &"teste_d_f", true)
+	Forms.ensure_stats(equip, &"modifiers").speed = 2
+	equip.slot = &"armor"
+	equip.weapon_type = &""
+	equip.price = 99
+	equip.element = fire
+	var expected: Dictionary = Forms.snapshot(equip)
+	assert_eq(Forms.save(equip), OK)
+	var back: EquipmentDef = _fresh(path) as EquipmentDef
+	assert_eq(Forms.snapshot(back), expected)
+	assert_eq(back.passives.size(), 3)
+	assert_eq(back.passives.get_typed_script(), EquipmentPassive)
+	assert_eq(back.passives[0].kind, EquipmentPassive.Kind.RESIST)
+	assert_eq(back.passives[0].amount, 0.4)
+	assert_eq(back.passives[0].status.resource_path, "res://data/test/statuses/poison.tres")
+	assert_eq(back.passives[2].kind, EquipmentPassive.Kind.START_WITH)
+	assert_eq(back.element_resist.size(), 2)
+	assert_eq(back.element_resist.get_typed_key_builtin(), TYPE_STRING_NAME)
+	assert_eq(back.element_resist.get_typed_value_builtin(), TYPE_FLOAT)
+	assert_eq(back.element_resist[fire.id], 0.3)
+	assert_eq(back.element_resist[&"kagutsuchi"], -0.5)
+	assert_eq(back.allowed_ids, [&"teste_a_f", &"teste_d_f"] as Array[StringName])
+	assert_eq(back.allowed_ids.get_typed_builtin(), TYPE_STRING_NAME)
+	assert_eq(back.modifiers.speed, 2)
+	assert_eq(back.modifiers.strength, 4, "os outros atributos ficam")
+	assert_eq(back.slot, &"armor")
+	assert_eq(back.weapon_type, &"")
+	assert_eq(back.price, 99)
+	assert_eq(back.element.resource_path, fire.resource_path)
+	assert_eq(back.id, &"lamina_aco_f")
+	assert_eq(ValidationIssue.errors_of(Forms.validate(back)).size(), 0)
+	assert_true(_diff_keys(before, expected).has("passives") and _diff_keys(before, expected).has("element_resist"))
+
+func test_equipment_choice_values_are_the_game_ones() -> void:
+	var weapons: Array[StringName] = []
+	for c: Dictionary in Forms.WEAPON_CHOICES:
+		weapons.append(c["value"])
+	for path: String in _tres_in(["res://data/fatia/equipment", "res://data/test/equipment"]):
+		var e: EquipmentDef = load(path)
+		assert_true(weapons.has(e.weapon_type), "%s: tipo de arma %s" % [path, e.weapon_type])
+
+# --- arte: anims e retratos ---
+
+func test_next_anim_and_expression() -> void:
+	var anims: Dictionary = {}
+	assert_eq(Forms.next_anim(anims), [&"idle", Vector3i(0, 1, 6)])
+	anims[&"idle"] = Vector3i(0, 4, 6)
+	assert_eq(Forms.next_anim(anims), [&"attack", Vector3i(1, 1, 6)])
+	assert_eq(Forms.next_anim(anims, 1), [&"attack", Vector3i(0, 1, 6)], "limitada às linhas da folha")
+	for n: StringName in Forms.STANDARD_ANIMS:
+		anims[n] = Vector3i(0, 1, 1)
+	assert_eq((Forms.next_anim(anims)[0] as StringName), &"anim_1")
+	var portraits: Dictionary = {}
+	assert_eq(Forms.next_expression(portraits), &"neutro")
+	portraits[&"neutro"] = null
+	assert_eq(Forms.next_expression(portraits), &"feliz")
+	for n: StringName in Forms.STANDARD_EXPRESSIONS:
+		portraits[n] = null
+	assert_eq(Forms.next_expression(portraits), &"retrato_1")
+
+func test_sheet_rows_and_texture_choices() -> void:
+	var tex: Texture2D = load("res://art/_exemplo/teste_a_battle.png")
+	assert_eq(Forms.sheet_rows(tex, Vector2i(64, 64)), 6)
+	assert_eq(Forms.sheet_rows(tex, Vector2i(64, 0)), 0)
+	assert_eq(Forms.sheet_rows(null, Vector2i(64, 64)), 0)
+	var found: Array[String] = []
+	for c: Dictionary in Forms.texture_choices():
+		found.append(String(c["id"]))
+		assert_true(c["value"] is Texture2D)
+	assert_true(found.has("res://art/_exemplo/teste_a_map.png"))
+	assert_true(found.has("res://art/_exemplo/teste_a_portrait_feliz.png"))
+
+func test_sprite_set_round_trip_with_anims_and_portraits() -> void:
+	var path: String = _copy("res://art/_exemplo/teste_a.tres")
+	var sprites: SpriteSet = _open(path) as SpriteSet
+	var before: Dictionary = Forms.snapshot(sprites)
+	assert_eq(sprites.anims.size(), 6)
+	assert_eq(sprites.portraits.size(), 2)
+	# renomear uma animação mantém o valor e a posição; adicionar usa a linha seguinte; um retrato sai e outro entra
+	assert_true(Forms.dict_rename(sprites.anims, &"idle", &"parado"))
+	sprites.anims[&"hit"] = Vector3i(3, 1, 12)
+	var extra: Array = Forms.next_anim(sprites.anims, Forms.sheet_rows(sprites.battle_sheet, sprites.battle_frame))
+	sprites.anims[extra[0]] = extra[1]
+	assert_eq(extra[0], &"idle", "o nome padrão que ficou livre com a troca")
+	assert_eq(extra[1], Vector3i(5, 1, 6), "a linha seguinte à maior em uso, limitada à folha")
+	sprites.anims.erase(&"cast")
+	sprites.portraits.erase(&"feliz")
+	sprites.portraits[&"triste"] = load("res://art/_exemplo/teste_a_portrait_feliz.png")
+	sprites.walk_fps = 6.0
+	sprites.walk_frames = 3
+	sprites.battle_faces_right = false
+	sprites.portrait_size = Vector2i(96, 96)
+	var expected: Dictionary = Forms.snapshot(sprites)
+	assert_eq(Forms.save(sprites), OK)
+	var back: SpriteSet = _fresh(path) as SpriteSet
+	assert_eq(Forms.snapshot(back), expected)
+	assert_eq(back.anims.size(), 6)
+	assert_eq(back.anims[&"idle"], Vector3i(5, 1, 6))
+	assert_eq(back.anims[&"parado"], Vector3i(0, 2, 4))
+	assert_eq(back.anims[&"hit"], Vector3i(3, 1, 12))
+	assert_false(back.anims.has(&"cast"))
+	assert_eq(back.anims.get_typed_key_builtin(), TYPE_STRING_NAME)
+	assert_eq(back.anims.get_typed_value_builtin(), TYPE_VECTOR3I)
+	assert_eq(back.portraits.size(), 2)
+	assert_true(back.portraits.has(&"neutro") and back.portraits.has(&"triste"))
+	assert_false(back.portraits.has(&"feliz"))
+	assert_eq(back.portraits.get_typed_value_class_name(), &"Texture2D")
+	assert_eq(back.portraits[&"triste"].resource_path, "res://art/_exemplo/teste_a_portrait_feliz.png")
+	assert_eq(back.walk_fps, 6.0)
+	assert_false(back.battle_faces_right)
+	assert_eq(back.map_sheet.resource_path, "res://art/_exemplo/teste_a_map.png")
+	assert_eq(back.map_sheet, sprites.map_sheet)
+	assert_true(_diff_keys(before, expected).has("anims") and _diff_keys(before, expected).has("portraits"))
+	var Wizard: GDScript = load("res://addons/vat_editor/logic/sprite_wizard.gd")
+	assert_eq(ValidationIssue.errors_of(Wizard.issues(back)).size(), 0)
+
+func test_sprite_set_round_trip_keeps_an_empty_portrait_set_valid() -> void:
+	var path: String = _copy("res://art/_exemplo/teste_a.tres")
+	var sprites: SpriteSet = _open(path) as SpriteSet
+	sprites.portraits.clear()
+	sprites.anims.clear()
+	assert_eq(Forms.save(sprites), OK)
+	var back: SpriteSet = Forms.reload_file(path) as SpriteSet
+	assert_eq(back.portraits.size(), 0)
+	assert_eq(back.anims.size(), 0)
+	assert_eq(Forms.snapshot(back), Forms.snapshot(sprites))
+
+func test_speaker_round_trip_keeps_the_art_reference() -> void:
+	var path: String = _copy("res://art/_exemplo/morador_a_exemplo.tres")
+	var speaker: SpeakerDef = _open(path) as SpeakerDef
+	speaker.display_name = "Morador Z"
+	assert_eq(Forms.save(speaker), OK)
+	var back: SpeakerDef = _fresh(path) as SpeakerDef
+	assert_eq(back.display_name, "Morador Z")
+	assert_eq(back.sprites.resource_path, "res://art/_exemplo/npc_exemplo.tres")
+	assert_eq(back.id, &"morador_a_exemplo")

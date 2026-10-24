@@ -16,11 +16,18 @@ static func headers(key: StringName) -> PackedStringArray:
 static func row(key: StringName, res: Resource) -> Dictionary:
 	var cells := PackedStringArray()
 	var display: Variant = res.get(&"display_name")
-	cells.append(str(res.get(&"id")))
+	cells.append(id_of(res))
 	cells.append(str(display) if display != null else "")
 	for c: Dictionary in Categories.get_category(key).get("columns", []):
 		cells.append(format_cell(res.get(c["prop"]), c["mode"]))
 	return {"path": res.resource_path, "id": cells[0], "name": cells[1], "cells": cells}
+
+## O id do recurso; quem não tem (a arte, `SpriteSet`) usa o nome do arquivo.
+static func id_of(res: Resource) -> String:
+	var raw: Variant = res.get(&"id")
+	if raw != null:
+		return str(raw)
+	return res.resource_path.get_file().get_basename() if res.resource_path != "" else ""
 
 static func rows(key: StringName, resources: Array) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []

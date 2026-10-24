@@ -27,6 +27,10 @@ signal status(text: String)
 signal saved(path: String)
 signal reverted(res: Resource)
 signal dirty_changed(dirty: bool)
+## "Editar arte": pede ao painel para abrir o `SpriteSet` no formulário de arte.
+signal sprites_requested(sprites: Resource)
+## Arquivos além do aberto que o Salvar gravou (os preços da loja vão nos itens e equipamentos).
+signal files_written(paths: PackedStringArray)
 
 ## A categoria do Banco (`heroes`, `enemies`, `encounters`) e o nome do tipo na tela.
 var kind: StringName = &""
@@ -158,7 +162,7 @@ func refresh_issues() -> void:
 		c.queue_free()
 	if res == null:
 		return
-	var issues: Array[ValidationIssue] = Forms.validate(res, siblings)
+	var issues: Array[ValidationIssue] = _find_issues()
 	if issues.is_empty():
 		_issues.add_child(_note("Validação: sem problemas.", COLOR_OK))
 		return
@@ -178,7 +182,7 @@ func rebuild() -> void:
 	for c: Node in _body.get_children():
 		_body.remove_child(c)
 		c.queue_free()
-	_title.text = "%s: %s" % [kind_label, str(res.get(&"id"))] if res != null else kind_label
+	_title.text = "%s: %s" % [kind_label, _res_name()] if res != null else kind_label
 	_path_label.text = res.resource_path if res != null else ""
 	if res != null:
 		var group: String = ""
@@ -187,8 +191,21 @@ func rebuild() -> void:
 				group = d["group"]
 				_body.add_child(_section(group))
 			_add_field(_body, res, d)
+			_after_field(_body, d)
 		_build_extra(_body)
 	refresh_issues()
+
+## Como o recurso aparece no título (o id; a arte, que não tem id, usa o nome do arquivo).
+func _res_name() -> String:
+	return str(res.get(&"id"))
+
+## Os achados que a faixa de validação mostra (a arte troca por os dela).
+func _find_issues() -> Array[ValidationIssue]:
+	return Forms.validate(res, siblings)
+
+## Gancho das subclasses: algo logo depois de cada campo (a prévia da arte vai junto dos campos dela).
+func _after_field(_box: VBoxContainer, _d: Dictionary) -> void:
+	pass
 
 ## Gancho das subclasses: algo depois dos campos.
 func _build_extra(_body_box: VBoxContainer) -> void:
@@ -209,14 +226,18 @@ func _section(text: String) -> Control:
 
 ## Um campo com o rótulo: ao lado para os simples, em cima para os que ocupam a largura toda.
 func _add_field(parent: Control, target: Resource, d: Dictionary) -> void:
-	var wide: bool = [Forms.T_REFS, Forms.T_NAMES, Forms.T_PCT_DICT, Forms.T_ROWS, Forms.T_SPRITES].has(d["type"])
+	var wide: bool = [Forms.T_REFS, Forms.T_NAMES, Forms.T_PCT_DICT, Forms.T_ROWS, Forms.T_SPRITES, Forms.T_ANIMS, Forms.T_PORTRAITS].has(d["type"])
 	var control: Control = control_for(target, d)
+	# os dicionários de % mostram a própria ajuda; nos demais campos a ajuda vem em cinza embaixo
+	var help: String = str(d.get("help", "")) if d["type"] != Forms.T_PCT_DICT else ""
 	if wide:
 		var box := VBoxContainer.new()
 		var l := Label.new()
 		l.text = d["label"]
 		box.add_child(l)
 		box.add_child(control)
+		if help != "":
+			box.add_child(_note(help, COLOR_MUTED))
 		parent.add_child(box)
 	else:
 		var row := HBoxContainer.new()
@@ -226,7 +247,13 @@ func _add_field(parent: Control, target: Resource, d: Dictionary) -> void:
 		row.add_child(l)
 		control.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		row.add_child(control)
-		parent.add_child(row)
+		if help != "":
+			var column := VBoxContainer.new()
+			column.add_child(row)
+			column.add_child(_note(help, COLOR_MUTED))
+			parent.add_child(column)
+		else:
+			parent.add_child(row)
 
 func _choices(source: StringName) -> Array[Dictionary]:
 	if not _choice_cache.has(source):
@@ -291,6 +318,29 @@ func control_for(target: Resource, d: Dictionary) -> Control:
 				target.set(prop, i)
 				touch())
 			return _left(o)
+		Forms.T_FLOAT:
+			var fs := SpinBox.new()
+			fs.min_value = d.get("min", 0.0)
+			fs.max_value = d.get("max", 9999.0)
+			fs.step = 0.01
+			fs.custom_arrow_step = 0.5
+			fs.value = float(target.get(prop))
+			fs.custom_minimum_size.x = 100
+			fs.value_changed.connect(func(v: float) -> void:
+				target.set(prop, v)
+				touch())
+			return _left(fs)
+		Forms.T_CHOICE:
+			return _choice_control(target, d)
+		Forms.T_VEC2I:
+			return _vec2i_control(target, prop)
+		Forms.T_TEXTURE:
+			var tp: Control = ResourcePicker.new()
+			tp.call(&"setup", _choices(d["source"]), target.get(prop))
+			tp.connect(&"picked", func(v: Variant) -> void:
+				target.set(prop, v)
+				touch())
+			return tp
 		Forms.T_STATS:
 			return _stats_control(target, prop)
 		Forms.T_REF:
@@ -321,6 +371,53 @@ func _left(c: Control) -> Control:
 	c.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	box.add_child(c)
 	return box
+
+## Um valor de uma lista fixa (`d["choices"]`: `[{value, label}]`). O valor atual que não está na lista aparece à parte.
+func _choice_control(target: Resource, d: Dictionary) -> Control:
+	var prop: StringName = d["prop"]
+	var options: Array = d["choices"]
+	var o := OptionButton.new()
+	var current: Variant = target.get(prop)
+	var at: int = -1
+	for i: int in options.size():
+		o.add_item(options[i]["label"])
+		if options[i]["value"] == current:
+			at = i
+	if at == -1:
+		o.add_item("%s (fora da lista)" % str(current))
+		at = options.size()
+	o.select(at)
+	o.item_selected.connect(func(i: int) -> void:
+		if i >= options.size():
+			return
+		target.set(prop, options[i]["value"])
+		touch())
+	return _left(o)
+
+## Largura e altura em pixels (dois campos).
+func _vec2i_control(target: Resource, prop: StringName) -> Control:
+	var box := HBoxContainer.new()
+	var current: Vector2i = target.get(prop)
+	var spins: Array[SpinBox] = []
+	for value: int in [current.x, current.y]:
+		var s := SpinBox.new()
+		s.min_value = 0
+		s.max_value = 4096
+		s.step = 1
+		s.value = value
+		s.custom_minimum_size.x = 90
+		spins.append(s)
+	var apply: Callable = func(_v: float) -> void:
+		target.set(prop, Vector2i(int(spins[0].value), int(spins[1].value)))
+		touch()
+	spins[0].value_changed.connect(apply)
+	spins[1].value_changed.connect(apply)
+	box.add_child(spins[0])
+	var times := Label.new()
+	times.text = " × "
+	box.add_child(times)
+	box.add_child(spins[1])
+	return _left(box)
 
 func _stats_control(target: Resource, prop: StringName) -> Control:
 	var stats: Resource = target.get(prop)
@@ -358,13 +455,19 @@ func _names_control(target: Resource, d: Dictionary) -> Control:
 	var arr: Array = target.get(d["prop"])
 	var flow := HFlowContainer.new()
 	flow.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var ids: Array[StringName] = Forms.choice_ids(_choices(d["source"]))
+	var options: Array[Dictionary] = _choices(d["source"])
+	var ids: Array[StringName] = Forms.choice_ids(options)
+	var labels: Dictionary = {}
+	for o: Dictionary in options:
+		labels[o["id"]] = o["label"]
 	for v: Variant in arr:
 		if not ids.has(v):
 			ids.append(v)
 	for id: StringName in ids:
 		var c := CheckBox.new()
-		c.text = String(id)
+		# estados e heróis aparecem pelo nome (em português), com o id na dica; o que está no recurso mas não na lista, pelo id
+		c.text = str(labels.get(id, String(id)))
+		c.tooltip_text = String(id)
 		c.button_pressed = arr.has(id)
 		c.toggled.connect(func(on: bool) -> void:
 			Forms.names_toggle(arr, id, on)
@@ -384,7 +487,17 @@ func _sprites_control(target: Resource, d: Dictionary) -> Control:
 		target.set(prop, v)
 		preview.call(&"show_sprites", v)
 		touch())
-	box.add_child(p)
+	var edit := Button.new()
+	edit.text = "Editar arte…"
+	edit.tooltip_text = "Abre este SpriteSet no formulário de arte (aba Arte)"
+	edit.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	edit.disabled = target.get(prop) == null
+	edit.pressed.connect(func() -> void: sprites_requested.emit(target.get(prop)))
+	p.connect(&"picked", func(v: Variant) -> void: edit.disabled = v == null)
+	var line := HBoxContainer.new()
+	line.add_child(p)
+	line.add_child(edit)
+	box.add_child(line)
 	box.add_child(preview)
 	preview.call(&"show_sprites", target.get(prop))
 	return box
@@ -431,7 +544,21 @@ func _row_control(row_kind: StringName, item: Resource) -> Control:
 			_wire_drop(item as DropEntry, controls)
 		Forms.ROW_LEARN:
 			_wire_learn(item as LearnEntry, controls)
+		Forms.ROW_EFFECT:
+			_wire_kind_visibility(item, controls, Forms.effect_column_visible)
+		Forms.ROW_PASSIVE:
+			_wire_kind_visibility(item, controls, Forms.passive_column_visible)
 	return flow
+
+## As colunas que o tipo escolhido não usa ficam escondidas (`visible_for(tipo, coluna) -> bool`, de `Forms`).
+func _wire_kind_visibility(item: Resource, controls: Dictionary, visible_for: Callable) -> void:
+	var opt: OptionButton = _find_first(controls[&"kind"], "OptionButton") as OptionButton
+	var apply: Callable = func(kind: int) -> void:
+		for prop: Variant in controls:
+			if prop != &"kind":
+				(controls[prop] as Control).visible = visible_for.call(kind, prop)
+	apply.call(int(item.get(&"kind")))
+	opt.item_selected.connect(apply)
 
 ## O limiar de HP só vale para "Aliado com HP abaixo de".
 func _wire_ai_rule(rule: AiRule, controls: Dictionary) -> void:

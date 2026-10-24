@@ -10,7 +10,8 @@ extends EditorPlugin
 ## Na aba Mundo: `--vat-tests` mostra também os mapas de teste.
 ## Na aba Banco: `--vat-sub=<categoria>` (a chave, como `heroes`, `enemies`, `encounters`, ou o rótulo) escolhe a categoria e
 ## `--vat-pick=<id>` abre esse item no formulário; `--vat-scroll=<px,px,...>` salva mais uma imagem (`<arquivo>_s1.png`, ...)
-## com o formulário rolado a cada posição (o formulário é mais alto que a tela).
+## com o formulário rolado a cada posição (o formulário é mais alto que a tela). Na categoria Arte, `--vat-art-wizard=<res://...png>`
+## abre o assistente "Criar a partir de uma imagem" com essa imagem (a janela dele vai para `<arquivo>_assistente.png`).
 ## Na aba Roteiros: `--vat-sub=Lista|Editor|Simular` escolhe a sub-vista, `--vat-event=<id>` abre esse evento (no primeiro
 ## arquivo que o tem) e `--vat-answers=<0,1,..>` roda a simulação com essas respostas (no Simular).
 ## `--vat-open-scene=<res://...tscn>` abre a cena na tela 2D (a paleta de objetos aparece), `--vat-select=<caminho do nó>` seleciona
@@ -32,6 +33,7 @@ const OPEN_SCENE_FLAG: String = "--vat-open-scene="
 const SELECT_FLAG: String = "--vat-select="
 const ADD_FLAG: String = "--vat-add="
 const TESTS_FLAG: String = "--vat-tests"
+const ART_WIZARD_FLAG: String = "--vat-art-wizard="
 
 var _roteiro_importer: EditorImportPlugin
 var _panel: Control
@@ -125,6 +127,7 @@ func _capture_if_asked() -> void:
 	var select_path: String = ""
 	var add_id: String = ""
 	var with_tests: bool = false
+	var art_wizard: String = ""
 	for a: String in OS.get_cmdline_user_args():
 		if a.begins_with(CAPTURE_FLAG):
 			out = a.trim_prefix(CAPTURE_FLAG)
@@ -149,6 +152,8 @@ func _capture_if_asked() -> void:
 			add_id = a.trim_prefix(ADD_FLAG)
 		elif a == TESTS_FLAG:
 			with_tests = true
+		elif a.begins_with(ART_WIZARD_FLAG):
+			art_wizard = a.trim_prefix(ART_WIZARD_FLAG)
 		elif a == WIZARD_FLAG or a.begins_with(WIZARD_FLAG + "="):
 			wizard = true
 			tab = "Mapas"
@@ -169,6 +174,8 @@ func _capture_if_asked() -> void:
 			tabs.current_tab = i
 	if tab == "Banco" and (sub != "" or pick != ""):
 		_panel.show_bank(sub, pick)
+	if art_wizard != "":
+		_panel.show_art_wizard(art_wizard)
 	if tab == "Mapas":
 		_panel.show_maps(wizard, wizard_id)
 	if tab == "Mundo":
@@ -182,6 +189,9 @@ func _capture_if_asked() -> void:
 	var img: Image = EditorInterface.get_base_control().get_viewport().get_texture().get_image()
 	var err: Error = img.save_png(out)
 	print("vat-capture: %s (%d)" % [out, err])
+	var report: String = _panel.form_report()
+	if report != "":
+		print("vat-capture: formulário: %s" % report)
 	for i: int in scrolls.size():
 		_panel.call(&"scroll_form", int(scrolls[i]))
 		for f: int in 20:
@@ -189,6 +199,9 @@ func _capture_if_asked() -> void:
 		var more: Image = EditorInterface.get_base_control().get_viewport().get_texture().get_image()
 		var more_out: String = "%s_s%d.png" % [out.get_basename(), i + 1]
 		print("vat-capture: %s (%d)" % [more_out, more.save_png(more_out)])
+	if art_wizard != "":
+		var art_dlg: Image = _panel.art_wizard_image()
+		print("vat-capture (assistente de arte): %d" % art_dlg.save_png(out.get_basename() + "_assistente.png"))
 	if wizard:
 		# O diálogo é uma janela própria no editor: a captura da janela principal não o mostra, então grava a dele ao lado.
 		var dlg: Image = _panel.maps_panel.wizard.get_texture().get_image()

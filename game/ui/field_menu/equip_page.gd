@@ -13,16 +13,8 @@ const PREVIEW_LABELS: Dictionary[StringName, String] = {
 const WEAPON_TYPE_LABELS: Dictionary[StringName, String] = {
 	&"blade": "Lâmina", &"staff": "Bastão", &"bow": "Arco",
 }
-## Nome exibido dos estados (StatusDef não tem nome); ids genéricos em inglês e português.
-const STATUS_NAMES: Dictionary[StringName, String] = {
-	&"poison": "Veneno", &"veneno": "Veneno", &"sleep": "Sono", &"sono": "Sono",
-	&"paralysis": "Paralisia", &"paralisia": "Paralisia", &"haste": "Pressa", &"pressa": "Pressa",
-	&"slow": "Lentidão", &"lentidao": "Lentidão", &"barrier": "Barreira", &"barreira": "Barreira",
-	&"bleed": "Sangramento", &"sangramento": "Sangramento",
-	&"burn": "Queimadura", &"freeze": "Congelado", &"wet": "Molhado", &"petrify": "Petrificação",
-	&"doom": "Contagem", &"taunt": "Provocar", &"berserk": "Berserk", &"reflect": "Reflexo",
-	&"confusion": "Confusão", &"silence": "Silêncio", &"blind": "Cegueira", &"stop": "Pare", &"regen": "Regeneração",
-}
+## Nome exibido dos estados (StatusDef não tem nome): o mapa fica em `StatusNames`, que o editor do painel VAT também usa.
+const STATUS_NAMES: Dictionary[StringName, String] = StatusNames.NAMES
 const UP_COLOR: Color = Color(0.45, 0.95, 0.45)
 const DOWN_COLOR: Color = Color(1.0, 0.45, 0.45)
 const REMOVE_TEXT: String = "Remover"
@@ -109,7 +101,7 @@ static func slot_line(h: HeroState, s: StringName) -> String:
 	return line
 
 static func status_name(id: StringName) -> String:
-	return STATUS_NAMES.get(id, String(id).capitalize())
+	return StatusNames.name_of(id)
 
 ## "Passivos: Imune a Sono, Resiste a Veneno 50%, Começa com Pressa" (ou "Passivos: —").
 static func passives_line(equipment: Dictionary[StringName, EquipmentDef]) -> String:
