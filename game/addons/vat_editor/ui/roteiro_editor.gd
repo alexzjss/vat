@@ -320,6 +320,13 @@ func _handle_selection(path: String, event: int) -> void:
 	elif session == null or path != session.path:
 		_guard_switch(true, func() -> void: open_file(path), _restore_selection)
 
+## Abre o arquivo e o evento pedidos de fora (o Inspector). Com edição não salva em outro arquivo, a confirmação decide.
+func open_event_guarded(path: String, event_id: String) -> void:
+	if session != null and session.path == path:
+		select_event(path, event_id)
+		return
+	_guard_switch(true, func() -> void: select_event(path, event_id), func() -> void: pass)
+
 func _restore_selection() -> void:
 	_select_in_tree()
 

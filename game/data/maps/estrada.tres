@@ -8,4 +8,4 @@ script = ExtResource("1_def")
 id = &"estrada"
 display_name = "estrada"
 scene = ExtResource("2_scene")
-kind = 3
+kind = 2

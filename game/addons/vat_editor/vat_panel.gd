@@ -380,6 +380,17 @@ func show_roteiro(sub: String, event_id: String = "", answers: String = "") -> v
 			simulator.set_answers(answers)
 			await simulator.run_simulation()
 
+## "Abrir no editor de blocos" do Inspector: Roteiros > Editor com o arquivo e o evento.
+func open_roteiro_event(path: String, event_id: String) -> void:
+	for i: int in tabs.get_tab_count():
+		if tabs.get_tab_title(i) == "Roteiros":
+			tabs.current_tab = i
+	for i: int in roteiro_sub.get_tab_count():
+		if roteiro_sub.get_tab_title(i) == "Editor":
+			roteiro_sub.current_tab = i
+	roteiro_editor.ensure_loaded()
+	roteiro_editor.open_event_guarded(path, event_id)
+
 func _scan_roteiros() -> void:
 	roteiro_tree.clear()
 	var root: TreeItem = roteiro_tree.create_item()
