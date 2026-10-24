@@ -119,18 +119,18 @@ func test_every_event_runs_to_the_end_without_aborting() -> void:
 
 func test_new_maps_are_registered() -> void:
 	for id: StringName in NEW_MAPS:
-		assert_true(Game.MAPS.has(id), "MAPS tem %s" % id)
+		assert_true(Game.default_registry().has(id), "MAPS tem %s" % id)
 
 func test_start_profile_map_and_spawn_exist() -> void:
 	var p: StartProfile = load(DATA + "/start.tres") as StartProfile
-	assert_true(Game.MAPS.has(p.map))
-	var scene: Node = (Game.MAPS[p.map] as PackedScene).instantiate()
+	assert_true(Game.default_registry().has(p.map))
+	var scene: Node = (Game.default_registry().scene_of(p.map) as PackedScene).instantiate()
 	assert_true(scene.get_node_or_null(NodePath(String(p.spawn))) is Marker2D, "spawn de início existe")
 	scene.free()
 
 func test_every_new_map_has_the_basics() -> void:
 	for id: StringName in NEW_MAPS:
-		var scene: Node = (Game.MAPS[id] as PackedScene).instantiate()
+		var scene: Node = (Game.default_registry().scene_of(id) as PackedScene).instantiate()
 		assert_not_null(scene.get_node_or_null(^"Player"), "%s: Player" % id)
 		assert_not_null(scene.get_node_or_null(^"MapCamera"), "%s: MapCamera" % id)
 		if scene is LocalMap:
@@ -141,7 +141,7 @@ func test_every_new_map_has_the_basics() -> void:
 		scene.free()
 
 func test_shops_and_inn_are_wired() -> void:
-	var city: Node = (Game.MAPS[&"cidade"] as PackedScene).instantiate()
+	var city: Node = (Game.default_registry().scene_of(&"cidade") as PackedScene).instantiate()
 	var keepers: Array[Node] = city.find_children("*", "Area2D", true, false).filter(func(n: Node) -> bool: return n is ShopKeeper)
 	assert_eq(keepers.size(), 1)
 	var shop: ShopDef = (keepers[0] as ShopKeeper).shop
@@ -159,7 +159,7 @@ func test_shops_and_inn_are_wired() -> void:
 	city.free()
 
 func test_town_has_residents_and_houses() -> void:
-	var city: Node = (Game.MAPS[&"cidade"] as PackedScene).instantiate()
+	var city: Node = (Game.default_registry().scene_of(&"cidade") as PackedScene).instantiate()
 	var npcs: int = 0
 	var with_choice: int = 0
 	for n: Node in city.find_children("*", "Area2D", true, false):
@@ -249,7 +249,7 @@ func test_route_town_to_dungeon_floor_two_and_back() -> void:
 
 func test_enemy_huds_do_not_overlap_in_the_slice_arenas() -> void:
 	for map_id: StringName in [&"estrada", &"dungeon_1", &"dungeon_2"]:
-		var scene: Node = (Game.MAPS[map_id] as PackedScene).instantiate()
+		var scene: Node = (Game.default_registry().scene_of(map_id) as PackedScene).instantiate()
 		var arena: Node2D = scene.get_node("Arena") as Node2D
 		var rects: Array[Rect2] = []
 		for i: int in range(1, 5):
@@ -261,7 +261,7 @@ func test_enemy_huds_do_not_overlap_in_the_slice_arenas() -> void:
 		scene.free()
 
 func test_overworld_pass_is_blocked_except_through_the_road() -> void:
-	var world: Node = (Game.MAPS[&"overworld_fatia"] as PackedScene).instantiate()
+	var world: Node = (Game.default_registry().scene_of(&"overworld_fatia") as PackedScene).instantiate()
 	var ids: Array[StringName] = []
 	for z: Node in world.find_children("*", "Area2D", true, false):
 		ids.append((z as Zone).zone_id)
@@ -412,7 +412,7 @@ func test_recruit_e_goes_to_reserve_when_active_is_full() -> void:
 	assert_eq(game.state.roster().size(), 5, "só uma vez")
 
 func test_recruit_d_npc_is_in_house_two_and_e_in_the_dungeon() -> void:
-	var casa2: Node = (Game.MAPS[&"casa_2"] as PackedScene).instantiate()
+	var casa2: Node = (Game.default_registry().scene_of(&"casa_2") as PackedScene).instantiate()
 	var has_recruit: bool = false
 	for n: Node in casa2.find_children("*", "Area2D", true, false):
 		var npc: Npc = n as Npc
@@ -422,7 +422,7 @@ func test_recruit_d_npc_is_in_house_two_and_e_in_the_dungeon() -> void:
 					has_recruit = true
 	assert_true(has_recruit, "evento de recrutamento do D na casa 2")
 	casa2.free()
-	var d1: Node = (Game.MAPS[&"dungeon_1"] as PackedScene).instantiate()
+	var d1: Node = (Game.default_registry().scene_of(&"dungeon_1") as PackedScene).instantiate()
 	var trig: EventTrigger = d1.get_node("CenaETrigger") as EventTrigger
 	var found: bool = false
 	for s: EventStep in trig.effective_event().steps:
@@ -433,7 +433,7 @@ func test_recruit_d_npc_is_in_house_two_and_e_in_the_dungeon() -> void:
 	d1.free()
 
 func test_house_chest_is_in_one_house() -> void:
-	var casa1: Node = (Game.MAPS[&"casa_1"] as PackedScene).instantiate()
+	var casa1: Node = (Game.default_registry().scene_of(&"casa_1") as PackedScene).instantiate()
 	var chests: int = casa1.find_children("*", "Area2D", true, false).filter(func(n: Node) -> bool: return n is Chest).size()
 	assert_eq(chests, 1)
 	casa1.free()
@@ -494,7 +494,7 @@ func test_two_switch_puzzle_opens_only_with_both_flags() -> void:
 	assert_true(pass_open.call(), "A e B: aberto")
 
 func test_floor_two_rest_point_comes_before_the_boss() -> void:
-	var d2: Node = (Game.MAPS[&"dungeon_2"] as PackedScene).instantiate()
+	var d2: Node = (Game.default_registry().scene_of(&"dungeon_2") as PackedScene).instantiate()
 	var rest: Node2D = d2.get_node("RestPoint") as Node2D
 	var boss: Node2D = d2.get_node("Boss") as Node2D
 	var gate: Node2D = d2.get_node("CenaChefeTrigger") as Node2D

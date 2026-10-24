@@ -23,6 +23,7 @@ static func run(b: ContentBundle) -> Array[ValidationIssue]:
 	out.append_array(sprite_sets(res))
 	out.append_array(missing_battle_art(res))
 	out.append_array(roteiro_refs(b.roteiro_refs))
+	out.append_array(MapChecks.registry(res))
 	out.append_array(MapChecks.links(b.maps))
 	out.append_array(MapChecks.profiles(res, b.maps))
 	return out

@@ -39,23 +39,11 @@ const FATIA_DEMO_FLAG: String = "--demo-fatia"
 ## Flag gravada no "clear save" ao chegar à tela de fim.
 const FLAG_CONCLUDED: StringName = &"fatia_concluida"
 
-const MAPS: Dictionary[StringName, PackedScene] = {
-	&"overworld": preload("res://world/overworld.tscn"),
-	&"area_teste": preload("res://world/local_map.tscn"),
-	&"dungeon_teste": preload("res://world/dungeon_teste.tscn"),
-	# Fatia vertical (M12). Saem do mapa por MapLink (sem $Exit), então não há entradas em EXIT_SPAWNS.
-	&"cidade": preload("res://world/fatia/cidade.tscn"),
-	&"casa_1": preload("res://world/fatia/casa_1.tscn"),
-	&"casa_2": preload("res://world/fatia/casa_2.tscn"),
-	&"overworld_fatia": preload("res://world/fatia/overworld_fatia.tscn"),
-	&"estrada": preload("res://world/fatia/estrada.tscn"),
-	&"dungeon_1": preload("res://world/fatia/dungeon_1.tscn"),
-	&"dungeon_2": preload("res://world/fatia/dungeon_2.tscn"),
-}
+## Lista dos mapas em dados (M17): ids, cenas e marcadores de saída. A constante `MAPS` virou o registro.
+const DEFAULT_REGISTRY_PATH: String = "res://data/maps/registro.tres"
 
-## Marcador do mapa-múndi onde o jogador reaparece ao sair de cada área.
-const EXIT_SPAWNS: Dictionary[StringName, StringName] = {&"area_teste": &"AreaTesteReturn", &"dungeon_teste": &"DungeonReturn"}
-
+## Registro de mapas (null = o padrão, `DEFAULT_REGISTRY_PATH`).
+@export var map_registry: MapRegistry
 @export var balance: BalanceConfig
 ## Perfil do Novo jogo (grupo, itens, moeda, mapa e spawn iniciais).
 @export var start_profile: StartProfile
@@ -74,8 +62,8 @@ var save_dir: String = "user://"
 var skip_title: bool = false
 ## Usar `test_profile` no Novo jogo (ligado por qualquer flag --demo-*, exceto --demo-fatia).
 var use_test_profile: bool = false
-## Mapas conhecidos (cópia de MAPS; testes podem acrescentar mapas).
-var maps: Dictionary[StringName, PackedScene] = MAPS.duplicate()
+## Mapas conhecidos (vindos do registro ao entrar na árvore; testes podem acrescentar ou trocar mapas antes disso).
+var maps: Dictionary[StringName, PackedScene] = {}
 ## Último slot de save usado (salvar ou continuar); 0 = nenhum.
 var last_slot: int = 0
 var state: GameState
@@ -101,6 +89,17 @@ var game_over_screen: GameOverScreen
 var end_screen: EndScreen
 
 static var _registry_cache: DefRegistry
+static var _map_registry_cache: MapRegistry
+
+## O registro de mapas padrão (`data/maps/registro.tres`); quem usava a constante `Game.MAPS` lê daqui.
+static func default_registry() -> MapRegistry:
+	if _map_registry_cache == null:
+		_map_registry_cache = load(DEFAULT_REGISTRY_PATH) as MapRegistry
+	return _map_registry_cache
+
+## Marcador do mapa-múndi onde o jogador reaparece ao sair de `map` pelo `$Exit` ("Start" se o mapa não declara um).
+func exit_spawn_of(map: StringName) -> StringName:
+	return map_registry.exit_spawns().get(map, &"Start")
 
 @onready var fade: Fade = $Fade
 @onready var menu: FieldMenu = $FieldMenu
@@ -109,6 +108,12 @@ func _ready() -> void:
 	if _registry_cache == null:
 		_registry_cache = SaveStore.build_registry()
 	registry = _registry_cache
+	if map_registry == null:
+		map_registry = default_registry()
+	var from_registry: Dictionary[StringName, PackedScene] = map_registry.scenes()
+	for map_id: StringName in from_registry:
+		if not maps.has(map_id):
+			maps[map_id] = from_registry[map_id]
 	var args: PackedStringArray = user_args
 	use_test_profile = uses_test_profile(args)
 	var dev: Dictionary = {} if is_demo(args) else parse_dev_flags(args)
@@ -511,7 +516,7 @@ func _on_rest_closed() -> void:
 func _on_exit_requested() -> void:
 	if busy:
 		return
-	go_to(&"overworld", EXIT_SPAWNS.get(current_map, &"Start"))
+	go_to(&"overworld", exit_spawn_of(current_map))
 
 ## Uma ligação de mapa (MapLink) do mapa atual foi pisada.
 func _on_link_requested(target_map: StringName, target_spawn: StringName) -> void:

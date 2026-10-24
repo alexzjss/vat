@@ -266,7 +266,7 @@ func test_battle_args() -> void:
 	assert_eq(RunArgs.to_setting(PackedStringArray()), "")
 
 func test_markers_come_from_the_scene_and_feed_the_args() -> void:
-	var markers: Array[StringName] = RunArgs.markers_of(Game.MAPS[&"cidade"])
+	var markers: Array[StringName] = RunArgs.markers_of(Game.default_registry().scene_of(&"cidade"))
 	assert_false(markers.is_empty())
 	for m: StringName in markers:
 		assert_true(RunArgs.play_map(&"cidade", m)[1].ends_with(String(m)))

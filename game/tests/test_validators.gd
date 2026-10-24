@@ -342,7 +342,7 @@ func test_start_profile_must_point_to_an_existing_spawn() -> void:
 	assert_eq(MapChecks.profiles([p], _maps([] as Array[Dictionary])).size(), 0)
 
 func test_scan_map_collects_markers_links_and_exit() -> void:
-	var packed: PackedScene = Game.MAPS[&"cidade"]
+	var packed: PackedScene = Game.default_registry().scene_of(&"cidade")
 	var scene: Node = packed.instantiate()
 	var info: Dictionary = ContentLoader.scan_map(&"cidade", packed.resource_path, scene)
 	scene.free()
@@ -422,7 +422,7 @@ func test_real_content_has_no_errors() -> void:
 
 func test_real_content_covers_every_map_and_the_roteiros() -> void:
 	var b: ContentBundle = ContentLoader.load_all()
-	assert_eq(b.maps.size(), Game.MAPS.size())
+	assert_eq(b.maps.size(), Game.default_registry().ids().size())
 	assert_gte(b.roteiros.size(), 3)
 	assert_gt(b.of_type(CharacterDef).size(), 4)
 	assert_eq(ContentChecks.run(b).size(), Validator.run_all().size())

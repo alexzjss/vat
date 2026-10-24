@@ -2,7 +2,7 @@ class_name ContentLoader
 extends RefCounted
 
 ## Junta o conteúdo do disco num [ContentBundle] (M16): `.tres` de `res://data` e `res://art`, os `.roteiro` e um
-## resumo de cada mapa de [constant Game.MAPS]. Faz IO, por isso mora em tools/ e não em core/.
+## resumo de cada mapa do [MapRegistry] ([method Game.default_registry]). Faz IO, por isso mora em tools/ e não em core/.
 
 const RESOURCE_ROOTS: Array[String] = ["res://data", "res://art"]
 const SKIP_DIRS: Array[String] = [".godot", "addons", ".git"]
@@ -19,8 +19,9 @@ static func load_all() -> ContentBundle:
 	for path: String in RoteiroTools.find_roteiros("res://"):
 		var f: FileAccess = FileAccess.open(path, FileAccess.READ)
 		b.roteiros[path] = f.get_as_text() if f != null else ""
-	for map_id: StringName in Game.MAPS:
-		var packed: PackedScene = Game.MAPS[map_id]
+	var map_scenes: Dictionary[StringName, PackedScene] = Game.default_registry().scenes()
+	for map_id: StringName in map_scenes:
+		var packed: PackedScene = map_scenes[map_id]
 		var scene: Node = packed.instantiate()
 		b.maps[map_id] = scan_map(map_id, packed.resource_path, scene)
 		b.roteiro_refs.append_array(roteiro_refs(map_id, packed.resource_path, scene))
@@ -52,7 +53,7 @@ static func scan_map(map_id: StringName, path: String, scene: Node) -> Dictionar
 			refs.append(ContentBundle.map_ref("ponto de descanso %s" % rest.name, map_id, rest.spawn_name))
 	var local: LocalMap = scene as LocalMap
 	if local != null and local.get_node_or_null(^"Exit") != null:
-		refs.append(ContentBundle.map_ref("saída", &"overworld", Game.EXIT_SPAWNS.get(map_id, &"Start")))
+		refs.append(ContentBundle.map_ref("saída", &"overworld", Game.default_registry().exit_spawns().get(map_id, &"Start")))
 	return ContentBundle.map_info(path, markers, refs)
 
 ## Cada nó (a raiz inclusa) com a propriedade `roteiro`: livro, caminho e `event_id`. Livro nulo = o `.roteiro` não carregou.

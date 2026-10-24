@@ -524,7 +524,7 @@ func _build_test() -> void:
 	page.add_child(row)
 	map_option = OptionButton.new()
 	var map_ids: Array[String] = []
-	for k: StringName in Game.MAPS:
+	for k: StringName in Game.default_registry().ids():
 		map_ids.append(String(k))
 	map_ids.sort()
 	for m: String in map_ids:
@@ -561,7 +561,7 @@ func _fill_spawns() -> void:
 	spawn_option.clear()
 	spawn_option.add_item("(padrão)")
 	var map_id := StringName(map_option.get_item_text(map_option.selected))
-	for m: StringName in RunArgs.markers_of(Game.MAPS.get(map_id)):
+	for m: StringName in RunArgs.markers_of(Game.default_registry().scene_of(map_id)):
 		spawn_option.add_item(String(m))
 
 func _fill_encounters() -> void:

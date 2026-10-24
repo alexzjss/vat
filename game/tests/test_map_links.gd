@@ -1,6 +1,6 @@
 extends GutTest
 
-## Ligações entre mapas (M12): MapLink, save/load em interiores, tela de fim e a varredura de todos os mapas de Game.MAPS.
+## Ligações entre mapas (M12): MapLink, save/load em interiores, tela de fim e a varredura de todos os mapas do registro.
 
 const SCENE: String = "res://world/game.tscn"
 const TMP: String = "user://test_saves/"
@@ -271,15 +271,15 @@ func _find_all(root: Node, type: String) -> Array[Node]:
 	return root.find_children("*", type, true, false)
 
 func _scene_of(map_id: StringName) -> Node:
-	return (Game.MAPS[map_id] as PackedScene).instantiate()
+	return (Game.default_registry().scene_of(map_id) as PackedScene).instantiate()
 
 ## A varredura mora em MapChecks.links (M16); o ContentLoader resume cada mapa (ligacoes, zonas, saidas, pousadas, descansos).
 func test_every_map_link_exit_and_zone_points_to_an_existing_spawn() -> void:
-	assert_gt(Game.MAPS.size(), 0)
+	assert_gt(Game.default_registry().ids().size(), 0)
 	var maps: Dictionary[StringName, Dictionary] = {}
 	var total_refs: int = 0
-	for map_id: StringName in Game.MAPS:
-		var packed: PackedScene = Game.MAPS[map_id]
+	for map_id: StringName in Game.default_registry().ids():
+		var packed: PackedScene = Game.default_registry().scene_of(map_id)
 		var scene: Node = packed.instantiate()
 		maps[map_id] = ContentLoader.scan_map(map_id, packed.resource_path, scene)
 		total_refs += (maps[map_id]["refs"] as Array).size()
@@ -289,8 +289,8 @@ func test_every_map_link_exit_and_zone_points_to_an_existing_spawn() -> void:
 	assert_eq(issues.size(), 0, "\n".join(issues.map(func(i: ValidationIssue) -> String: return i.to_text())))
 
 func _assert_target(from_map: StringName, what: String, target_map: StringName, target_spawn: StringName) -> void:
-	assert_true(Game.MAPS.has(target_map), "%s: %s -> mapa '%s' existe" % [from_map, what, target_map])
-	if not Game.MAPS.has(target_map):
+	assert_true(Game.default_registry().has(target_map), "%s: %s -> mapa '%s' existe" % [from_map, what, target_map])
+	if not Game.default_registry().has(target_map):
 		return
 	var target: Node = _scene_of(target_map)
 	var marker: Node = target.get_node_or_null(NodePath(String(target_spawn)))
