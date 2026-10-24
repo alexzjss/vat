@@ -1,6 +1,6 @@
 # Roteiro de desenvolvimento — núcleo, mecânicas e gameplay
 
-> **Data:** 2026-10-18 · **Estado:** M1 a M15 prontos (M15 são os estados, o mundo e o bestiário, concluídos em 2026-10-22; M14 são as marcas e reações, concluídas em 2026-10-22; M13 são os elementos, concluídos em 2026-10-22; M12 é a fatia vertical, concluída em 2026-10-21). A base de mecânicas vem do M1 ao M11; o M12 junta tudo numa fatia jogável.
+> **Data:** 2026-10-18 · **Estado:** M1 a M16 prontos (M16 são as ferramentas de criação, concluídas em 2026-10-22; M15 são os estados, o mundo e o bestiário, concluídos em 2026-10-22; M14 são as marcas e reações, concluídas em 2026-10-22; M13 são os elementos, concluídos em 2026-10-22; M12 é a fatia vertical, concluída em 2026-10-21). A base de mecânicas vem do M1 ao M11; o M12 junta tudo numa fatia jogável.
 > **Foco:** continuar construindo **sistemas** (regras, mecânicas, ciclo de jogo) com formas simples, sem arte nem conteúdo narrativo. Cada item vira um marco com design → plano → implementação → revisão, como no M1 e no M2.
 > **Como usar:** escolha os itens que quer; a ordem recomendada está no fim. Itens marcados **(spec)** já existem como regra confirmada ou proposta na spec do jogo e só faltam implementar; **(novo)** são ideias que ainda não estão na spec.
 
@@ -181,7 +181,28 @@ Entregue: corrida e grupo em fila (Shift/X), fuga segurando Q (barra, sem XP, ch
   - Confusão ignora Provocar.
   - Inimigo Raro F, com Contagem, é opcional no andar 2 (parado num canto, fora da rota).
 - Pergunta em aberto para o usuário: as reações ainda não aceleram o chefe (17,2 s com reações contra 17,7 s sem), porque o núcleo continua protegido pelos Braços. As reações devem contar contra o chefe?
-- **Próximo marco: M16 — Ferramentas de criação.** Plugin do editor do Godot, roteiro em texto para a narrativa e pipeline de arte 32×32.
+**M16 — Ferramentas de criação** · **Concluído** (2026-10-22) · plano [`m16-ferramentas`](../.claude/plans/2026-10-22-m16-ferramentas.md)
+- Entregue:
+  - Roteiro em texto (`.roteiro`) que compila para os eventos que o jogo já executa; os eventos da fatia estão em `data/fatia/roteiro/`.
+  - Plugin VAT no editor do Godot, com as abas Banco, Roteiros, Validar e Testar.
+  - Pipeline de arte: `SpriteSet` com mapa (32×48), batalha (64×64) e retratos (96×96), usado no mapa, na batalha e no diálogo.
+  - Tiles 32×32 nos 7 mapas da fatia, com a colisão no próprio tileset.
+  - Validadores de conteúdo e flags de desenvolvimento (`--start-map`, `--spawn`, `--battle`, `--level`).
+- Notas:
+  - Escolhas mantêm o falante da pergunta.
+  - `@curar` usa porcentagem (1 a 100, padrão 100).
+  - Testar e Validar rodam em processo separado: `main_run_args` não passa argumentos no Godot 4.7, então o painel abre o jogo com os flags.
+  - `data/test` fica fora dos avisos de arte.
+  - Braço e Guardião de teste ganharam imunidade a Contagem e Petrificação (regra de chefes).
+  - Flag usada sem `@flag` é aviso, não erro, como o compilador já faz; o plano previa erro no validador estrito.
+
+## Próximos passos (em aberto, para o usuário)
+- História e roteiro de verdade: trocar os textos placeholder pelos diálogos finais.
+- Arte final: substituir os placeholders de tiles, sprites de mapa e batalha, e retratos.
+- Áudio: músicas e efeitos, que ainda não existem no projeto.
+- Mais mapas e capítulos, usando o tileset e o roteiro.
+- Autotile para os terrenos.
+- Em aberto: as reações devem contar contra o chefe? (pergunta do M15, ainda sem resposta.)
 
 ## Ordem recomendada (original)
 

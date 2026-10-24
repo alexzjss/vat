@@ -2,7 +2,7 @@
 
 Prototipo de um RPG com combate em tempo real por barra de ATB, feito em Godot 4 com GDScript tipado e placeholders geometricos. Nao ha conteudo narrativo; personagens, inimigos e lugares sao genericos.
 
-O marco atual é o M15, estados, mundo e bestiário (seção [Estados, mundo e bestiário (M15)](#estados-mundo-e-bestiário-m15)). Antes dele, o M14 trouxe as marcas e reações (seção [Marcas e reações (M14)](#marcas-e-reações-m14)) e o M13 os elementos (seção [Elementos (M13)](#elementos-m13)). Antes deles, o M12 entregou a fatia vertical: o **Novo jogo** agora percorre uma demo jogável de ponta a ponta (cidade, mapa-múndi, estrada com encontros, dungeon de dois andares, chefe e tela de fim), com moeda, loja, pousada paga e recrutamento. Tudo na fatia é placeholder; veja a seção [Fatia vertical](#fatia-vertical-m12).
+O marco atual é o M16, ferramentas de criação (seção [Criando conteúdo (M16)](#criando-conteúdo-m16)). Antes dele, o M15 trouxe estados, mundo e bestiário (seção [Estados, mundo e bestiário (M15)](#estados-mundo-e-bestiário-m15)), e o M14 trouxe as marcas e reações (seção [Marcas e reações (M14)](#marcas-e-reações-m14)) e o M13 os elementos (seção [Elementos (M13)](#elementos-m13)). Antes deles, o M12 entregou a fatia vertical: o **Novo jogo** agora percorre uma demo jogável de ponta a ponta (cidade, mapa-múndi, estrada com encontros, dungeon de dois andares, chefe e tela de fim), com moeda, loja, pousada paga e recrutamento. Tudo na fatia é placeholder; veja a seção [Fatia vertical](#fatia-vertical-m12).
 
 Antes disso, o M11 acrescenta ao M10 o catálogo completo de estados (Pare, Confusão, buffs e debuffs, Silêncio, Cegueira, Regeneração e Barreira), os itens Remédio e Panaceia e um chefe de teste na dungeon de teste (fases por HP, ataque anunciado, contra-ataque e partes). Antes disso, o M10 acrescentou ao M9 o sistema de eventos (caixa de diálogo com nome e escolhas, flags de história, NPCs e placas, cenas roteirizadas e XP narrativa), os objetos de dungeon (baús, portas e chaves, interruptores e armadilhas) e uma dungeon de teste ligada ao mapa-mundi. Antes disso, o M9 acrescentou as técnicas por personagem, mantendo a barra de Limite (M8), o Suporte da reserva (M8.5), fuga, iniciativa por contato, corrida e inimigos com comportamento no mapa: o jogo abre numa tela de título (Novo jogo / Continuar), de onde se chega a um mapa-mundi de teste com áreas locais e inimigos de mapa; tocar um inimigo inicia a batalha no próprio mapa. Há save em disco com 3 slots, gravado só em pontos de descanso e no mapa-mundi, e a página Config do menu de campo. Na derrota (Game Over), o jogo volta ao título e o progresso desde o último save em disco se perde.
 
@@ -179,6 +179,14 @@ Os estados novos, a resistência a estados, o veneno no mapa, os puzzles, o terr
 - **Página Reações:** lista as reações já disparadas. As não vistas aparecem como "???", e a vista mostra o par de elementos e um resumo dos efeitos.
 
 **Menu de campo, na ordem:** Itens, Técnicas, Equipar, Status, Bestiário, Reações, Atributos, Formação, Salvar, Config e Fechar.
+
+## Criando conteúdo (M16)
+
+Dá para criar conteúdo sem código: diálogos e escolhas num arquivo `.roteiro` (exemplos em `game/data/fatia/roteiro/`), itens, inimigos e encontros pela aba **VAT** do editor do Godot, arte de personagem (mapa, batalha e retratos) e mapas pintados com tiles 32×32. A mesma aba valida o conteúdo e testa um mapa ou encontro numa janela à parte.
+
+- Guia passo a passo: [`docs/guia-criacao.md`](docs/guia-criacao.md).
+- Sintaxe completa do roteiro: [`docs/roteiro.md`](docs/roteiro.md).
+- Checagem sem janela: `godot --headless --path game -s tools/validate/check_all.gd`.
 
 ## Controles
 
