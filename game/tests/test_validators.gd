@@ -365,6 +365,54 @@ func test_run_aggregates_every_rule() -> void:
 	assert_string_contains(text, "rótulo 'nada'")
 	assert_gt(ValidationIssue.warnings_of(issues).size(), 0, "o herói sem arte")
 
+# --- roteiro + event_id nos mapas ---
+
+func _book(ids: Array[StringName]) -> RoteiroBook:
+	var b := RoteiroBook.new()
+	for id: StringName in ids:
+		b.events[id] = EventScript.new()
+	return b
+
+func test_roteiro_refs_accept_a_valid_id() -> void:
+	var refs: Array[Dictionary] = [ContentBundle.roteiro_ref(&"vila", "Placa", _book([&"a"]), "res://x.roteiro", &"a")]
+	assert_eq(ContentChecks.roteiro_refs(refs).size(), 0)
+
+func test_roteiro_refs_bad_id_is_an_error() -> void:
+	var refs: Array[Dictionary] = [ContentBundle.roteiro_ref(&"vila", "Placa", _book([&"a"]), "res://x.roteiro", &"b")]
+	var issues: Array[ValidationIssue] = ContentChecks.roteiro_refs(refs)
+	assert_eq(issues.size(), 1)
+	assert_true(issues[0].is_error())
+	assert_string_contains(issues[0].message, "'b'")
+	assert_eq(issues[0].path, "res://x.roteiro")
+
+func test_roteiro_refs_empty_id_is_an_error() -> void:
+	var refs: Array[Dictionary] = [ContentBundle.roteiro_ref(&"vila", "Placa", _book([&"a"]), "res://x.roteiro", &"")]
+	var issues: Array[ValidationIssue] = ContentChecks.roteiro_refs(refs)
+	assert_eq(issues.size(), 1)
+	assert_string_contains(issues[0].message, "vazio")
+
+func test_roteiro_refs_null_book_is_an_error() -> void:
+	var refs: Array[Dictionary] = [ContentBundle.roteiro_ref(&"vila", "Placa", null, "res://vila.tscn", &"a")]
+	var issues: Array[ValidationIssue] = ContentChecks.roteiro_refs(refs)
+	assert_eq(issues.size(), 1)
+	assert_string_contains(issues[0].message, "não carregou")
+
+func test_run_includes_roteiro_refs() -> void:
+	var b := ContentBundle.new()
+	b.roteiro_refs = [ContentBundle.roteiro_ref(&"vila", "Placa", _book([&"a"]), "res://x.roteiro", &"zzz")]
+	assert_string_contains(_msgs(ContentChecks.run(b)), "'zzz'")
+
+func test_portraits_without_neutro_warn() -> void:
+	var s := SpriteSet.new()
+	s.portraits = {&"feliz": _tex(8, 8)}
+	s.take_over_path("res://art/p.tres")
+	var issues: Array[ValidationIssue] = ContentChecks.sprite_sets([s])
+	assert_eq(issues.size(), 1)
+	assert_false(issues[0].is_error())
+	assert_string_contains(issues[0].message, "neutro")
+	s.portraits[&"neutro"] = _tex(8, 8)
+	assert_eq(ContentChecks.sprite_sets([s]).size(), 0)
+
 # --- dados reais ---
 
 func test_real_content_has_no_errors() -> void:

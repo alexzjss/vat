@@ -294,6 +294,21 @@ func test_issues_group_by_severity() -> void:
 	var none: Array[ValidationIssue] = []
 	assert_eq(Issues.summary(none), "Tudo certo: nenhum erro e nenhum aviso.")
 
+func test_outcome_reports_a_failed_child_instead_of_all_clear() -> void:
+	var missing: Dictionary = Issues.outcome(0, false, "")
+	assert_false(missing["ok"])
+	assert_eq(missing["message"], "Falha ao rodar o validador (código 0)")
+	var crashed: Dictionary = Issues.outcome(2, true, "")
+	assert_false(crashed["ok"])
+	assert_eq(crashed["message"], "Falha ao rodar o validador (código 2)")
+	var clean: Dictionary = Issues.outcome(0, true, "")
+	assert_true(clean["ok"])
+	assert_eq(clean["message"], "Tudo certo: nenhum erro e nenhum aviso.")
+	var line: String = ValidationIssue.error("id repetido", "res://b.tres").to_line()
+	var with_errors: Dictionary = Issues.outcome(1, true, line)
+	assert_true(with_errors["ok"])
+	assert_eq(with_errors["message"], "1 erro(s), 0 aviso(s).")
+
 func test_issue_entries_carry_text_path_and_line() -> void:
 	var e: Dictionary = Issues.entry(ValidationIssue.error("rótulo quebrado", "res://c.roteiro", 12))
 	assert_eq(e["text"], "res://c.roteiro:12: rótulo quebrado")

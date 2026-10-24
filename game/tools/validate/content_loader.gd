@@ -23,6 +23,7 @@ static func load_all() -> ContentBundle:
 		var packed: PackedScene = Game.MAPS[map_id]
 		var scene: Node = packed.instantiate()
 		b.maps[map_id] = scan_map(map_id, packed.resource_path, scene)
+		b.roteiro_refs.append_array(roteiro_refs(map_id, packed.resource_path, scene))
 		for ev: EventScript in embedded_events(scene):
 			if not seen.has(ev):
 				seen[ev] = true
@@ -53,6 +54,42 @@ static func scan_map(map_id: StringName, path: String, scene: Node) -> Dictionar
 	if local != null and local.get_node_or_null(^"Exit") != null:
 		refs.append(ContentBundle.map_ref("saída", &"overworld", Game.EXIT_SPAWNS.get(map_id, &"Start")))
 	return ContentBundle.map_info(path, markers, refs)
+
+## Cada nó (a raiz inclusa) com a propriedade `roteiro`: livro, caminho e `event_id`. Livro nulo = o `.roteiro` não carregou.
+static func roteiro_refs(map_id: StringName, scene_path: String, scene: Node) -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	var assigned: Dictionary = _nodes_with_roteiro(scene_path)
+	var nodes: Array[Node] = [scene]
+	nodes.append_array(scene.find_children("*", "", true, false))
+	for n: Node in nodes:
+		var has_prop: bool = false
+		for prop: Dictionary in n.get_property_list():
+			if prop["name"] == "roteiro":
+				has_prop = true
+				break
+		if not has_prop:
+			continue
+		var book: RoteiroBook = n.get("roteiro") as RoteiroBook
+		if book == null and not assigned.has(String(n.name)):
+			continue # propriedade sem valor: o nó não usa roteiro
+		var path: String = book.resource_path if book != null else scene_path
+		var raw: Variant = n.get("event_id")
+		var id: StringName = StringName(String(raw)) if raw != null else &""
+		out.append(ContentBundle.roteiro_ref(map_id, String(scene.get_path_to(n)), book, path, id))
+	return out
+
+## Nomes dos nós que o `.tscn` atribui `roteiro = ...` (para distinguir "não definido" de "definido mas não carregou").
+static func _nodes_with_roteiro(scene_path: String) -> Dictionary:
+	var out: Dictionary = {}
+	var current: String = ""
+	for line: String in FileAccess.get_file_as_string(scene_path).split("\n"):
+		if line.begins_with("[node name=\""):
+			current = line.substr(12, line.find("\"", 12) - 12)
+		elif line.begins_with("["):
+			current = ""
+		elif line.begins_with("roteiro = ") and current != "":
+			out[current] = true
+	return out
 
 ## EventScripts guardados nas propriedades dos nós do mapa (NPCs, placas, gatilhos).
 static func embedded_events(scene: Node) -> Array[EventScript]:

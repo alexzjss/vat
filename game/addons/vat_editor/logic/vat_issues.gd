@@ -22,6 +22,15 @@ static func parse_output(output: String) -> Array[ValidationIssue]:
 static func group(issues: Array[ValidationIssue]) -> Dictionary:
 	return {"errors": ValidationIssue.errors_of(issues), "warnings": ValidationIssue.warnings_of(issues)}
 
+## Decisão do "Validar tudo" a partir do processo filho: `{ok, message, issues}`. O `check_all` sai com 0 (sem erros) ou 1 (com erros);
+## qualquer outro código, ou a falta do arquivo de saída, é falha do processo (nunca "Tudo certo").
+static func outcome(exit_code: int, file_exists: bool, text: String) -> Dictionary:
+	if not file_exists or (exit_code != 0 and exit_code != 1):
+		var none: Array[ValidationIssue] = []
+		return {"ok": false, "message": "Falha ao rodar o validador (código %d)" % exit_code, "issues": none}
+	var issues: Array[ValidationIssue] = parse_output(text)
+	return {"ok": true, "message": summary(issues), "issues": issues}
+
 static func summary(issues: Array[ValidationIssue]) -> String:
 	var g: Dictionary = group(issues)
 	var e: int = (g["errors"] as Array).size()

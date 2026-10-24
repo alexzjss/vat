@@ -392,14 +392,22 @@ func run_validation() -> void:
 	worker.start(func() -> int: return OS.execute(OS.get_executable_path(), args))
 	while worker.is_alive():
 		await get_tree().process_frame
-	worker.wait_to_finish()
-	var issues: Array[ValidationIssue] = Issues.parse_output(FileAccess.get_file_as_string(out_file))
-	var g: Dictionary = Issues.group(issues)
+	var exit_code: int = int(worker.wait_to_finish())
+	var exists: bool = FileAccess.file_exists(out_file)
+	var res: Dictionary = Issues.outcome(exit_code, exists, FileAccess.get_file_as_string(out_file) if exists else "")
 	validate_tree.clear()
+	if not bool(res["ok"]):
+		validate_summary.text = String(res["message"])
+		validate_summary.add_theme_color_override("font_color", COLOR_ERROR)
+		_say(validate_summary.text)
+		return
+	validate_summary.remove_theme_color_override("font_color")
+	var issues: Array[ValidationIssue] = res["issues"]
+	var g: Dictionary = Issues.group(issues)
 	var root: TreeItem = validate_tree.create_item()
 	_issue_group(root, "Erros", g["errors"], COLOR_ERROR)
 	_issue_group(root, "Avisos", g["warnings"], COLOR_WARNING)
-	validate_summary.text = Issues.summary(issues)
+	validate_summary.text = String(res["message"])
 	_say(validate_summary.text)
 
 func _issue_group(root: TreeItem, title: String, issues: Array, color: Color) -> void:

@@ -22,6 +22,7 @@ static func run(b: ContentBundle) -> Array[ValidationIssue]:
 	out.append_array(roteiros(b.roteiros, res))
 	out.append_array(sprite_sets(res))
 	out.append_array(missing_battle_art(res))
+	out.append_array(roteiro_refs(b.roteiro_refs))
 	out.append_array(MapChecks.links(b.maps))
 	out.append_array(MapChecks.profiles(res, b.maps))
 	return out
@@ -346,6 +347,25 @@ static func sprite_sets(resources: Array) -> Array[ValidationIssue]:
 		var path: String = s.resource_path if s.resource_path != "" else owner_path
 		for m: String in s.validate():
 			out.append(ValidationIssue.error(m, path))
+		if not s.portraits.is_empty() and not s.portraits.has(&"neutro"):
+			out.append(ValidationIssue.warning("retratos sem a expressão 'neutro' (a que o diálogo usa quando falta a pedida)", path))
+	return out
+
+## ERRO: nó de mapa com `roteiro` mas sem `event_id`, com `event_id` que o livro não tem, ou cujo `.roteiro` não carregou.
+## `refs`: ver [method ContentBundle.roteiro_ref].
+static func roteiro_refs(refs: Array[Dictionary]) -> Array[ValidationIssue]:
+	var out: Array[ValidationIssue] = []
+	for r: Dictionary in refs:
+		var where: String = "mapa %s, nó %s" % [r["map"], r["node"]]
+		var book: RoteiroBook = r["book"] as RoteiroBook
+		var id: StringName = r["event_id"]
+		var path: String = String(r["book_path"])
+		if book == null:
+			out.append(ValidationIssue.error("%s: o roteiro não carregou (reimporte o .roteiro)" % where, path))
+		elif id == &"":
+			out.append(ValidationIssue.error("%s: tem roteiro mas o event_id está vazio" % where, path))
+		elif not book.events.has(id):
+			out.append(ValidationIssue.error("%s: o roteiro não tem o evento '%s'" % [where, id], path))
 	return out
 
 ## AVISO: herói ou inimigo sem arte de batalha (o jogo usa o desenho geométrico). O conteúdo de `res://data/test/`

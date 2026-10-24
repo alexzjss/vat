@@ -12,9 +12,16 @@ var roteiros: Dictionary[String, String] = {}
 ## Cada ref: {what: String, target_map: StringName, target_spawn: StringName}.
 var maps: Dictionary[StringName, Dictionary] = {}
 
+## Nós de mapa com a propriedade `roteiro`: {map, node, book: RoteiroBook (null = não carregou), book_path, event_id}.
+var roteiro_refs: Array[Dictionary] = []
+
 ## Resumo de um mapa para [member maps].
 static func map_info(path: String, markers: Array[StringName], refs: Array[Dictionary]) -> Dictionary:
 	return {"path": path, "markers": markers, "refs": refs}
+
+## Uso de `roteiro` + `event_id` num nó de mapa, para [member roteiro_refs]. `book_path` é o `.roteiro` (ou a cena, se não carregou).
+static func roteiro_ref(map: StringName, node: String, book: RoteiroBook, book_path: String, event_id: StringName) -> Dictionary:
+	return {"map": map, "node": node, "book": book, "book_path": book_path, "event_id": event_id}
 
 ## Referência de mapa para `refs`.
 static func map_ref(what: String, target_map: StringName, target_spawn: StringName) -> Dictionary:
