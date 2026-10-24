@@ -8,6 +8,9 @@ extends EditorPlugin
 ## abre o editor, mostra a aba VAT (e a sub-aba pedida: Banco, Roteiros, Validar ou Testar), salva a imagem e sai.
 ## Na aba Mapas: `--vat-wizard[=<id>]` abre o diálogo Novo mapa (com esse id).
 ## Na aba Mundo: `--vat-tests` mostra também os mapas de teste.
+## Na aba Banco: `--vat-sub=<categoria>` (a chave, como `heroes`, `enemies`, `encounters`, ou o rótulo) escolhe a categoria e
+## `--vat-pick=<id>` abre esse item no formulário; `--vat-scroll=<px,px,...>` salva mais uma imagem (`<arquivo>_s1.png`, ...)
+## com o formulário rolado a cada posição (o formulário é mais alto que a tela).
 ## Na aba Roteiros: `--vat-sub=Lista|Editor|Simular` escolhe a sub-vista, `--vat-event=<id>` abre esse evento (no primeiro
 ## arquivo que o tem) e `--vat-answers=<0,1,..>` roda a simulação com essas respostas (no Simular).
 ## `--vat-open-scene=<res://...tscn>` abre a cena na tela 2D (a paleta de objetos aparece), `--vat-select=<caminho do nó>` seleciona
@@ -20,6 +23,8 @@ const VatInspectorPlugin: GDScript = preload("res://addons/vat_editor/inspector/
 const CAPTURE_FLAG: String = "--vat-capture="
 const TAB_FLAG: String = "--vat-tab="
 const SUB_FLAG: String = "--vat-sub="
+const PICK_FLAG: String = "--vat-pick="
+const SCROLL_FLAG: String = "--vat-scroll="
 const EVENT_FLAG: String = "--vat-event="
 const ANSWERS_FLAG: String = "--vat-answers="
 const WIZARD_FLAG: String = "--vat-wizard"
@@ -109,6 +114,9 @@ func _capture_if_asked() -> void:
 	var out: String = ""
 	var tab: String = "Banco"
 	var sub: String = ""
+	var pick: String = ""
+	var scrolls: PackedStringArray = PackedStringArray()
+	var tab_given: bool = false
 	var event_id: String = ""
 	var answers: String = ""
 	var wizard: bool = false
@@ -122,8 +130,13 @@ func _capture_if_asked() -> void:
 			out = a.trim_prefix(CAPTURE_FLAG)
 		elif a.begins_with(TAB_FLAG):
 			tab = a.trim_prefix(TAB_FLAG)
+			tab_given = true
 		elif a.begins_with(SUB_FLAG):
 			sub = a.trim_prefix(SUB_FLAG)
+		elif a.begins_with(PICK_FLAG):
+			pick = a.trim_prefix(PICK_FLAG)
+		elif a.begins_with(SCROLL_FLAG):
+			scrolls = a.trim_prefix(SCROLL_FLAG).split(",", false)
 		elif a.begins_with(EVENT_FLAG):
 			event_id = a.trim_prefix(EVENT_FLAG)
 		elif a.begins_with(ANSWERS_FLAG):
@@ -140,7 +153,7 @@ func _capture_if_asked() -> void:
 			wizard = true
 			tab = "Mapas"
 			wizard_id = a.trim_prefix(WIZARD_FLAG + "=") if a.contains("=") else ""
-	if sub != "":
+	if sub != "" and not tab_given:
 		tab = "Roteiros"
 	if out == "":
 		return
@@ -154,19 +167,28 @@ func _capture_if_asked() -> void:
 	for i: int in tabs.get_tab_count():
 		if tabs.get_tab_title(i) == tab:
 			tabs.current_tab = i
+	if tab == "Banco" and (sub != "" or pick != ""):
+		_panel.show_bank(sub, pick)
 	if tab == "Mapas":
 		_panel.show_maps(wizard, wizard_id)
 	if tab == "Mundo":
 		_panel.show_world(with_tests)
 	if tab == "Validar":
 		await _panel.run_validation()
-	if sub != "":
+	if sub != "" and tab == "Roteiros":
 		await _panel.show_roteiro(sub, event_id, answers)
 	for i: int in 90:
 		await get_tree().process_frame
 	var img: Image = EditorInterface.get_base_control().get_viewport().get_texture().get_image()
 	var err: Error = img.save_png(out)
 	print("vat-capture: %s (%d)" % [out, err])
+	for i: int in scrolls.size():
+		_panel.call(&"scroll_form", int(scrolls[i]))
+		for f: int in 20:
+			await get_tree().process_frame
+		var more: Image = EditorInterface.get_base_control().get_viewport().get_texture().get_image()
+		var more_out: String = "%s_s%d.png" % [out.get_basename(), i + 1]
+		print("vat-capture: %s (%d)" % [more_out, more.save_png(more_out)])
 	if wizard:
 		# O diálogo é uma janela própria no editor: a captura da janela principal não o mostra, então grava a dele ao lado.
 		var dlg: Image = _panel.maps_panel.wizard.get_texture().get_image()

@@ -5,7 +5,8 @@ extends VBoxContainer
 ## `logic/` (categorias, listagem, linhas, criação, argumentos de teste, achados) e aos validadores e ao compilador do
 ## roteiro. Nada daqui roda no jogo.
 ##
-## Abas: Banco (lista os `.tres` por categoria, mostra no Inspector, Novo / Duplicar / Mostrar no FileSystem),
+## Abas: Banco (lista os `.tres` por categoria, mostra no Inspector, Novo / Duplicar / Mostrar no FileSystem; heróis, inimigos
+## e encontros ganham também um formulário à direita da lista, M17),
 ## Mapas (o registro de mapas e o assistente Novo mapa, M17),
 ## Roteiros (sub-vistas Lista, os eventos e erros dos `.roteiro`; Editor, o editor de blocos; e Simular, o simulador de
 ## eventos, M17), Validar (tools/validate/check_all.gd num processo à parte) e Testar
@@ -32,6 +33,12 @@ const RoteiroEditor: GDScript = preload("res://addons/vat_editor/ui/roteiro_edit
 const EventSimulatorPanel: GDScript = preload("res://addons/vat_editor/ui/event_simulator_panel.gd")
 const MapsPanel: GDScript = preload("res://addons/vat_editor/ui/maps_panel.gd")
 const WorldPanel: GDScript = preload("res://addons/vat_editor/ui/world_graph_panel.gd")
+const HeroForm: GDScript = preload("res://addons/vat_editor/ui/forms/hero_form.gd")
+const EnemyForm: GDScript = preload("res://addons/vat_editor/ui/forms/enemy_form.gd")
+const EncounterForm: GDScript = preload("res://addons/vat_editor/ui/forms/encounter_form.gd")
+
+## Categoria do Banco -> formulário (as demais só têm o Inspector).
+const FORM_SCRIPTS: Dictionary = {&"heroes": HeroForm, &"enemies": EnemyForm, &"encounters": EncounterForm}
 
 const COLOR_ERROR: Color = Color(1.0, 0.45, 0.4)
 const COLOR_WARNING: Color = Color(1.0, 0.85, 0.4)
@@ -57,6 +64,17 @@ var _new_folder: LineEdit
 var _new_info: Label
 var _new_error: Label
 var _new_source: Resource
+## Formulários do Banco (M17): a divisão lista | formulário, o painel do formulário, um formulário por categoria (criado ao
+## primeiro uso), o caminho aberto nele, e a pergunta de "alterações não salvas" ao trocar de item.
+var bank_split: HSplitContainer
+var form_holder: VBoxContainer
+var form_hint: Label
+var _forms: Dictionary = {}
+var _open_path: String = ""
+var _restoring: bool = false
+var _guard_dialog: ConfirmationDialog
+var _guard_then: Callable
+var _guard_cancel: Callable
 
 # Roteiros
 var roteiro_sub: TabContainer
@@ -144,8 +162,16 @@ func _build_bank() -> void:
 	_category = Categories.keys()[0]
 	category_bar.tab_changed.connect(_on_category_changed)
 	page.add_child(category_bar)
+	bank_split = HSplitContainer.new()
+	bank_split.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	page.add_child(bank_split)
+	var left := VBoxContainer.new()
+	left.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	left.size_flags_stretch_ratio = 1.0
+	left.custom_minimum_size.x = 360
+	bank_split.add_child(left)
 	var top := HBoxContainer.new()
-	page.add_child(top)
+	left.add_child(top)
 	search = LineEdit.new()
 	search.placeholder_text = "Buscar por id, nome ou coluna"
 	search.clear_button_enabled = true
@@ -161,13 +187,24 @@ func _build_bank() -> void:
 	list.select_mode = Tree.SELECT_ROW
 	list.item_selected.connect(_on_row_selected)
 	list.item_activated.connect(_on_row_selected)
-	page.add_child(list)
+	left.add_child(list)
 	var buttons := HBoxContainer.new()
-	page.add_child(buttons)
+	left.add_child(buttons)
 	new_button = _button(buttons, "Novo...", _on_new_pressed)
 	duplicate_button = _button(buttons, "Duplicar...", _on_duplicate_pressed)
 	reveal_button = _button(buttons, "Mostrar no FileSystem", _on_reveal_pressed)
-	_button(buttons, "Atualizar", _reload_all)
+	_button(buttons, "Atualizar", func() -> void: _guard_dirty(_reload_all))
+	form_holder = VBoxContainer.new()
+	form_holder.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	form_holder.size_flags_stretch_ratio = 1.2
+	form_holder.custom_minimum_size.x = 520
+	form_holder.visible = FORM_SCRIPTS.has(_category)
+	bank_split.add_child(form_holder)
+	form_hint = Label.new()
+	form_hint.text = "Selecione um item da lista para editar aqui."
+	form_hint.add_theme_color_override("font_color", COLOR_MUTED)
+	form_holder.add_child(form_hint)
+	_build_guard_dialog()
 	_build_new_dialog()
 
 func _button(parent: Node, text: String, handler: Callable) -> Button:
@@ -207,13 +244,30 @@ func _labelled(text: String) -> Label:
 	return l
 
 func _on_category_changed(index: int) -> void:
+	if _restoring or Categories.keys()[index] == _category:
+		return
+	var back: int = Categories.keys().find(_category)
+	_guard_dirty(func() -> void: _switch_category(index), func() -> void:
+		_restoring = true
+		category_bar.current_tab = back
+		_restoring = false)
+
+func _switch_category(index: int) -> void:
 	_category = Categories.keys()[index]
+	_open_path = ""
+	_show_form(null)
 	_refresh_list()
 
 func _current_rows() -> Array[Dictionary]:
 	return Rows.rows(_category, _resources.get(_category, []))
 
 func _refresh_list(select_path: String = "") -> void:
+	var was_restoring: bool = _restoring
+	_restoring = true
+	_fill_list(select_path)
+	_restoring = was_restoring
+
+func _fill_list(select_path: String) -> void:
 	var all_rows: Array[Dictionary] = _current_rows()
 	var shown: Array[Dictionary] = Rows.filter(all_rows, search.text)
 	var headers: PackedStringArray = Rows.headers(_category)
@@ -241,13 +295,139 @@ func _selected_path() -> String:
 	return str(item.get_metadata(0)) if item != null else ""
 
 func _on_row_selected() -> void:
-	var path: String = _selected_path()
-	if path == "":
+	if _restoring:
 		return
+	var path: String = _selected_path()
+	if path == "" or path == _open_path:
+		return
+	var back: String = _open_path
+	_guard_dirty(func() -> void: _open_in_forms(path), func() -> void: _refresh_list(back))
+
+## Abre o recurso no Inspector e, nas categorias com formulário, no formulário.
+func _open_in_forms(path: String) -> void:
 	var res: Resource = load(path)
-	if res != null:
-		EditorInterface.edit_resource(res)
-		_say(path)
+	if res == null:
+		return
+	EditorInterface.edit_resource(res)
+	_say(path)
+	_open_path = path
+	_show_form(res)
+
+## Mostra o formulário da categoria atual com `res` (null = só a dica). As categorias sem formulário escondem o painel.
+func _show_form(res: Resource) -> void:
+	form_holder.visible = FORM_SCRIPTS.has(_category)
+	for f: Variant in _forms.values():
+		(f as Control).visible = false
+	form_hint.visible = true
+	if res == null or not FORM_SCRIPTS.has(_category):
+		return
+	if not _forms.has(_category):
+		_forms[_category] = _make_form(_category)
+	var form: Control = _forms[_category]
+	form.call(&"edit", res, _resources.get(_category, []))
+	form.visible = true
+	form_hint.visible = false
+
+func _make_form(category: StringName) -> Control:
+	var form: Control = (FORM_SCRIPTS[category] as GDScript).new()
+	form_holder.add_child(form)
+	form.connect(&"status", _say)
+	form.connect(&"saved", _on_form_saved)
+	form.connect(&"reverted", func(r: Resource) -> void: EditorInterface.edit_resource(r))
+	if form.has_signal(&"play_requested"):
+		form.connect(&"play_requested", _on_form_play)
+	return form
+
+func _active_form() -> Control:
+	if _open_path == "" or not _forms.has(_category):
+		return null
+	return _forms[_category] as Control
+
+func _on_form_saved(path: String) -> void:
+	EditorInterface.get_resource_filesystem().update_file(path)
+	_refresh_list(path)
+
+## "Testar encontro" do formulário: escolhe o encontro na aba Testar e roda (nível e arena dessa aba).
+func _on_form_play(encounter_id: StringName) -> void:
+	_fill_encounters()
+	for i: int in encounter_option.item_count:
+		if encounter_option.get_item_text(i) == String(encounter_id):
+			encounter_option.select(i)
+			_on_play_battle_pressed()
+			return
+	_say("Encontro '%s' não está na lista do Testar." % encounter_id)
+
+# --- alterações não salvas ---
+
+func _build_guard_dialog() -> void:
+	_guard_dialog = ConfirmationDialog.new()
+	_guard_dialog.title = "Alterações não salvas"
+	_guard_dialog.ok_button_text = "Salvar"
+	_guard_dialog.cancel_button_text = "Cancelar"
+	_guard_dialog.add_button("Descartar", true, "discard")
+	_guard_dialog.confirmed.connect(_on_guard_save)
+	_guard_dialog.custom_action.connect(_on_guard_discard)
+	_guard_dialog.canceled.connect(_on_guard_cancel)
+	add_child(_guard_dialog)
+
+## Roda `then` já se o formulário aberto está limpo. Se tem alterações, pergunta: Salvar, Descartar (relê o arquivo) ou
+## Cancelar (roda `cancel`).
+func _guard_dirty(then: Callable, cancel: Callable = Callable()) -> void:
+	var form: Control = _active_form()
+	if form == null or not form.call(&"is_dirty"):
+		then.call()
+		return
+	_guard_then = then
+	_guard_cancel = cancel
+	_guard_dialog.dialog_text = "%s tem alterações não salvas.\nSalvar antes de continuar?" % _open_path.get_file()
+	_guard_dialog.popup_centered()
+
+func _on_guard_save() -> void:
+	var form: Control = _active_form()
+	if form != null and not form.call(&"save"):
+		_on_guard_cancel()
+		return
+	_guard_then.call()
+
+func _on_guard_discard(action: StringName) -> void:
+	if action != &"discard":
+		return
+	_guard_dialog.hide()
+	var form: Control = _active_form()
+	if form != null:
+		form.call(&"revert")
+	_guard_then.call()
+
+func _on_guard_cancel() -> void:
+	if _guard_cancel.is_valid():
+		_guard_cancel.call()
+
+## Rola o formulário aberto (conferência visual).
+func scroll_form(pixels: int) -> void:
+	var form: Control = _active_form()
+	if form != null:
+		form.call(&"scroll_to", pixels)
+
+## Para a conferência visual: abre a categoria (a chave ou o rótulo) e, com `pick_id`, o item com esse id no formulário.
+func show_bank(category: String, pick_id: String) -> void:
+	if not _loaded_once:
+		_loaded_once = true
+		_reload_all()
+	var all: Array[Dictionary] = Categories.all()
+	for i: int in all.size():
+		if String(all[i]["key"]) == category or String(all[i]["label"]).to_lower() == category.to_lower():
+			_restoring = true
+			category_bar.current_tab = i
+			_restoring = false
+			_switch_category(i)
+	if pick_id == "":
+		return
+	for r: Variant in _resources.get(_category, []):
+		if str((r as Resource).get(&"id")) == pick_id:
+			_refresh_list((r as Resource).resource_path)
+			_open_in_forms((r as Resource).resource_path)
+			return
+	_say("Id '%s' não encontrado em %s." % [pick_id, _category])
 
 func _on_reveal_pressed() -> void:
 	var path: String = _selected_path()
@@ -258,14 +438,14 @@ func _on_reveal_pressed() -> void:
 	_say("Mostrado no FileSystem: %s" % path)
 
 func _on_new_pressed() -> void:
-	_open_new_dialog(null)
+	_guard_dirty(func() -> void: _open_new_dialog(null))
 
 func _on_duplicate_pressed() -> void:
 	var path: String = _selected_path()
 	if path == "":
 		_say("Selecione a entrada a duplicar.")
 		return
-	_open_new_dialog(load(path))
+	_guard_dirty(func() -> void: _open_new_dialog(load(path)))
 
 func _open_new_dialog(source: Resource) -> void:
 	_new_source = source
@@ -303,9 +483,7 @@ func _on_new_confirmed() -> void:
 	_resources[_category] = Catalog.load_category(_category)
 	search.text = ""
 	_refresh_list(path)
-	var saved: Resource = load(path)
-	if saved != null:
-		EditorInterface.edit_resource(saved)
+	_open_in_forms(path)
 	EditorInterface.select_file(path)
 	_say("Criado %s" % path)
 
