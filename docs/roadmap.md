@@ -1,6 +1,6 @@
 # Roteiro de desenvolvimento — núcleo, mecânicas e gameplay
 
-> **Data:** 2026-10-18 · **Estado:** M1 a M16 prontos (M16 são as ferramentas de criação, concluídas em 2026-10-22; M15 são os estados, o mundo e o bestiário, concluídos em 2026-10-22; M14 são as marcas e reações, concluídas em 2026-10-22; M13 são os elementos, concluídos em 2026-10-22; M12 é a fatia vertical, concluída em 2026-10-21). A base de mecânicas vem do M1 ao M11; o M12 junta tudo numa fatia jogável.
+> **Data:** 2026-10-18 · **Estado:** M1 a M17 prontos (M17 são os editores visuais, concluídos em 2026-10-24; M16 são as ferramentas de criação, concluídas em 2026-10-22; M15 são os estados, o mundo e o bestiário, concluídos em 2026-10-22; M14 são as marcas e reações, concluídas em 2026-10-22; M13 são os elementos, concluídos em 2026-10-22; M12 é a fatia vertical, concluída em 2026-10-21). A base de mecânicas vem do M1 ao M11; o M12 junta tudo numa fatia jogável.
 > **Foco:** continuar construindo **sistemas** (regras, mecânicas, ciclo de jogo) com formas simples, sem arte nem conteúdo narrativo. Cada item vira um marco com design → plano → implementação → revisão, como no M1 e no M2.
 > **Como usar:** escolha os itens que quer; a ordem recomendada está no fim. Itens marcados **(spec)** já existem como regra confirmada ou proposta na spec do jogo e só faltam implementar; **(novo)** são ideias que ainda não estão na spec.
 
@@ -195,6 +195,18 @@ Entregue: corrida e grupo em fila (Shift/X), fuga segurando Q (barra, sem XP, ch
   - `data/test` fica fora dos avisos de arte.
   - Braço e Guardião de teste ganharam imunidade a Contagem e Petrificação (regra de chefes).
   - Flag usada sem `@flag` é aviso, não erro, como o compilador já faz; o plano previa erro no validador estrito.
+**M17 — Editores visuais** · **Concluído** (2026-10-24) · plano [`m17-editores-visuais`](../.claude/plans/2026-10-24-m17-editores-visuais.md)
+- Entregue:
+  - Editor de blocos do roteiro na aba Roteiros > Editor, com o modelo `RoteiroDoc` (ida e volta com o mesmo formato do `.roteiro`) e o simulador de eventos em Roteiros > Simular.
+  - Registro de mapas em dados (`data/maps/registro.tres`), no lugar do `Game.MAPS` e do `EXIT_SPAWNS`.
+  - Assistente Novo mapa, prefabs de objetos e paleta "Objetos" para colocar os objetos na cena.
+  - Escolhas em lista no Inspector: mapa e ponto de entrada, roteiro e evento, encontro, loja, falante e elemento.
+  - Aba Mundo, com o grafo das ligações entre mapas e as ligações quebradas em vermelho.
+  - Formulários no Banco para heróis, inimigos, encontros, lojas, itens, equipamentos e arte, com "Criar a partir de uma imagem…".
+- Notas:
+  - Os mapas agora ficam em `data/maps/registro.tres`; `Game.MAPS` saiu.
+  - O mapa `estrada` é do tipo masmorra.
+  - Testar, Validar e Simular rodam em processo separado.
 
 ## Próximos passos (em aberto, para o usuário)
 - História e roteiro de verdade: trocar os textos placeholder pelos diálogos finais.

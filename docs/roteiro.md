@@ -4,6 +4,8 @@ O roteiro é um arquivo `.roteiro` em texto simples. Cada arquivo guarda vários
 
 Exemplos reais desta página vêm de `game/data/fatia/roteiro/cidade.roteiro`, com textos placeholder.
 
+> **Editor de blocos (M17):** a aba **VAT > Roteiros > Editor** lê e grava este mesmo formato, sem mudar o sentido de nada. Ao salvar, ele escreve no formato canônico: LF, uma linha em branco antes de cada `===` (e dos comentários colados nele), uma linha por bloco e no máximo uma linha em branco seguida. Os 3 arquivos da fatia já estão nesse formato, então salvar não muda os bytes deles. As linhas que o editor não entende viram blocos **Linha não entendida**, com o texto original: nada se perde, e o compilador acusa essas linhas como erro até você corrigi-las.
+
 ## Regras gerais
 
 - Uma instrução por linha. Espaços no começo e no fim da linha são ignorados. Tabs viram espaços.
