@@ -6,7 +6,8 @@ extends VBoxContainer
 ## roteiro. Nada daqui roda no jogo.
 ##
 ## Abas: Banco (lista os `.tres` por categoria, mostra no Inspector, Novo / Duplicar / Mostrar no FileSystem),
-## Roteiros (eventos e erros dos `.roteiro`), Validar (tools/validate/check_all.gd num processo à parte) e Testar
+## Roteiros (sub-vistas Lista, os eventos e erros dos `.roteiro`; Editor, o editor de blocos; e Simular, o simulador de
+## eventos, M17), Validar (tools/validate/check_all.gd num processo à parte) e Testar
 ## (roda o jogo com os flags de dev).
 ##
 ## Abrir um `.roteiro` numa linha: o script editor do Godot só abre `Script`, e `.roteiro` é um recurso importado
@@ -26,6 +27,8 @@ const NewEntry: GDScript = preload("res://addons/vat_editor/logic/vat_new_entry.
 const RunArgs: GDScript = preload("res://addons/vat_editor/logic/vat_run_args.gd")
 const Issues: GDScript = preload("res://addons/vat_editor/logic/vat_issues.gd")
 const Roteiros: GDScript = preload("res://addons/vat_editor/logic/vat_roteiros.gd")
+const RoteiroEditor: GDScript = preload("res://addons/vat_editor/ui/roteiro_editor.gd")
+const EventSimulatorPanel: GDScript = preload("res://addons/vat_editor/ui/event_simulator_panel.gd")
 
 const COLOR_ERROR: Color = Color(1.0, 0.45, 0.4)
 const COLOR_WARNING: Color = Color(1.0, 0.85, 0.4)
@@ -53,8 +56,12 @@ var _new_error: Label
 var _new_source: Resource
 
 # Roteiros
+var roteiro_sub: TabContainer
 var roteiro_tree: Tree
 var roteiro_summary: Label
+var roteiro_editor: HSplitContainer
+var simulator: HSplitContainer
+var _content_index: ContentIndex
 
 # Validar
 var validate_tree: Tree
@@ -102,6 +109,7 @@ func _say(text: String) -> void:
 	status.text = text
 
 func _reload_all() -> void:
+	_content_index = null
 	for key: StringName in Categories.keys():
 		_resources[key] = Catalog.load_category(key)
 	_refresh_list()
@@ -289,9 +297,28 @@ func _on_new_confirmed() -> void:
 # --- Roteiros --------------------------------------------------------------------------
 
 func _build_roteiros() -> void:
+	var outer := VBoxContainer.new()
+	outer.name = "Roteiros"
+	tabs.add_child(outer)
+	roteiro_sub = TabContainer.new()
+	roteiro_sub.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	outer.add_child(roteiro_sub)
 	var page := VBoxContainer.new()
-	page.name = "Roteiros"
-	tabs.add_child(page)
+	page.name = "Lista"
+	roteiro_sub.add_child(page)
+	roteiro_editor = RoteiroEditor.new()
+	roteiro_editor.name = "Editor"
+	roteiro_editor.content = _content
+	roteiro_editor.status.connect(_say)
+	roteiro_editor.saved.connect(func(_p: String) -> void: _scan_roteiros())
+	roteiro_sub.add_child(roteiro_editor)
+	simulator = EventSimulatorPanel.new()
+	simulator.name = "Simular"
+	simulator.content = _content
+	simulator.text_provider = roteiro_editor.current_text_for
+	simulator.status.connect(_say)
+	roteiro_sub.add_child(simulator)
+	roteiro_sub.tab_changed.connect(_on_roteiro_sub_changed)
 	var top := HBoxContainer.new()
 	page.add_child(top)
 	_button(top, "Atualizar", _scan_roteiros)
@@ -307,6 +334,43 @@ func _build_roteiros() -> void:
 	hint.text = "Clique: seleciona o arquivo no FileSystem. Duplo clique: abre no editor de texto do sistema (a linha aparece na barra de estado)."
 	hint.add_theme_color_override("font_color", COLOR_MUTED)
 	page.add_child(hint)
+
+## O índice de conteúdo (`res://data`), carregado uma vez e compartilhado com o editor de blocos e o simulador.
+func _content() -> ContentIndex:
+	if _content_index == null:
+		_content_index = RoteiroTools.scan_content()
+	return _content_index
+
+func _on_roteiro_sub_changed(index: int) -> void:
+	match roteiro_sub.get_tab_title(index):
+		"Editor":
+			roteiro_editor.ensure_loaded()
+		"Simular":
+			simulator.ensure_loaded()
+
+## Mostra a sub-vista `sub` (Lista, Editor ou Simular) da aba Roteiros, já no evento `event_id` (o primeiro arquivo que o
+## tem). No Simular, `answers` (ex.: "0") preenche as respostas e a simulação roda. Para a captura de tela.
+func show_roteiro(sub: String, event_id: String = "", answers: String = "") -> void:
+	for i: int in tabs.get_tab_count():
+		if tabs.get_tab_title(i) == "Roteiros":
+			tabs.current_tab = i
+	for i: int in roteiro_sub.get_tab_count():
+		if roteiro_sub.get_tab_title(i) == sub:
+			roteiro_sub.current_tab = i
+	if sub == "Lista":
+		_scan_roteiros()
+		return
+	roteiro_editor.ensure_loaded()
+	var path: String = roteiro_editor.find_event_path(event_id) if event_id != "" else ""
+	if path != "":
+		roteiro_editor.select_event(path, event_id)
+	if sub == "Simular":
+		simulator.ensure_loaded()
+		if path != "":
+			simulator.select(path, event_id)
+		if answers != "":
+			simulator.set_answers(answers)
+			await simulator.run_simulation()
 
 func _scan_roteiros() -> void:
 	roteiro_tree.clear()

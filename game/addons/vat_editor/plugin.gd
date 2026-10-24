@@ -6,11 +6,16 @@ extends EditorPlugin
 ##
 ## Captura de tela para conferência: `godot --path game --editor -- --vat-capture=<arquivo.png> [--vat-tab=<aba>]`
 ## abre o editor, mostra a aba VAT (e a sub-aba pedida: Banco, Roteiros, Validar ou Testar), salva a imagem e sai.
+## Na aba Roteiros: `--vat-sub=Lista|Editor|Simular` escolhe a sub-vista, `--vat-event=<id>` abre esse evento (no primeiro
+## arquivo que o tem) e `--vat-answers=<0,1,..>` roda a simulação com essas respostas (no Simular).
 
 const RoteiroImporter: GDScript = preload("res://addons/vat_editor/roteiro_importer.gd")
 const VatPanel: GDScript = preload("res://addons/vat_editor/vat_panel.gd")
 const CAPTURE_FLAG: String = "--vat-capture="
 const TAB_FLAG: String = "--vat-tab="
+const SUB_FLAG: String = "--vat-sub="
+const EVENT_FLAG: String = "--vat-event="
+const ANSWERS_FLAG: String = "--vat-answers="
 
 var _roteiro_importer: EditorImportPlugin
 var _panel: Control
@@ -51,11 +56,22 @@ func _get_plugin_icon() -> Texture2D:
 func _capture_if_asked() -> void:
 	var out: String = ""
 	var tab: String = "Banco"
+	var sub: String = ""
+	var event_id: String = ""
+	var answers: String = ""
 	for a: String in OS.get_cmdline_user_args():
 		if a.begins_with(CAPTURE_FLAG):
 			out = a.trim_prefix(CAPTURE_FLAG)
 		elif a.begins_with(TAB_FLAG):
 			tab = a.trim_prefix(TAB_FLAG)
+		elif a.begins_with(SUB_FLAG):
+			sub = a.trim_prefix(SUB_FLAG)
+		elif a.begins_with(EVENT_FLAG):
+			event_id = a.trim_prefix(EVENT_FLAG)
+		elif a.begins_with(ANSWERS_FLAG):
+			answers = a.trim_prefix(ANSWERS_FLAG)
+	if sub != "":
+		tab = "Roteiros"
 	if out == "":
 		return
 	EditorInterface.set_main_screen_editor("VAT")
@@ -67,6 +83,8 @@ func _capture_if_asked() -> void:
 			tabs.current_tab = i
 	if tab == "Validar":
 		await _panel.run_validation()
+	if sub != "":
+		await _panel.show_roteiro(sub, event_id, answers)
 	for i: int in 90:
 		await get_tree().process_frame
 	var img: Image = EditorInterface.get_base_control().get_viewport().get_texture().get_image()

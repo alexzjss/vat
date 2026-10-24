@@ -62,3 +62,21 @@ static func _files(root: String, ext: String) -> Array[String]:
 		if not SKIP_DIRS.has(d):
 			out.append_array(_files(root.path_join(d), ext))
 	return out
+
+## Simula um evento (M17) a partir de um pedido em dados simples (o que o painel manda ao processo filho):
+## `{text, source, event, setup}` -> `{ok, errors: Array[String], result: Dictionary}`. Compila `text` com o conteúdo de
+## `res://data`; com erro de compilação não simula. `setup` é o do `EventSimulator.simulate` (sem `index`).
+static func simulate_job(job: Dictionary) -> Dictionary:
+	var index: ContentIndex = scan_content()
+	var compiled: Dictionary = compile_text(str(job.get("text", "")), str(job.get("source", "roteiro")), index)
+	var errors: Array[String] = []
+	errors.assign(compiled["errors"])
+	if not errors.is_empty():
+		return {"ok": false, "errors": errors, "result": {}}
+	var script: EventScript = (compiled["events"] as Dictionary).get(StringName(str(job.get("event", "")))) as EventScript
+	if script == null:
+		errors.append("o evento '%s' não existe" % str(job.get("event", "")))
+		return {"ok": false, "errors": errors, "result": {}}
+	var setup: Dictionary = (job.get("setup", {}) as Dictionary).duplicate()
+	setup["index"] = index
+	return {"ok": true, "errors": errors, "result": EventSimulator.simulate(script, setup)}

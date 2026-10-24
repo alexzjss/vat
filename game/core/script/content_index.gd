@@ -48,6 +48,14 @@ func resolve(kind: StringName, id: StringName) -> Resource:
 	var bucket: Dictionary = _by_kind.get(kind, {})
 	return bucket.get(id) as Resource
 
+## Os ids de um tipo, em ordem alfabética (para listas de escolha).
+func ids(kind: StringName) -> Array[StringName]:
+	var out: Array[StringName] = []
+	for k: Variant in (_by_kind.get(kind, {}) as Dictionary).keys():
+		out.append(k as StringName)
+	out.sort_custom(func(a: StringName, b: StringName) -> bool: return String(a) < String(b))
+	return out
+
 func count(kind: StringName) -> int:
 	return (_by_kind.get(kind, {}) as Dictionary).size()
 
