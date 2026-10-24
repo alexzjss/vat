@@ -175,3 +175,4 @@ Os mesmos flags são só para desenvolvimento e não fazem parte do jogo exporta
 - **O editor reescreve `project.godot` ao abrir.** Antes de commitar, confira o diff e desfaça o que não for seu.
 - **Reimportar pode mudar as quebras de linha dos `.import`.** Se a mudança for só de fim de linha, restaure o arquivo antes de commitar.
 - **Não rode demos e testes ao mesmo tempo.** Eles compartilham a pasta `user://` (saves e configurações), e um atrapalha o outro.
+- **Primeiro import de um clone novo:** na primeira abertura ou `--import` de um clone recém-feito pode aparecer `importer for type 'vat.roteiro' not found` / `Failed loading resource ... .roteiro`. É só o plugin ainda não carregado; um segundo `--import` (ou reabrir o editor) sai limpo.

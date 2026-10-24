@@ -20,9 +20,14 @@ if (-not $godot) {
 $project = Join-Path $PSScriptRoot "game"
 
 # Gera o cache global de classes (class_name) necessario em modo headless.
+$freshClone = -not (Test-Path (Join-Path $project ".godot"))
 $importOut = & $godot --headless --path $project --import 2>&1
 if ($LASTEXITCODE -ne 0) {
     $importOut | ForEach-Object { Write-Host $_ }
+if ($freshClone -and $LASTEXITCODE -eq 0) {
+    # Clone novo: o primeiro import ainda nao conhece o importador do plugin; o segundo sai limpo.
+    $null = & $godot --headless --path $project --import 2>&1
+}
     Write-Error "Falha no passo de importacao do Godot (codigo $LASTEXITCODE)."
     exit $LASTEXITCODE
 }

@@ -259,6 +259,7 @@ Se os dois estiverem preenchidos, vale o roteiro. Se o `event_id` não existe no
 ## Importação e checagem
 
 - O `.roteiro` é importado pelo plugin VAT (`addons/vat_editor/roteiro_importer.gd`). Ao salvar o arquivo, o Godot reimporta sozinho. Se houver erro de compilação, a importação falha e cada erro vai para o console com `arquivo:linha: mensagem`.
+- No primeiro import ou abertura de um clone novo, o console pode mostrar `importer for type 'vat.roteiro' not found` / `Failed loading resource ... .roteiro`. O plugin ainda não estava carregado; um segundo `--import` (ou reabrir o editor) sai limpo.
 - O importador **não rastreia** os recursos de `res://data/` que o roteiro cita. Se você renomear um item, herói, habilidade ou encontro que o roteiro usa, reimporte o `.roteiro` (salve o `.roteiro` de novo ou reimporte-o pelo FileSystem).
 - Checagem fora do editor, sem janela:
 
