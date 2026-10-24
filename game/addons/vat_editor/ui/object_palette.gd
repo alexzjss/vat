@@ -24,7 +24,7 @@ var _last_click: Variant = null
 
 func _init() -> void:
 	name = "Objetos"
-	custom_minimum_size = Vector2(190, 0)
+	custom_minimum_size = Vector2(240, 0)
 	_hint = Label.new()
 	_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	add_child(_hint)
@@ -33,7 +33,9 @@ func _init() -> void:
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	add_child(scroll)
 	_grid = GridContainer.new()
-	_grid.columns = 1
+	_grid.columns = 2
+	_grid.add_theme_constant_override("h_separation", 4)
+	_grid.add_theme_constant_override("v_separation", 4)
 	_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.add_child(_grid)
 	add_child(HSeparator.new())
@@ -76,6 +78,8 @@ func _rebuild_buttons() -> void:
 		b.text = String(p["name"])
 		b.icon = _icon(p["icons"])
 		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		b.clip_text = true
+		b.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 		b.tooltip_text = "Adiciona %s no centro da vista (ou no último clique), na grade." % String(p["name"])
 		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		b.pressed.connect(add_prefab.bind(p["id"]))
@@ -145,7 +149,7 @@ func add_prefab(id: StringName) -> Node:
 	var node2d: Node2D = node as Node2D
 	if node2d != null:
 		node2d.position = Palette.placement(_last_click, view_center())
-	var changes: Dictionary = Palette.flag_changes(Palette.flag_props_of(node), _map_id(root), Palette.collect_flags(root))
+	var changes: Dictionary = Palette.flags_for_new(root, node, id, _map_id(root))
 	for k: Variant in changes:
 		node.set(k, changes[k])
 	var ur: EditorUndoRedoManager = plugin.get_undo_redo()

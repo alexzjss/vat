@@ -24,6 +24,8 @@ const COLOR_WARNING: Color = Color(1.0, 0.85, 0.4)
 const COLOR_MUTED: Color = Color(0.65, 0.65, 0.7)
 const NEW_FILE_FOLDER: String = "res://data/fatia/roteiro"
 const NO_EVENT: int = -2
+## Altura mínima da lista de achados do compilador (só aparece quando há achados).
+const DIAG_MIN_HEIGHT: float = 48.0
 
 ## `Callable() -> ContentIndex`, dado pelo painel (o índice é compartilhado com o simulador).
 var content: Callable
@@ -43,6 +45,7 @@ var title_label: Label
 var dirty_label: Label
 var leading_box: VBoxContainer
 var leading_edit: TextEdit
+var leading_toggle: Button
 var cards_box: VBoxContainer
 var scroll: ScrollContainer
 var empty_label: Label
@@ -95,13 +98,6 @@ func _build_left() -> void:
 	file_tree.hide_root = true
 	file_tree.item_selected.connect(_on_tree_selected)
 	left.add_child(file_tree)
-	var row1 := HFlowContainer.new()
-	left.add_child(row1)
-	_button(row1, "Novo arquivo", _on_new_file)
-	new_event_button = _button(row1, "Novo evento", _on_new_event)
-	rename_button = _button(row1, "Renomear", _on_rename_event)
-	delete_button = _button(row1, "Apagar evento", _on_delete_event)
-	_button(row1, "Atualizar", reload_all)
 
 func _build_center() -> void:
 	var center := VBoxContainer.new()
@@ -117,18 +113,31 @@ func _build_center() -> void:
 	top.add_child(dirty_label)
 	text_button = _button(top, "Ver texto", _on_view_text)
 	save_button = _button(top, "Salvar", save)
+	# Uma fileira só com as ações de arquivo e de evento.
+	var tools := HBoxContainer.new()
+	center.add_child(tools)
+	_button(tools, "Novo arquivo", _on_new_file)
+	new_event_button = _button(tools, "Novo evento", _on_new_event)
+	rename_button = _button(tools, "Renomear", _on_rename_event)
+	delete_button = _button(tools, "Apagar evento", _on_delete_event)
+	_button(tools, "Atualizar", reload_all)
 	leading_box = VBoxContainer.new()
 	center.add_child(leading_box)
-	var lead_label := Label.new()
-	lead_label.text = "Comentários do evento (colados no ===):"
-	lead_label.add_theme_color_override("font_color", COLOR_MUTED)
-	leading_box.add_child(lead_label)
+	# Recolhido enquanto o evento não tem comentários colados no `===`.
+	leading_toggle = Button.new()
+	leading_toggle.toggle_mode = true
+	leading_toggle.flat = true
+	leading_toggle.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	leading_toggle.add_theme_color_override("font_color", COLOR_MUTED)
+	leading_toggle.toggled.connect(_set_leading_open)
+	leading_box.add_child(leading_toggle)
 	leading_edit = TextEdit.new()
 	leading_edit.scroll_fit_content_height = true
 	leading_edit.custom_minimum_size = Vector2(0, 36)
 	leading_edit.placeholder_text = "(sem comentários)"
 	leading_edit.text_changed.connect(_on_leading_changed)
 	leading_box.add_child(leading_edit)
+	_set_leading_open(false)
 	scroll = ScrollContainer.new()
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
@@ -152,7 +161,8 @@ func _build_center() -> void:
 	diag_summary = Label.new()
 	center.add_child(diag_summary)
 	diag_tree = Tree.new()
-	diag_tree.custom_minimum_size = Vector2(0, 110)
+	diag_tree.custom_minimum_size = Vector2(0, DIAG_MIN_HEIGHT)
+	diag_tree.visible = false # só aparece quando há achados
 	diag_tree.hide_root = true
 	diag_tree.item_selected.connect(_on_diag_selected)
 	center.add_child(diag_tree)
@@ -440,6 +450,14 @@ func _container() -> Array[RoteiroBlock]:
 		return session.doc.events[current].blocks
 	return []
 
+## Abre ou recolhe o campo dos comentários do evento (o botão mostra o estado).
+func _set_leading_open(open: bool) -> void:
+	if leading_edit == null:
+		return
+	leading_edit.visible = open
+	leading_toggle.set_pressed_no_signal(open)
+	leading_toggle.text = ("▾ " if open else "▸ ") + "Comentários do evento (colados no ===)"
+
 func _show_current() -> void:
 	if title_label == null:
 		return
@@ -457,6 +475,7 @@ func _show_current() -> void:
 	elif has_event:
 		title_label.text = "%s  >  %s" % [session.path.get_file(), session.doc.events[current].id]
 		leading_edit.text = Logic.leading_text(session.doc.events[current])
+		_set_leading_open(leading_edit.text != "")
 	elif is_header:
 		title_label.text = "%s  >  cabeçalho do arquivo (comentários e @flag antes do primeiro evento)" % session.path.get_file()
 	else:
@@ -577,6 +596,7 @@ func _refresh_diagnostics() -> void:
 		return
 	diag_tree.clear()
 	var root: TreeItem = diag_tree.create_item()
+	diag_tree.visible = false
 	if session == null:
 		diag_summary.text = ""
 		return
@@ -594,6 +614,7 @@ func _refresh_diagnostics() -> void:
 		item.set_custom_color(0, COLOR_ERROR if is_error else COLOR_WARNING)
 		item.set_metadata(0, d["loc"])
 	diag_summary.text = "%d erro(s), %d aviso(s)" % [errors, warnings] if not found.is_empty() else "Sem erros nem avisos."
+	diag_tree.visible = not found.is_empty()
 	_highlight(-1)
 
 func _on_diag_selected() -> void:
