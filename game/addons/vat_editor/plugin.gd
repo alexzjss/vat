@@ -7,6 +7,7 @@ extends EditorPlugin
 ## Captura de tela para conferência: `godot --path game --editor -- --vat-capture=<arquivo.png> [--vat-tab=<aba>]`
 ## abre o editor, mostra a aba VAT (e a sub-aba pedida: Banco, Roteiros, Validar ou Testar), salva a imagem e sai.
 ## Na aba Mapas: `--vat-wizard[=<id>]` abre o diálogo Novo mapa (com esse id).
+## Na aba Mundo: `--vat-tests` mostra também os mapas de teste.
 ## Na aba Roteiros: `--vat-sub=Lista|Editor|Simular` escolhe a sub-vista, `--vat-event=<id>` abre esse evento (no primeiro
 ## arquivo que o tem) e `--vat-answers=<0,1,..>` roda a simulação com essas respostas (no Simular).
 ## `--vat-open-scene=<res://...tscn>` abre a cena na tela 2D (a paleta de objetos aparece), `--vat-select=<caminho do nó>` seleciona
@@ -25,6 +26,7 @@ const WIZARD_FLAG: String = "--vat-wizard"
 const OPEN_SCENE_FLAG: String = "--vat-open-scene="
 const SELECT_FLAG: String = "--vat-select="
 const ADD_FLAG: String = "--vat-add="
+const TESTS_FLAG: String = "--vat-tests"
 
 var _roteiro_importer: EditorImportPlugin
 var _panel: Control
@@ -114,6 +116,7 @@ func _capture_if_asked() -> void:
 	var open_scene: String = ""
 	var select_path: String = ""
 	var add_id: String = ""
+	var with_tests: bool = false
 	for a: String in OS.get_cmdline_user_args():
 		if a.begins_with(CAPTURE_FLAG):
 			out = a.trim_prefix(CAPTURE_FLAG)
@@ -131,6 +134,8 @@ func _capture_if_asked() -> void:
 			select_path = a.trim_prefix(SELECT_FLAG)
 		elif a.begins_with(ADD_FLAG):
 			add_id = a.trim_prefix(ADD_FLAG)
+		elif a == TESTS_FLAG:
+			with_tests = true
 		elif a == WIZARD_FLAG or a.begins_with(WIZARD_FLAG + "="):
 			wizard = true
 			tab = "Mapas"
@@ -151,6 +156,8 @@ func _capture_if_asked() -> void:
 			tabs.current_tab = i
 	if tab == "Mapas":
 		_panel.show_maps(wizard, wizard_id)
+	if tab == "Mundo":
+		_panel.show_world(with_tests)
 	if tab == "Validar":
 		await _panel.run_validation()
 	if sub != "":

@@ -31,6 +31,7 @@ const Roteiros: GDScript = preload("res://addons/vat_editor/logic/vat_roteiros.g
 const RoteiroEditor: GDScript = preload("res://addons/vat_editor/ui/roteiro_editor.gd")
 const EventSimulatorPanel: GDScript = preload("res://addons/vat_editor/ui/event_simulator_panel.gd")
 const MapsPanel: GDScript = preload("res://addons/vat_editor/ui/maps_panel.gd")
+const WorldPanel: GDScript = preload("res://addons/vat_editor/ui/world_graph_panel.gd")
 
 const COLOR_ERROR: Color = Color(1.0, 0.45, 0.4)
 const COLOR_WARNING: Color = Color(1.0, 0.85, 0.4)
@@ -68,6 +69,9 @@ var _content_index: ContentIndex
 # Mapas
 var maps_panel: VBoxContainer
 
+# Mundo
+var world_panel: VBoxContainer
+
 # Validar
 var validate_tree: Tree
 var validate_summary: Label
@@ -96,6 +100,7 @@ func _ready() -> void:
 	_build_bank()
 	_build_roteiros()
 	_build_maps()
+	_build_world()
 	_build_validate()
 	_build_test()
 	tabs.tab_changed.connect(_on_tab_changed)
@@ -112,6 +117,8 @@ func _on_tab_changed(index: int) -> void:
 		_scan_roteiros()
 	elif title == "Mapas":
 		maps_panel.call(&"refresh")
+	elif title == "Mundo":
+		world_panel.call(&"refresh")
 
 func _say(text: String) -> void:
 	status.text = text
@@ -448,6 +455,18 @@ func _build_maps() -> void:
 	maps_panel = MapsPanel.new()
 	maps_panel.connect(&"status", _say)
 	tabs.add_child(maps_panel)
+
+func _build_world() -> void:
+	world_panel = WorldPanel.new()
+	world_panel.connect(&"status", _say)
+	tabs.add_child(world_panel)
+
+## Para a captura de tela: mostra a aba Mundo, com ou sem os mapas de teste.
+func show_world(with_tests: bool = false) -> void:
+	for i: int in tabs.get_tab_count():
+		if tabs.get_tab_title(i) == "Mundo":
+			tabs.current_tab = i
+	world_panel.call(&"show_tests", with_tests)
 
 ## Para a captura de tela: mostra a aba Mapas e, com `wizard`, abre o diálogo Novo mapa (com `wizard_id` no campo de id).
 func show_maps(wizard: bool = false, wizard_id: String = "") -> void:
