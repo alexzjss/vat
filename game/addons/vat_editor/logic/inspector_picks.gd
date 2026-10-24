@@ -5,6 +5,8 @@ extends RefCounted
 ## do registro, os marcadores da cena de destino, os livros `.roteiro` e os eventos deles, os recursos de conteúdo) e como
 ## um valor inválido aparece. Sem Node de editor: `inspector/vat_inspector_plugin.gd` só desenha.
 
+const SceneScan: GDScript = preload("res://addons/vat_editor/logic/scene_scan.gd")
+
 const PICK_MAP: StringName = &"map"
 const PICK_SPAWN: StringName = &"spawn"
 const PICK_BOOK: StringName = &"book"
@@ -60,25 +62,10 @@ static func map_ids(registry: MapRegistry) -> Array[String]:
 		out.append(String(id))
 	return out
 
-## Os nomes dos marcadores (Marker2D filhos diretos da raiz) de uma cena, incluindo os herdados da cena-base.
-## Cena nula: vazio. Não instancia nada.
+## Os marcadores (Marker2D, inclusive os de prefabs instanciados e os herdados da cena-base) de uma cena, pelo caminho
+## relativo à raiz, como o validador os lista. Cena nula: vazio. Não instancia nada.
 static func spawns_of(scene: PackedScene) -> Array[String]:
-	var out: Array[String] = []
-	if scene == null:
-		return out
-	var state: SceneState = scene.get_state()
-	while state != null:
-		for i: int in state.get_node_count():
-			if state.get_node_type(i) != &"Marker2D":
-				continue
-			# Filho direto da raiz: o caminho vem como "./Nome".
-			if String(state.get_node_path(i)).count("/") != 1:
-				continue
-			var node_name: String = String(state.get_node_name(i))
-			if not out.has(node_name):
-				out.append(node_name)
-		state = state.get_base_scene_state()
-	return out
+	return SceneScan.paths_of_type(scene, "Marker2D")
 
 ## Os marcadores do mapa `map_id` do registro (vazio se o mapa não existe).
 static func spawns_for_map(registry: MapRegistry, map_id: StringName) -> Array[String]:

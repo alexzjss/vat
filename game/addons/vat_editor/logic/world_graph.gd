@@ -8,6 +8,7 @@ extends RefCounted
 
 const Picks: GDScript = preload("res://addons/vat_editor/logic/inspector_picks.gd")
 
+const Scan: GDScript = preload("res://addons/vat_editor/logic/scene_scan.gd")
 const START_PROFILE_PATH: String = "res://data/fatia/start.tres"
 const LAYOUT_PATH: String = "res://addons/vat_editor/mundo_layout.cfg"
 const LAYOUT_SECTION: String = "posicoes"
@@ -24,49 +25,33 @@ const KIND_NAMES: Array[String] = ["Cidade", "Interior", "Masmorra", "Mundo", "T
 
 # --- leitura de uma cena ------------------------------------------------------------------------------------
 
-## O que uma cena declara, sem instanciá-la: `{root, links, zones, has_exit}`.
+## O que uma cena declara, sem instanciá-la, a árvore inteira e com os prefabs instanciados resolvidos (`logic/scene_scan.gd`):
+## `{root, links, zones, has_exit}`.
 ## `root` é "local", "overworld" ou "" (outra coisa); `links` e `zones` são listas de `{node, target, spawn}`.
 static func scan_scene(scene: PackedScene) -> Dictionary:
 	var out: Dictionary = {"root": "", "links": [], "zones": [], "has_exit": false}
 	if scene == null:
 		return out
-	# Do mais base para o mais derivado: o derivado sobrescreve as propriedades do mesmo caminho.
-	var states: Array[SceneState] = []
-	var st: SceneState = scene.get_state()
-	while st != null:
-		states.push_front(st)
-		st = st.get_base_scene_state()
-	var nodes: Dictionary = {}
-	var order: Array[String] = []
-	for state: SceneState in states:
-		for i: int in state.get_node_count():
-			var path: String = String(state.get_node_path(i))
-			if not nodes.has(path):
-				nodes[path] = {}
-				order.append(path)
-			var props: Dictionary = nodes[path]
-			for j: int in state.get_node_property_count(i):
-				props[String(state.get_node_property_name(i, j))] = state.get_node_property_value(i, j)
-	for path: String in order:
-		var props: Dictionary = nodes[path]
-		var chain: Array[String] = Picks.script_chain(props.get("script") as Script)
-		if path == ".":
+	var data: Dictionary = Scan.collect(scene)
+	var nodes: Dictionary = data["nodes"]
+	for path: String in data["order"]:
+		var entry: Dictionary = nodes[path]
+		var props: Dictionary = entry["props"]
+		var chain: Array[String] = Picks.script_chain(Scan.script_of(entry))
+		if path == "":
 			if chain.has("LocalMap"):
 				out["root"] = "local"
 			elif chain.has("Overworld"):
 				out["root"] = "overworld"
 			continue
-		# Só filhos diretos da raiz ("./Nome"), como o resto do editor.
-		if path.count("/") != 1:
-			continue
-		var node_name: String = path.get_file()
 		if chain.has("MapLink"):
 			var l: Array = out["links"]
-			l.append({"node": node_name, "target": String(props.get("target_map", &"")), "spawn": String(props.get("target_spawn", &"Entry"))})
+			l.append({"node": path, "target": String(props.get("target_map", &"")), "spawn": String(props.get("target_spawn", &"Entry"))})
 		elif chain.has("Zone"):
 			var z: Array = out["zones"]
-			z.append({"node": node_name, "target": String(props.get("zone_id", &"")), "spawn": String(props.get("spawn", &"Entry"))})
-		if node_name == "Exit":
+			z.append({"node": path, "target": String(props.get("zone_id", &"")), "spawn": String(props.get("spawn", &"Entry"))})
+		# O `$Exit` do mapa local é sempre filho direto da raiz.
+		if path == "Exit":
 			out["has_exit"] = true
 	return out
 

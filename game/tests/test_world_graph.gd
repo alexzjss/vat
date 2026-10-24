@@ -4,6 +4,9 @@ extends GutTest
 ## layout automático determinístico e a gravação das posições.
 
 const WorldGraph: GDScript = preload("res://addons/vat_editor/logic/world_graph.gd")
+const Picks: GDScript = preload("res://addons/vat_editor/logic/inspector_picks.gd")
+const Wizard: GDScript = preload("res://addons/vat_editor/logic/map_wizard.gd")
+const Builder: GDScript = preload("res://addons/vat_editor/logic/map_builder.gd")
 const TMP_CFG: String = "user://m17_world_layout_test.cfg"
 
 ## As arestas do jogo hoje, "origem>destino@ponto:nó", derivadas das cenas (fatia e mapas de teste).
@@ -223,3 +226,68 @@ func test_layout_save_load_round_trip() -> void:
 
 func test_load_layout_of_missing_file_is_empty() -> void:
 	assert_eq(WorldGraph.load_layout("user://nao_existe_m17.cfg"), {})
+
+# --- prefabs instanciados (M17) ---
+
+## Um mapa do assistente com prefabs instanciados: uma `Ligacao` (para a cidade, ponto `Entry`) e um `Spawn` chamado `Volta`,
+## este dentro de um nó intermediário (a árvore inteira conta, como no validador).
+func _wizard_map_with_prefabs() -> PackedScene:
+	var params: Dictionary = {"id": "vila_nova", "name": "", "kind": MapDef.Kind.CIDADE, "width": 40, "height": 30}
+	var plan: Dictionary = Wizard.plan(params, MapRegistry.new(), "user://m17_gx/mapas", "user://m17_gx/maps")
+	var base: PackedScene = Builder.build(plan)
+	var root: Node = base.instantiate()
+	var link: MapLink = (load("res://world/prefabs/ligacao.tscn") as PackedScene).instantiate() as MapLink
+	link.name = "PortaCidade"
+	link.target_map = &"cidade"
+	link.target_spawn = &"Entry"
+	root.add_child(link)
+	link.owner = root
+	var group := Node2D.new()
+	group.name = "Grupo"
+	root.add_child(group)
+	group.owner = root
+	var marker: Node = (load("res://world/prefabs/marcador_spawn.tscn") as PackedScene).instantiate()
+	marker.name = "Volta"
+	group.add_child(marker)
+	marker.owner = root
+	var packed := PackedScene.new()
+	assert_eq(packed.pack(root), OK)
+	root.free()
+	return packed
+
+func test_scan_scene_finds_instanced_link_prefab() -> void:
+	var scan: Dictionary = WorldGraph.scan_scene(_wizard_map_with_prefabs())
+	assert_eq(scan["root"], "local")
+	var links: Array = scan["links"]
+	assert_eq(links.size(), 1)
+	assert_eq((links[0] as Dictionary)["node"], "PortaCidade")
+	assert_eq((links[0] as Dictionary)["target"], "cidade")
+	assert_eq((links[0] as Dictionary)["spawn"], "Entry")
+
+func test_spawns_of_lists_instanced_marker_prefab() -> void:
+	var spawns: Array[String] = Picks.spawns_of(_wizard_map_with_prefabs())
+	assert_true(spawns.has("Start"))
+	assert_true(spawns.has("Entry"))
+	assert_true(spawns.has("Grupo/Volta"))
+
+func test_graph_shows_edge_of_instanced_prefab_and_it_is_not_broken() -> void:
+	var reg: MapRegistry = _registry([_def("cidade", _local([])), _def("vila_nova", _wizard_map_with_prefabs())] as Array[MapDef])
+	var graph: Dictionary = WorldGraph.build(reg, &"cidade")
+	assert_eq(_keys(graph), ["vila_nova>cidade@Entry:PortaCidade"] as Array[String])
+	assert_eq(WorldGraph.broken_edges(graph).size(), 0)
+	assert_eq((_node(graph, "vila_nova")["counts"] as Dictionary)["links"], 1)
+
+func test_instanced_link_with_missing_target_is_flagged() -> void:
+	var reg: MapRegistry = _registry([_def("vila_nova", _wizard_map_with_prefabs())] as Array[MapDef])
+	assert_eq(WorldGraph.broken_edges(WorldGraph.build(reg, &"vila_nova")).size(), 1)
+
+func test_inherited_scene_sees_parent_prefab_and_child_override() -> void:
+	var scene: PackedScene = _wizard_map_with_prefabs()
+	var child: Node = scene.instantiate(PackedScene.GEN_EDIT_STATE_MAIN_INHERITED)
+	(child.get_node(^"PortaCidade") as MapLink).target_spawn = &"Volta"
+	var inherited := PackedScene.new()
+	assert_eq(inherited.pack(child), OK)
+	child.free()
+	var scan: Dictionary = WorldGraph.scan_scene(inherited)
+	assert_eq((scan["links"] as Array).size(), 1)
+	assert_eq(((scan["links"] as Array)[0] as Dictionary)["spawn"], "Volta")
