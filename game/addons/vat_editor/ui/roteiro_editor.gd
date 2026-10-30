@@ -26,6 +26,9 @@ const COLOR_WARNING: Color = Color(1.0, 0.85, 0.4)
 const COLOR_MUTED: Color = Color(0.65, 0.65, 0.7)
 const NEW_FILE_FOLDER: String = "res://data/fatia/roteiro"
 const NO_EVENT: int = -2
+## Rolagem automática ao arrastar um bloco: a faixa (px) junto à borda da lista e a velocidade máxima (px por quadro).
+const EDGE_ZONE: float = 28.0
+const EDGE_MAX_SPEED: float = 24.0
 ## Altura mínima da lista de achados do compilador (só aparece quando há achados).
 const DIAG_MIN_HEIGHT: float = 48.0
 
@@ -586,16 +589,27 @@ func _on_drop(from: int, hovered: int, after: bool) -> void:
 		_anchor = to
 		_after_structure(to)
 
+## Durante o arrastar de um bloco, rola a lista quando o mouse chega perto da borda de cima ou de baixo. Fica aqui (e
+## não no `can_drop` da lista) porque os cartões tratam a soltura e o Godot não pergunta à lista enquanto o mouse está
+## sobre um cartão.
+func _process(_delta: float) -> void:
+	var vp: Viewport = get_viewport()
+	if scroll == null or vp == null or not vp.gui_is_dragging() or not _is_block_drag(vp.gui_get_drag_data()):
+		return
+	var rect: Rect2 = scroll.get_global_rect()
+	var speed: float = Logic.edge_scroll_speed(vp.get_mouse_position().y, rect.position.y, rect.end.y, EDGE_ZONE, EDGE_MAX_SPEED)
+	if speed != 0.0:
+		scroll.scroll_vertical += int(roundf(speed)) if absf(speed) >= 1.0 else (1 if speed > 0.0 else -1)
+
+func _is_block_drag(data: Variant) -> bool:
+	return data is Dictionary and (data as Dictionary).has(BlockCard.DRAG_KEY)
+
 ## O arrastar sobre os vãos entre cartões e o espaço abaixo do último: vale o cartão mais próximo (a posição do mouse
-## decide se é antes ou depois dele). Perto da borda de cima ou de baixo, rola a lista.
+## decide se é antes ou depois dele). A rolagem perto das bordas está em `_process`.
 func _scroll_can_drop(at: Vector2, data: Variant) -> bool:
 	var hit: Dictionary = _nearest_card(at, data)
 	for c: Node in cards_box.get_children():
 		(c as PanelContainer).show_drop_mark(0)
-	if at.y < 28.0:
-		scroll.scroll_vertical -= 24
-	elif at.y > scroll.size.y - 28.0:
-		scroll.scroll_vertical += 24
 	if hit.is_empty():
 		return false
 	var ok: bool = Logic.drop_target(_container(), int(hit["from"]), int(hit["index"]), bool(hit["after"])) != int(hit["from"])
@@ -612,7 +626,7 @@ func _scroll_drop(at: Vector2, data: Variant) -> void:
 
 ## `{card, index, after, from}` do cartão mais perto de `at` (coordenadas da lista) para um arrastar de bloco, ou `{}`.
 func _nearest_card(at: Vector2, data: Variant) -> Dictionary:
-	if not data is Dictionary or not (data as Dictionary).has(BlockCard.DRAG_KEY):
+	if not _is_block_drag(data):
 		return {}
 	var gp: Vector2 = scroll.get_global_transform() * at
 	var best: PanelContainer = null

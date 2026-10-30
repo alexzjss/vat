@@ -237,18 +237,41 @@ static func sections(kind: StringName) -> Array[Dictionary]:
 ## Os trechos da mensagem de cada validador que dizem de qual campo ela fala (ordem importa: o primeiro que casa vale).
 const ISSUE_NEEDLES: Dictionary = {
 	&"heroes": [["ataque básico", &"basic_attack"], ["learnset", &"learnset"], ["equipamento inicial", &"starting_equipment"],
-			["elemento nativo", &"elements"], ["elementos nativos", &"elements"], ["atributos base", &"base"], ["sem id", &"id"], ["id de ", &"id"]],
-	&"enemies": [["regra de IA", &"ai_rules"], ["drop [", &"drops"], ["fase [", &"phases"], ["habilidade [", &"abilities"], ["chefe '", &"immunities"],
-			["elemento nativo", &"elements"], ["elementos nativos", &"elements"], ["atributos base", &"base"], ["sem id", &"id"], ["id de ", &"id"]],
-	&"encounters": [["inimigo", &"enemies"], ["sem id", &"id"], ["id de ", &"id"]],
-	&"items": [["efeito [", &"effects"], ["sem id", &"id"], ["id de ", &"id"]],
-	&"equipment": [["passiva [", &"passives"], ["sem id", &"id"], ["id de ", &"id"]],
+			["elemento nativo", &"elements"], ["elementos nativos", &"elements"], ["atributos base", &"base"]],
+	&"enemies": [[", fase ", &"phases"], ["regra de IA", &"ai_rules"], ["drop [", &"drops"], ["fase [", &"phases"], ["habilidade [", &"abilities"],
+			["chefe '", &"immunities"], ["elemento nativo", &"elements"], ["elementos nativos", &"elements"], ["atributos base", &"base"]],
+	&"encounters": [["inimigo", &"enemies"]],
+	&"items": [["efeito [", &"effects"]],
+	&"equipment": [["passiva [", &"passives"]],
 }
+
+## A mensagem sem o que não é do campo: o `(também em res://...)` e os ids entre aspas (que podem ter qualquer palavra).
+static func _issue_text(message: String) -> String:
+	var text: String = message
+	var open: int = text.find(" (também em ")
+	if open >= 0:
+		text = text.substr(0, open)
+	var out: String = ""
+	var quoted: bool = false
+	for i: int in text.length():
+		var ch: String = text[i]
+		if ch == "'":
+			quoted = not quoted
+			out += ch
+		elif not quoted:
+			out += ch
+	return out
 
 ## O campo de `kind` de que a mensagem de validação fala, ou &"" se não dá para saber (o achado só aparece na faixa).
 static func issue_prop(kind: StringName, message: String) -> StringName:
-	for pair: Array in ISSUE_NEEDLES.get(kind, []):
-		if message.contains(pair[0]):
+	if not ISSUE_NEEDLES.has(kind):
+		return &""
+	# "<tipo> sem id" e "id de <tipo> repetido: ..." (o `ContentChecks`) falam do campo `id`, qualquer que seja o resto.
+	if message.ends_with(" sem id") or message.begins_with("id de "):
+		return &"id"
+	var text: String = _issue_text(message)
+	for pair: Array in ISSUE_NEEDLES[kind]:
+		if text.contains(pair[0]):
 			return pair[1]
 	return &""
 

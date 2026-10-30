@@ -571,12 +571,7 @@ func test_moving_a_plain_block_compiles_to_the_same_steps_in_the_new_order() -> 
 	assert_eq(_steps_of(RoteiroDoc.to_text(doc), &"e"), steps_before)
 
 func test_drop_target_ignores_hidden_blank_lines() -> void:
-	var doc: RoteiroDoc = _doc("=== e
-A: um
-
-A: dois
-A: três
-")
+	var doc: RoteiroDoc = _doc("=== e\nA: um\n\nA: dois\nA: três\n")
 	var blocks: Array[RoteiroBlock] = doc.events[0].blocks
 	assert_eq(Logic.visible(blocks), [0, 2, 3] as Array[int])
 	assert_eq(Logic.drop_target(blocks, 2, 0, true), 2, "logo depois do vizinho visível: nada muda, mesmo com a linha em branco no meio")
@@ -590,3 +585,25 @@ A: três
 	assert_true(Logic.move_to(blocks, 0, Logic.drop_target(blocks, 0, 3, true)))
 	assert_eq(blocks[3].text, "um")
 	assert_eq(blocks[0].kind, Kind.EM_BRANCO, "a linha em branco fica onde estava na lista")
+
+func test_edge_scroll_speed_is_proportional_to_the_depth_in_each_edge_zone() -> void:
+	assert_almost_eq(Logic.edge_scroll_speed(100.0, 100.0, 500.0, 28.0, 24.0), -24.0, 0.001, "na borda de cima: tudo para cima")
+	assert_almost_eq(Logic.edge_scroll_speed(114.0, 100.0, 500.0, 28.0, 24.0), -12.0, 0.001, "na metade da faixa de cima")
+	assert_almost_eq(Logic.edge_scroll_speed(128.0, 100.0, 500.0, 28.0, 24.0), 0.0, 0.001, "no limite interno da faixa")
+	assert_almost_eq(Logic.edge_scroll_speed(500.0, 100.0, 500.0, 28.0, 24.0), 24.0, 0.001, "na borda de baixo: tudo para baixo")
+	assert_almost_eq(Logic.edge_scroll_speed(486.0, 100.0, 500.0, 28.0, 24.0), 12.0, 0.001, "na metade da faixa de baixo")
+
+func test_edge_scroll_speed_is_zero_in_the_middle_and_outside_the_rect() -> void:
+	assert_eq(Logic.edge_scroll_speed(300.0, 100.0, 500.0, 28.0, 24.0), 0.0)
+	assert_eq(Logic.edge_scroll_speed(99.0, 100.0, 500.0, 28.0, 24.0), 0.0, "acima da lista")
+	assert_eq(Logic.edge_scroll_speed(501.0, 100.0, 500.0, 28.0, 24.0), 0.0, "abaixo da lista")
+	assert_eq(Logic.edge_scroll_speed(300.0, 500.0, 100.0, 28.0, 24.0), 0.0, "retângulo invertido")
+	assert_eq(Logic.edge_scroll_speed(300.0, 100.0, 500.0, 0.0, 24.0), 0.0, "sem faixa")
+
+func test_edge_scroll_speed_with_a_zone_larger_than_the_rect_uses_half_the_height() -> void:
+	# Altura 40: a faixa vale 20 de cada lado e o meio exato é 0, sem as duas faixas se sobreporem.
+	assert_almost_eq(Logic.edge_scroll_speed(0.0, 0.0, 40.0, 100.0, 10.0), -10.0, 0.001)
+	assert_almost_eq(Logic.edge_scroll_speed(10.0, 0.0, 40.0, 100.0, 10.0), -5.0, 0.001)
+	assert_almost_eq(Logic.edge_scroll_speed(20.0, 0.0, 40.0, 100.0, 10.0), 0.0, 0.001)
+	assert_almost_eq(Logic.edge_scroll_speed(30.0, 0.0, 40.0, 100.0, 10.0), 5.0, 0.001)
+	assert_almost_eq(Logic.edge_scroll_speed(40.0, 0.0, 40.0, 100.0, 10.0), 10.0, 0.001)

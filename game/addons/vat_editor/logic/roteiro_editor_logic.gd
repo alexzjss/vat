@@ -250,6 +250,20 @@ static func drop_target(blocks: Array[RoteiroBlock], from: int, hovered: int, af
 	var to_pos: int = drop_index(pos_from, pos_hover, after)
 	return from if to_pos == pos_from else vis[to_pos]
 
+## Velocidade (px por quadro) da rolagem automática durante um arrastar: negativa perto da borda de cima de `rect_top` a
+## `rect_bottom`, positiva perto da de baixo, proporcional à profundidade na faixa `zone` (0 no limite interno da faixa,
+## `max_speed` na borda). 0 no meio da lista e com o mouse fora dela. Se `zone` passa da metade da altura, vale a metade.
+static func edge_scroll_speed(mouse_y: float, rect_top: float, rect_bottom: float, zone: float, max_speed: float) -> float:
+	var height: float = rect_bottom - rect_top
+	if height <= 0.0 or zone <= 0.0 or mouse_y < rect_top or mouse_y > rect_bottom:
+		return 0.0
+	var z: float = minf(zone, height * 0.5)
+	if mouse_y < rect_top + z:
+		return -max_speed * (rect_top + z - mouse_y) / z
+	if mouse_y > rect_bottom - z:
+		return max_speed * (mouse_y - (rect_bottom - z)) / z
+	return 0.0
+
 ## Move o bloco `from` para a posição `to` (o índice que ele terá depois). false se algum índice não existe.
 static func move_to(blocks: Array[RoteiroBlock], from: int, to: int) -> bool:
 	if from < 0 or from >= blocks.size() or to < 0 or to >= blocks.size():

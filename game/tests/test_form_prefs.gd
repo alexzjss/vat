@@ -88,3 +88,23 @@ func test_issue_prop_and_section() -> void:
 	assert_eq(Forms.section_of(&"enemies", &"immunities"), "Afinidades")
 	assert_eq(Forms.issue_prop(&"heroes", "mensagem desconhecida"), &"")
 	assert_eq(Forms.section_of(&"heroes", &"nada"), "")
+
+func test_issue_prop_boss_phase_ai_rule_goes_to_phases() -> void:
+	assert_eq(Forms.issue_prop(&"enemies", "inimigo 'x', fase 0: regra de IA [1] vazia"), &"phases")
+	assert_eq(Forms.issue_prop(&"enemies", "chefe 'x', fase 2: regra de IA [0] sem habilidade"), &"phases")
+	assert_eq(Forms.issue_prop(&"enemies", "inimigo 'x': regra de IA [1] vazia"), &"ai_rules", "sem fase: continua nas regras de IA")
+	assert_eq(Forms.issue_prop(&"enemies", "inimigo 'x': fase [0] vazia"), &"phases")
+	assert_eq(Forms.section_of(&"enemies", Forms.issue_prop(&"enemies", "inimigo 'x', fase 0: regra de IA [1] vazia")),
+			Forms.section_of(&"enemies", &"phases"))
+
+func test_issue_prop_id_messages_map_to_id_whatever_the_rest_says() -> void:
+	assert_eq(Forms.issue_prop(&"encounters", "id de encontro repetido: 'inimigo_a' (também em res://d/enc.tres)"), &"id")
+	assert_eq(Forms.issue_prop(&"heroes", "id de herói repetido: 'a' (também em res://d/learnset.tres)"), &"id")
+	assert_eq(Forms.issue_prop(&"enemies", "inimigo sem id"), &"id")
+	assert_eq(Forms.issue_prop(&"items", "item sem id"), &"id")
+
+func test_issue_prop_ignores_quoted_ids_and_paths() -> void:
+	assert_eq(Forms.issue_prop(&"heroes", "herói 'learnset_1': sem ataque básico"), &"basic_attack")
+	assert_eq(Forms.issue_prop(&"encounters", "encontro 'inimigo_a': sem nada"), &"", "o id entre aspas não vale")
+	assert_eq(Forms.issue_prop(&"encounters", "encontro 'x': inimigo [0] vazio"), &"enemies")
+	assert_eq(Forms.issue_prop(&"heroes", "mensagem (também em res://d/learnset.tres)"), &"")
