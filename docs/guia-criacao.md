@@ -1,4 +1,4 @@
-# Guia de criação de conteúdo (M17)
+# Guia de criação de conteúdo (M18)
 
 Passo a passo para criar conteúdo pela interface do editor do Godot, sem escrever código: eventos num editor de blocos, mapas novos com um assistente, objetos colocados numa paleta, formulários para heróis, inimigos, encontros, lojas, itens e arte. O texto `.roteiro` continua valendo como alternativa avançada (veja a seção dedicada, antes dos limites). A sintaxe do roteiro está em [`roteiro.md`](roteiro.md).
 
@@ -22,7 +22,7 @@ Abra o projeto no Godot 4 (pasta `game/`). O plugin VAT já vem ativado. Na barr
    - **Rótulo** e **Então ir para**: os rótulos do evento (e `fim`);
    - **Item**, **Equipamento**, **Herói**, **Técnica** e **Encontro** são listas de recursos do projeto, com a opção "(nenhum)".
 5. **Escolha**: em **Opções**, use **+ Opção** para cada resposta e escolha o rótulo de destino de cada uma. A pergunta mantém o falante.
-6. Em cada cartão, as setas **▲** e **▼** (Subir e Descer) reordenam os blocos; **Duplicar** copia o bloco logo abaixo; **Apagar** remove o bloco. Não há arrastar (veja os limites).
+6. Para mudar um bloco de lugar, arraste o **título** do cartão e solte entre outros cartões. Uma linha azul mostra onde ele vai cair: acima ou abaixo do cartão, conforme a metade em que o mouse está. As setas **▲** e **▼** (Subir e Descer) continuam funcionando; **Duplicar** copia o bloco logo abaixo; **Apagar** remove o bloco.
 7. No rodapé, o resumo mostra **N erro(s), M aviso(s)**, com a mensagem do compilador. Clicar num item da lista destaca o bloco com o problema.
 8. **Salvar** grava o `.roteiro` e o reimporta. Enquanto houver alterações, aparece **● não salvo**. Ao trocar de arquivo ou evento com alterações, o painel pergunta: **Salvar**, **Cancelar** ou **Não salvar**.
 9. **Ver texto** mostra o texto gerado, só para leitura, com o botão **Copiar**.
@@ -53,11 +53,21 @@ O mapa aparece na lista da aba **Mapas** e abre na cena do editor. Para ele, a a
 
 **Pintar:** pinte com o TileMap do Godot. Em **Chão**, o piso; em **Paredes**, o que bloqueia; em **Decoração**, os enfeites (não colide). O tileset é `game/art/tiles/placeholder_32.tres`, de tiles 32×32, e a colisão vem do próprio tileset: não precisa de `StaticBody2D`. Os nós de jogo (NPCs, portas, baús, ligações, marcadores) são nós separados do TileMap: coloque-os pela paleta (seção (c)).
 
+**Terrenos (autotile).** O tileset tem seis terrenos: Grama, Caminho, Parede, Água, Piso interno e Parede interna. Para pintar por terreno, selecione a camada (**Chão** ou **Paredes**), abra a aba **TileMap** no painel inferior, depois a aba **Terrenos**, escolha o terreno e o modo **Conectar** (ou **Caminho**), e pinte. O Godot escolhe o tile de cada célula olhando as quatro vizinhas.
+- Com os tiles placeholder, cada terreno tem um tile só: o resultado é igual ao de pintar à mão. As bordas e os cantos chegam com a arte final.
+- O assistente **Novo mapa** já pinta o chão e a borda pelo terreno. Os mapas da fatia não foram migrados.
+- A masmorra A fica fora do terreno Piso interno e continua pintada à mão.
+- Para acrescentar os tiles de transição (a tabela de bits do modo "combinar lados"), veja a seção **Terrenos (autotile)** de [`game/art/tiles/README.md`](../game/art/tiles/README.md).
+- **Atenção:** as variantes que você acrescentar no editor do TileSet se perdem se `gen_tileset.py` for rodado de novo. Acrescente-as também no script, ou não rode o gerador.
+
 ## (c) Colocar objetos com a paleta e configurar pelo Inspector
 
 **Paleta "Objetos".** Com um mapa aberto (um `LocalMap` ou um `Overworld`), o dock **Objetos** mostra um botão por objeto: NPC, Placa, Ligação, Baú, Ponto de descanso, Loja, Pousada, Inimigo do mapa, Obstáculo elemental, Portão de flag, Porta com chave, Interruptor, Gatilho de evento, Armadilha, Marcador de spawn e Zona (só no mapa-múndi).
 
 - Clicar num botão coloca o prefab no último clique da vista 2D ou, sem clique, no centro da vista. A posição é alinhada à grade de 32 px, o nome recebe um id único, o nó novo fica selecionado e a ação entra no **Ctrl+Z** do editor.
+- **Pousada** e **Ponto de descanso** também colocam o marcador de save: um `Marker2D` chamado `InnSpawn` ou `RestSpawn`, 64 px abaixo do objeto, na grade. Tudo é uma ação só: um **Ctrl+Z** desfaz o objeto e o marcador juntos.
+  - Se o mapa já tem um marcador com esse nome, nenhum marcador novo é criado, e o objeto aponta para o que já existe.
+  - Se outro nó que não é marcador já usa o nome, o marcador novo ganha um número (`InnSpawn2`, `RestSpawn2`...), e o objeto passa a apontar para ele.
 - **Ajustar à grade** alinha à grade de 32 px os nós selecionados.
 - **Renomear com id** troca as flags provisórias (ou repetidas) dos nós selecionados por flags únicas do mapa.
 - Cada botão usa um prefab de `world/prefabs/`, um por tipo de objeto.
@@ -96,6 +106,12 @@ Em todos os formulários:
 **Inimigos.** Atributos, nível, XP base, moedas, elementos nativos; afinidades, resistências e imunidades a estados; habilidades; **Regras de IA**, em ordem (vale a primeira que se aplica, de cima para baixo); drops; fases de chefe (cada uma com as suas regras); contra-ataque e papel; "protege o núcleo" (para partes); arte.
 
 **Encontros.** A lista de inimigos, **Pode fugir** e **Id único** (para chefes, gravado ao vencer). A **Prévia da formação** mostra o total de inimigos, o XP base e as moedas. **Testar encontro** abre o jogo já na luta com este encontro, usando o nível e a arena da aba **Testar**. Salve antes: o jogo lê do disco.
+
+**Seções recolhíveis.** Os formulários de herói e de inimigo dividem os campos em seções. Clique no título (▶ fechada, ▼ aberta) para abrir ou recolher.
+- **Heróis:** Identidade, Atributos, Afinidades, Técnicas e Arte. Afinidades e Arte começam recolhidas.
+- **Inimigos:** Identidade e atributos, Afinidades, Habilidades e IA, Drops, Fases e contra-ataque e Arte. Afinidades e Arte começam recolhidas.
+- Uma seção recolhida que tem erro mostra um ponto **vermelho** no título; se tem só aviso, um ponto **amarelo**. Abra a seção para ver o campo.
+- A escolha de abrir ou recolher fica salva em `vat_editor.cfg`, na pasta de configuração do editor do Godot, na seção `[form_sections]`.
 
 **Lojas.** A seção **O que a loja vende** é uma tabela de itens e equipamentos, com as setas **↑** (Subir), **↓** (Descer) e **✕** (Tirar da loja), e com **+ Adicionar item** / **+ Adicionar equipamento**. O preço é do item ou equipamento e vale em todas as lojas; a coluna **Venda** mostra o que o jogador recebe ao vender (o preço vezes a razão de venda, arredondado para baixo). Preço 0 ou item-chave não se vende. A seção **Arquivos gravados ao salvar** lista os arquivos que o Salvar vai escrever, antes de você gravar.
 
@@ -169,14 +185,14 @@ Morador X: Texto de teste: tudo bem, volte se mudar de ideia.
 
 ## (g) Limites conhecidos
 
-- **Sem arrastar no editor de blocos:** os blocos se reordenam só com as setas ▲ e ▼.
+- **Arrastar blocos e o Ctrl+Z dos marcadores foram testados só pela lógica e por eventos simulados,** não com o mouse e o editor abertos.
+- **Autotile sem arte de transição:** os terrenos têm só o tile base. Bordas e cantos dependem da arte final.
 - **Renomear um evento não atualiza `event_id` nos mapas.** O próprio diálogo avisa; ajuste os mapas à mão.
 - **Interruptor e portão de flag recebem flags diferentes.** Para o portão abrir com o interruptor, escolha a mesma flag nos dois.
 - **Primeira gravação de um `.tres` por formulário** reordena as chaves e os ids dos sub-recursos. O diff fica grande só na primeira vez.
 - **Formulários longos** precisam de rolagem.
 - **Edição só no Inspector não marca o formulário como "● não salvo".** Se mexeu no Inspector, grave ou reverta pelo formulário.
 - **O editor reescreve `project.godot` ao abrir.** Antes de commitar, confira o diff e desfaça o que não for seu.
-- **Sem autotile:** cada tile é pintado à mão.
 - **Animação de ataque:** a animação de ataque começa quando a ação começa, não no momento do golpe.
 - **Reimportar pode mudar as quebras de linha dos `.import`.** Se a mudança for só de fim de linha, restaure o arquivo antes de commitar.
 - **Não rode demos e testes ao mesmo tempo.** Eles compartilham a pasta `user://` (saves e configurações), e um atrapalha o outro.

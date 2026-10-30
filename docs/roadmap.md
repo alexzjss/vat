@@ -1,6 +1,6 @@
 # Roteiro de desenvolvimento — núcleo, mecânicas e gameplay
 
-> **Data:** 2026-10-18 · **Estado:** M1 a M17 prontos (M17 são os editores visuais, concluídos em 2026-10-24; M16 são as ferramentas de criação, concluídas em 2026-10-22; M15 são os estados, o mundo e o bestiário, concluídos em 2026-10-22; M14 são as marcas e reações, concluídas em 2026-10-22; M13 são os elementos, concluídos em 2026-10-22; M12 é a fatia vertical, concluída em 2026-10-21). A base de mecânicas vem do M1 ao M11; o M12 junta tudo numa fatia jogável.
+> **Data:** 2026-10-18 · **Estado:** M1 a M18 prontos (M18 é o acabamento do editor e o autotile, concluído em 2026-10-29; M17 são os editores visuais, concluídos em 2026-10-24; M16 são as ferramentas de criação, concluídas em 2026-10-22; M15 são os estados, o mundo e o bestiário, concluídos em 2026-10-22; M14 são as marcas e reações, concluídas em 2026-10-22; M13 são os elementos, concluídos em 2026-10-22; M12 é a fatia vertical, concluída em 2026-10-21). A base de mecânicas vem do M1 ao M11; o M12 junta tudo numa fatia jogável.
 > **Foco:** continuar construindo **sistemas** (regras, mecânicas, ciclo de jogo) com formas simples, sem arte nem conteúdo narrativo. Cada item vira um marco com design → plano → implementação → revisão, como no M1 e no M2.
 > **Como usar:** escolha os itens que quer; a ordem recomendada está no fim. Itens marcados **(spec)** já existem como regra confirmada ou proposta na spec do jogo e só faltam implementar; **(novo)** são ideias que ainda não estão na spec.
 
@@ -207,13 +207,22 @@ Entregue: corrida e grupo em fila (Shift/X), fuga segurando Q (barra, sem XP, ch
   - Os mapas agora ficam em `data/maps/registro.tres`; `Game.MAPS` saiu.
   - O mapa `estrada` é do tipo masmorra.
   - Testar, Validar e Simular rodam em processo separado.
+**M18 — Acabamento do editor e autotile** · **Concluído** (2026-10-29) · plano [`m18-m19-acabamento-audio`](../.claude/plans/2026-10-29-m18-m19-acabamento-audio.md)
+- Entregue:
+  - Editor de blocos: arrastar o título de um cartão e soltar entre outros (linha azul mostra o lugar); as setas continuam.
+  - Paleta: pousada e ponto de descanso colocam o marcador `InnSpawn`/`RestSpawn` junto, num só Ctrl+Z.
+  - Formulários de herói e inimigo com seções recolhíveis, com o estado salvo em `vat_editor.cfg`.
+  - Autotile: um terrain set com seis terrenos no tileset placeholder, e o assistente de mapa pinta chão e borda por terreno.
+- Notas:
+  - O assistente pinta por terreno com `ignore_empty_terrains = false`.
+  - A masmorra A fica fora do terreno Piso interno, para o pincel ser determinístico.
+  - Os campos de combate do herói passaram para a seção Técnicas.
 
 ## Próximos passos (em aberto, para o usuário)
 - História e roteiro de verdade: trocar os textos placeholder pelos diálogos finais.
 - Arte final: substituir os placeholders de tiles, sprites de mapa e batalha, e retratos.
-- Áudio: músicas e efeitos, que ainda não existem no projeto.
 - Mais mapas e capítulos, usando o tileset e o roteiro.
-- Autotile para os terrenos.
+- **M19 — Áudio** (próximo marco): músicas e efeitos, planejados em [`.claude/plans/2026-10-29-m18-m19-acabamento-audio.md`](../.claude/plans/2026-10-29-m18-m19-acabamento-audio.md).
 - Em aberto: as reações devem contar contra o chefe? (pergunta do M15, ainda sem resposta.)
 
 ## Ordem recomendada (original)
