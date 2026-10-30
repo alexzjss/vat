@@ -30,7 +30,74 @@ variantes que a fatia usava como blocos sólidos de outra cor (casas, árvores, 
 O TileSet tem **uma camada de física** (`physics_layer_0`): camada de colisão 1 e máscara 0, igual aos antigos
 `StaticBody2D` das paredes. O jogador e os inimigos de mapa colidem com a camada 1. Cada tile sólido tem um polígono
 de tile inteiro (32x32). Quem colide: parede, água, parede interna, casa, casa azul, árvore, pedra, tenda e móvel.
-Não há terrenos de autotile: cada tile é pintado à mão.
+
+## Terrenos (autotile)
+
+O TileSet tem **um terrain set** no modo **combinar lados** (`terrain_set_0`, `mode = 2`) com 6 terrenos. Cada um tem
+**um** tile base, com os 4 bits de lado (direita, baixo, esquerda, cima) apontando para o próprio terreno:
+
+| # | Terreno | Cor | Tile base | Colide |
+|---|---|---|---|---|
+| 0 | Grama | verde | 2,0 | não |
+| 1 | Caminho | marrom | 1,0 | não |
+| 2 | Parede | cinza-marrom | 3,0 | sim |
+| 3 | Água | azul | 4,0 | sim |
+| 4 | Piso interno | marrom médio | 5,0 | não |
+| 5 | Parede interna | marrom escuro | 6,0 | sim |
+
+Fora dos terrenos ficam o chão (0,0), a escada, a ponte, o vazio, os tiles da linha 1 (casa, árvore, pedra, tenda,
+móvel, pousada) e as masmorras A, B e C. A masmorra A (7,1) é piso mas **não** entra em Piso interno: com dois tiles
+candidatos o pincel de terreno escolheria um ao acaso, e o assistente de mapa precisa de um resultado previsível. Esses
+tiles continuam sendo pintados à mão.
+
+### Pintar com terrenos
+
+1. Selecione a camada (`Chão` ou `Paredes`) e abra a aba **TileMap** no painel inferior.
+2. Abra a aba **Terrenos** (ao lado de **Tiles**), escolha o terreno na lista e o modo **Conectar** (ou **Caminho**).
+3. Pinte no mapa. O Godot escolhe o tile de cada célula olhando as quatro vizinhas.
+
+**Só com os tiles base** o pincel coloca o tile base em toda célula: o resultado é igual a pintar à mão. As variantes de
+borda e de canto chegam com a arte final; depois que existirem (veja abaixo), o mesmo pincel passa a usá-las sozinho,
+sem repintar nada. O assistente "Novo mapa" já pinta o chão e a borda por terreno (`set_cells_terrain_connect`), então
+mapas novos ganham as bordas assim que a arte tiver as variantes. Os mapas da fatia não foram migrados.
+
+### Acrescentar tiles de transição
+
+1. Desenhe o tile na folha, em uma célula livre (colunas ou linhas novas; **não mova os tiles existentes**).
+2. No editor do TileSet, aba **Tile Set**, selecione a folha e crie o tile (modo **Setup**, clique na célula).
+3. Modo **Paint**, propriedade **Terrains**: defina **Terrain Set 0** e **Terrain** (o terreno principal do tile) e
+   pinte os bits de vizinhança. No modo combinar lados cada bit é um **lado**; o número do terreno vizinho naquele
+   lado vai no bit. Um lado que não toca outro terreno repete o terreno do próprio tile.
+4. Se o tile deve bloquear, marque também o polígono na camada de física 0.
+
+Bits do modo **combinar lados** (os nomes são os do `.tres`, `terrains_peering_bit/...`):
+
+| Bit | Lado da célula | Constante do Godot |
+|---|---|---|
+| `top_side` | cima | `CELL_NEIGHBOR_TOP_SIDE` |
+| `right_side` | direita | `CELL_NEIGHBOR_RIGHT_SIDE` |
+| `bottom_side` | baixo | `CELL_NEIGHBOR_BOTTOM_SIDE` |
+| `left_side` | esquerda | `CELL_NEIGHBOR_LEFT_SIDE` |
+
+(Os cantos, `top_right_corner` etc., só existem nos modos "combinar cantos e lados" e "combinar cantos"; este terrain set
+não os usa.)
+
+**Exemplo: borda de grama para caminho.** Um tile novo em 0,2 que é grama com o caminho encostando **embaixo**:
+
+```
+0:2/0 = 0
+0:2/0/terrain_set = 0
+0:2/0/terrain = 0                          # é do terreno Grama (0)
+0:2/0/terrains_peering_bit/top_side = 0    # em cima, grama
+0:2/0/terrains_peering_bit/right_side = 0  # à direita, grama
+0:2/0/terrains_peering_bit/left_side = 0   # à esquerda, grama
+0:2/0/terrains_peering_bit/bottom_side = 1 # embaixo, caminho (1)
+```
+
+Quando uma célula de grama tem caminho abaixo e grama nos outros três lados, o pincel escolhe esse tile. Repita para
+os outros lados e para os cantos (dois lados de caminho) até cobrir todas as combinações que quiser; as que faltarem
+caem no tile base. Ao regerar com `gen_tileset.py` as variantes acrescentadas no editor se perdem: acrescente-as também
+na lista `TERRAINS`/`TILES` do script, ou não regere.
 
 ## Trocar pela arte final
 

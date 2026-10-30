@@ -6,7 +6,8 @@ Uso: python game/tools/art/gen_tileset.py [pasta_de_saida]
 Escreve em game/art/tiles/:
 - placeholder_32.png: a folha de tiles (10 colunas x 2 linhas de 32x32), cada tile uma cor solida com um rotulo
   de 3 letras;
-- placeholder_32.tres: o TileSet (tile 32x32, uma camada de fisica) com a colisao de cada tile.
+- placeholder_32.tres: o TileSet (tile 32x32, uma camada de fisica) com a colisao de cada tile e um terrain set
+  (modo "combinar lados") com 6 terrenos, um tile base cada (M18).
 
 Os IDs sao as coordenadas no atlas (coluna, linha). Para trocar por arte final, mantenha esta grade (ver README.md).
 Colisao: camada 1, mascara 0 (igual aos StaticBody2D antigos; jogador e inimigos de mapa usam mascara 1).
@@ -71,6 +72,22 @@ TILES = [
 ]
 
 
+# Terrenos do terrain set 0 (modo "combinar lados"): (nome, tile base). O indice na lista e o indice do terreno.
+# Os tiles base trazem os 4 bits de vizinhanca do proprio terreno; a arte final acrescenta as variantes de borda
+# nas mesmas coordenadas ou em coordenadas novas (ver README.md). A masmorra A fica de fora: ela e piso, mas pintada
+# a mao, e entrar em "Piso interno" daria dois tiles candidatos (o pincel de terreno escolheria um ao acaso).
+TERRAINS = [
+    ("Grama", "grama"),
+    ("Caminho", "caminho"),
+    ("Parede", "parede"),
+    ("Água", "agua"),
+    ("Piso interno", "piso_interno"),
+    ("Parede interna", "parede_interna"),
+]
+# Bits de vizinhanca do modo "combinar lados", na ordem em que o Godot os grava.
+SIDE_BITS = ["right_side", "bottom_side", "left_side", "top_side"]
+
+
 def write_png(path, width, height, pixels):
     """pixels: lista de linhas, cada uma uma lista de tuplas RGBA."""
     raw = b"".join(b"\x00" + bytes(c for px in row for c in px) for row in pixels)
@@ -127,14 +144,28 @@ def make_tres(path):
         'texture = ExtResource("1_tiles")',
         "texture_region_size = Vector2i(%d, %d)" % (TILE, TILE),
     ]
-    for col, row, _id, _label, _rgb, solid in sorted(TILES, key=lambda t: (t[0], t[1])):
+    terrain_of = {tile_id: i for i, (_name, tile_id) in enumerate(TERRAINS)}
+    for col, row, tid, _label, _rgb, solid in sorted(TILES, key=lambda t: (t[0], t[1])):
         lines.append("%d:%d/0 = 0" % (col, row))
+        if tid in terrain_of:
+            lines.append("%d:%d/0/terrain_set = 0" % (col, row))
+            lines.append("%d:%d/0/terrain = %d" % (col, row, terrain_of[tid]))
+            for bit in SIDE_BITS:
+                lines.append("%d:%d/0/terrains_peering_bit/%s = %d" % (col, row, bit, terrain_of[tid]))
         if solid:
             lines.append("%d:%d/0/physics_layer_0/polygon_0/points = %s" % (col, row, square))
     lines += [
         "",
         "[resource]",
         "tile_size = Vector2i(%d, %d)" % (TILE, TILE),
+        "terrain_set_0/mode = 2",
+    ]
+    by_id = {t[2]: t for t in TILES}
+    for i, (name, tile_id) in enumerate(TERRAINS):
+        r, g, b = by_id[tile_id][4]
+        lines.append('terrain_set_0/terrain_%d/name = "%s"' % (i, name))
+        lines.append("terrain_set_0/terrain_%d/color = Color(%s, %s, %s, 1)" % (i, "%g" % round(r / 255, 4), "%g" % round(g / 255, 4), "%g" % round(b / 255, 4)))
+    lines += [
         "physics_layer_0/collision_layer = 1",
         "physics_layer_0/collision_mask = 0",
         'sources/0 = SubResource("TileSetAtlasSource_placeholder")',

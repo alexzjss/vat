@@ -20,6 +20,19 @@ const WALL: Vector2i = Vector2i(3, 0)
 const WATER: Vector2i = Vector2i(4, 0)
 const INNER_WALL: Vector2i = Vector2i(6, 0)
 
+## Terrain set do `placeholder_32.tres` (M18) e o terreno de cada tile base (índice em `terrain_set_0/terrain_N`).
+## Tiles fora desta tabela (chão, pousada, masmorras) não têm terreno e são pintados direto, célula a célula.
+const TERRAIN_SET: int = 0
+const NO_TERRAIN: int = -1
+const TERRAIN_OF_TILE: Dictionary[Vector2i, int] = {
+	Vector2i(2, 0): 0, # Grama
+	Vector2i(1, 0): 1, # Caminho
+	Vector2i(3, 0): 2, # Parede
+	Vector2i(4, 0): 3, # Água
+	Vector2i(5, 0): 4, # Piso interno
+	Vector2i(6, 0): 5, # Parede interna
+}
+
 ## Tiles de chão que o assistente oferece como base (coordenada na folha; todos sem colisão).
 const BASE_TILES: Array[Dictionary] = [
 	{"label": "Chão", "cell": Vector2i(0, 0)},
@@ -46,6 +59,10 @@ static func kind_info(kind: int) -> Dictionary:
 		MapDef.Kind.MUNDO:
 			return {"label": "Mapa-múndi", "template": "mundo", "base": Vector2i(2, 0), "wall": WATER, "ring": 2, "local": false}
 	return {}
+
+## O terreno do terrain set que tem `tile` como tile base, ou `NO_TERRAIN`.
+static func terrain_of(tile: Vector2i) -> int:
+	return TERRAIN_OF_TILE.get(tile, NO_TERRAIN)
 
 static func kind_label(kind: int) -> String:
 	return str(kind_info(kind).get("label", "?"))
@@ -202,6 +219,9 @@ static func plan(p: Dictionary, registry: MapRegistry, scene_dir: String = SCENE
 		"def_path": def_path(id, def_dir),
 		"floor": floor_map,
 		"walls": walls,
+		# O terreno de cada camada (`NO_TERRAIN` = pintar o tile direto); `floor`/`walls` seguem sendo as células com o tile base.
+		"floor_terrain": terrain_of(base),
+		"walls_terrain": terrain_of(info["wall"]),
 		"start_cell": start_cell,
 		"entry_cell": entry_cell,
 		"start": cell_center(start_cell),

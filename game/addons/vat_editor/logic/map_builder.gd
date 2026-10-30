@@ -14,8 +14,8 @@ static func build(plan: Dictionary) -> PackedScene:
 		return null
 	var root: Node2D = template.instantiate() as Node2D
 	root.name = StringName(str(plan["root_name"]))
-	_paint(root.get_node(^"Chão") as TileMapLayer, plan["floor"])
-	_paint(root.get_node(^"Paredes") as TileMapLayer, plan["walls"])
+	_paint(root.get_node(^"Chão") as TileMapLayer, plan["floor"], int(plan.get("floor_terrain", Wizard.NO_TERRAIN)))
+	_paint(root.get_node(^"Paredes") as TileMapLayer, plan["walls"], int(plan.get("walls_terrain", Wizard.NO_TERRAIN)))
 	var start: Vector2 = plan["start"]
 	(root.get_node(^"Start") as Node2D).position = start
 	(root.get_node(^"Entry") as Node2D).position = plan["entry"]
@@ -38,9 +38,23 @@ static func build(plan: Dictionary) -> PackedScene:
 	root.free()
 	return packed if err == OK else null
 
-static func _paint(layer: TileMapLayer, cells: Dictionary) -> void:
+## Pinta `cells` (célula -> tile base). Com `terrain` válido e o terrain set no TileSet, usa o pincel de terreno
+## (`set_cells_terrain_connect`), que com a arte final escolhe também as bordas e os cantos; com só os tiles base o
+## resultado é o mesmo tile em toda célula. `ignore_empty_terrains` fica falso: com verdadeiro o Godot 4.7.2 deixou células
+## sem pintar nos testes (blocos cercados de células vazias). Sem terreno (ou sem terrain set), pinta o tile direto.
+static func _paint(layer: TileMapLayer, cells: Dictionary, terrain: int = Wizard.NO_TERRAIN) -> void:
+	if terrain != Wizard.NO_TERRAIN and uses_terrain(layer.tile_set, terrain):
+		var list: Array[Vector2i] = []
+		for c: Vector2i in cells:
+			list.append(c)
+		layer.set_cells_terrain_connect(list, Wizard.TERRAIN_SET, terrain, false)
+		return
 	for c: Vector2i in cells:
 		layer.set_cell(c, Wizard.TILE_SOURCE, cells[c])
+
+## O TileSet tem o terrain set do assistente e o terreno `terrain`?
+static func uses_terrain(tile_set: TileSet, terrain: int) -> bool:
+	return tile_set != null and tile_set.get_terrain_sets_count() > Wizard.TERRAIN_SET 			and terrain >= 0 and terrain < tile_set.get_terrains_count(Wizard.TERRAIN_SET)
 
 ## Registra o mapa em memória: um `MapDef` novo no fim de `registry.maps`.
 static func register(registry: MapRegistry, plan: Dictionary, scene: PackedScene) -> MapDef:

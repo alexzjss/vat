@@ -116,6 +116,55 @@ func test_chosen_base_tile_fills_the_floor() -> void:
 	for c: Vector2i in p["floor"]:
 		assert_eq((p["floor"] as Dictionary)[c], Vector2i(1, 0))
 
+func test_plan_names_the_terrain_of_each_layer() -> void:
+	# Cidade: grama + parede; Interior: piso interno + parede interna; Masmorra: piso A (sem terreno) + parede interna;
+	# Mundo: grama + água.
+	var expected: Dictionary = {
+		MapDef.Kind.CIDADE: [0, 2], MapDef.Kind.INTERIOR: [4, 5],
+		MapDef.Kind.MASMORRA: [Wizard.NO_TERRAIN, 5], MapDef.Kind.MUNDO: [0, 3],
+	}
+	for k: int in Wizard.KINDS:
+		var p: Dictionary = _plan("t_%d" % k, k)
+		assert_eq([p["floor_terrain"], p["walls_terrain"]], expected[k], Wizard.kind_label(k))
+	for tile: Vector2i in [Vector2i(0, 0), Vector2i(6, 1), Vector2i(7, 1), Vector2i(8, 1), Vector2i(9, 1)]:
+		assert_eq(Wizard.terrain_of(tile), Wizard.NO_TERRAIN, "%s é pintado direto" % tile)
+	var params: Dictionary = _params("camin", MapDef.Kind.CIDADE)
+	params["base"] = Vector2i(1, 0)
+	assert_eq(Wizard.plan(params, _registry(), TMP)["floor_terrain"], 1, "caminho")
+
+func test_terrain_table_matches_the_tileset() -> void:
+	var ts: TileSet = load("res://art/tiles/placeholder_32.tres") as TileSet
+	var atlas: TileSetAtlasSource = ts.get_source(Wizard.TILE_SOURCE) as TileSetAtlasSource
+	assert_eq(Wizard.TERRAIN_OF_TILE.size(), ts.get_terrains_count(Wizard.TERRAIN_SET))
+	for tile: Vector2i in Wizard.TERRAIN_OF_TILE:
+		assert_eq(atlas.get_tile_data(tile, 0).terrain, Wizard.TERRAIN_OF_TILE[tile], "terreno de %s" % tile)
+
+func test_terrain_painting_gives_the_same_cells_as_painting_tiles_directly() -> void:
+	for k: int in Wizard.KINDS:
+		for base: Vector2i in [Wizard.default_base(k), Vector2i(1, 0), Vector2i(0, 0), Vector2i(6, 1)]:
+			var params: Dictionary = _params("igual_%d" % k, k, 50, 28)
+			params["base"] = base
+			var p: Dictionary = Wizard.plan(params, _registry(), TMP)
+			assert_true(p["ok"], str(p["errors"]))
+			var root: Node2D = _build(p)
+			var label: String = "%s / %s" % [Wizard.kind_label(k), base]
+			for pair: Array in [["Chão", "floor"], ["Paredes", "walls"]]:
+				var layer: TileMapLayer = root.get_node(NodePath(str(pair[0]))) as TileMapLayer
+				var cells: Dictionary = p[pair[1]]
+				assert_eq(layer.get_used_cells().size(), cells.size(), "%s: %s" % [label, pair[0]])
+				for c: Vector2i in cells:
+					assert_eq(layer.get_cell_atlas_coords(c), cells[c], "%s: %s em %s" % [label, pair[0], c])
+					assert_eq(layer.get_cell_source_id(c), Wizard.TILE_SOURCE)
+
+func test_builder_falls_back_to_direct_painting_without_a_terrain_set() -> void:
+	var ts := TileSet.new()
+	ts.tile_size = Vector2i(32, 32)
+	assert_false(Builder.uses_terrain(ts, 0))
+	assert_false(Builder.uses_terrain(null, 0))
+	assert_false(Builder.uses_terrain(load("res://art/tiles/placeholder_32.tres") as TileSet, Wizard.NO_TERRAIN))
+	assert_false(Builder.uses_terrain(load("res://art/tiles/placeholder_32.tres") as TileSet, 6))
+	assert_true(Builder.uses_terrain(load("res://art/tiles/placeholder_32.tres") as TileSet, 5))
+
 func test_spawns_are_free_cells_and_arena_is_centered() -> void:
 	for k: int in Wizard.KINDS:
 		for size: Vector2i in [Vector2i(Wizard.MIN_W, Wizard.MIN_H), Vector2i(75, 23), Vector2i(Wizard.MAX_W, Wizard.MAX_H)]:
