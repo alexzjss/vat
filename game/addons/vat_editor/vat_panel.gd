@@ -584,6 +584,7 @@ func _build_roteiros() -> void:
 	roteiro_editor.name = "Editor"
 	roteiro_editor.content = _content
 	roteiro_editor.status.connect(_say)
+	roteiro_editor.content_refresh_requested.connect(func() -> void: _content_index = null)
 	roteiro_editor.saved.connect(func(_p: String) -> void: _scan_roteiros())
 	roteiro_sub.add_child(roteiro_editor)
 	simulator = EventSimulatorPanel.new()

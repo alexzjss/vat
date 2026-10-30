@@ -490,3 +490,103 @@ func test_option_text_is_one_trimmed_line_and_round_trips() -> void:
 	var back: RoteiroBlock = _doc(RoteiroDoc.to_text(doc)).events[0].blocks[0]
 	assert_eq(back.kind, Kind.ESCOLHA)
 	assert_eq(back.options[0].text, "-> # @ ? vamos")
+
+# --- arrastar para reordenar (M18) ---
+
+func test_drop_index_covers_up_down_first_last_and_self() -> void:
+	# Lista de 5 blocos (0..4). `drop_index(from, hovered, after)` é o índice final do bloco arrastado.
+	assert_eq(Logic.drop_index(3, 1, false), 1, "para cima, antes do 1")
+	assert_eq(Logic.drop_index(3, 1, true), 2, "para cima, depois do 1")
+	assert_eq(Logic.drop_index(1, 3, true), 3, "para baixo, depois do 3")
+	assert_eq(Logic.drop_index(1, 3, false), 2, "para baixo, antes do 3")
+	assert_eq(Logic.drop_index(3, 0, false), 0, "para o primeiro lugar")
+	assert_eq(Logic.drop_index(1, 4, true), 4, "para o último lugar")
+	assert_eq(Logic.drop_index(2, 2, false), 2, "em cima de si mesmo: nada muda")
+	assert_eq(Logic.drop_index(2, 2, true), 2)
+	assert_eq(Logic.drop_index(2, 1, true), 2, "logo abaixo do vizinho de cima: nada muda")
+	assert_eq(Logic.drop_index(2, 3, false), 2, "logo acima do vizinho de baixo: nada muda")
+	assert_eq(Logic.drop_index(-1, 1, true), -1)
+	assert_eq(Logic.drop_index(1, -1, true), -1)
+
+func _texts(blocks: Array[RoteiroBlock]) -> Array[String]:
+	var out: Array[String] = []
+	for b: RoteiroBlock in blocks:
+		out.append(b.text)
+	return out
+
+func test_move_to_reorders_with_drop_index() -> void:
+	var doc: RoteiroDoc = _doc("=== e\nA: a\nA: b\nA: c\nA: d\nA: e\n")
+	var blocks: Array[RoteiroBlock] = doc.events[0].blocks
+	assert_true(Logic.move_to(blocks, 3, Logic.drop_index(3, 1, false)))
+	assert_eq(_texts(blocks), ["a", "d", "b", "c", "e"] as Array[String], "para cima")
+	assert_true(Logic.move_to(blocks, 1, Logic.drop_index(1, 4, true)))
+	assert_eq(_texts(blocks), ["a", "b", "c", "e", "d"] as Array[String], "para o fim")
+	assert_true(Logic.move_to(blocks, 4, Logic.drop_index(4, 0, false)))
+	assert_eq(_texts(blocks), ["d", "a", "b", "c", "e"] as Array[String], "para o início")
+	assert_true(Logic.move_to(blocks, 0, Logic.drop_index(0, 2, false)))
+	assert_eq(_texts(blocks), ["a", "d", "b", "c", "e"] as Array[String], "para baixo")
+	var before: Array[String] = _texts(blocks)
+	assert_true(Logic.move_to(blocks, 2, Logic.drop_index(2, 2, true)))
+	assert_eq(_texts(blocks), before, "em cima de si mesmo é um no-op")
+	assert_false(Logic.move_to(blocks, 9, 0))
+	assert_false(Logic.move_to(blocks, 0, 9))
+
+func test_move_to_keeps_hidden_blank_lines_in_the_list() -> void:
+	var doc: RoteiroDoc = _doc("=== e\nA: um\n\nA: dois\nA: três\n")
+	var blocks: Array[RoteiroBlock] = doc.events[0].blocks
+	assert_eq(Logic.visible(blocks), [0, 2, 3] as Array[int])
+	# Arrasta o último visível (3) para antes do primeiro (0).
+	assert_true(Logic.move_to(blocks, 3, Logic.drop_index(3, 0, false)))
+	assert_eq(blocks.size(), 4, "nenhum bloco some")
+	assert_eq(blocks[0].text, "três")
+	assert_eq(blocks[1].text, "um")
+	assert_eq(blocks[2].kind, Kind.EM_BRANCO)
+	assert_eq(blocks[3].text, "dois")
+
+## Os passos compilados de um evento, em texto (classe + propriedades gravadas), para comparar.
+func _steps_of(text: String, event: StringName) -> Array[String]:
+	var r: Dictionary = RoteiroTools.compile_text(text, "t.roteiro", _content())
+	assert_eq((r["errors"] as Array).size(), 0, "compila sem erro: %s" % str(r["errors"]))
+	var out: Array[String] = []
+	for st: EventStep in ((r["events"] as Dictionary)[event] as EventScript).steps:
+		var parts: Array[String] = [st.get_script().get_global_name()]
+		for p: Dictionary in st.get_property_list():
+			if (int(p["usage"]) & PROPERTY_USAGE_STORAGE) != 0 and p["name"] != "script":
+				parts.append("%s=%s" % [p["name"], str(st.get(p["name"]))])
+		out.append("|".join(parts))
+	return out
+
+func test_moving_a_plain_block_compiles_to_the_same_steps_in_the_new_order() -> void:
+	var doc: RoteiroDoc = _doc("=== e\nVelho: primeira\n@give moedas 40\n@xp 120\nVelho: última\n")
+	assert_eq(doc.events[0].blocks.size(), 4)
+	var steps_before: Array[String] = _steps_of(RoteiroDoc.to_text(doc), &"e")
+	assert_eq(steps_before.size(), 5, "os 4 blocos e o passo final que o compilador acrescenta")
+	# Arrasta as moedas (1) para depois da fala final (3).
+	assert_true(Logic.move_to(doc.events[0].blocks, 1, Logic.drop_index(1, 3, true)))
+	var steps_after: Array[String] = _steps_of(RoteiroDoc.to_text(doc), &"e")
+	var expected: Array[String] = [steps_before[0], steps_before[2], steps_before[3], steps_before[1], steps_before[4]]
+	assert_eq(steps_after, expected, "os mesmos passos, na nova ordem")
+	# E de volta: os passos são os de antes.
+	assert_true(Logic.move_to(doc.events[0].blocks, 3, Logic.drop_index(3, 0, true)))
+	assert_eq(_steps_of(RoteiroDoc.to_text(doc), &"e"), steps_before)
+
+func test_drop_target_ignores_hidden_blank_lines() -> void:
+	var doc: RoteiroDoc = _doc("=== e
+A: um
+
+A: dois
+A: três
+")
+	var blocks: Array[RoteiroBlock] = doc.events[0].blocks
+	assert_eq(Logic.visible(blocks), [0, 2, 3] as Array[int])
+	assert_eq(Logic.drop_target(blocks, 2, 0, true), 2, "logo depois do vizinho visível: nada muda, mesmo com a linha em branco no meio")
+	assert_eq(Logic.drop_target(blocks, 0, 2, false), 0, "logo antes do vizinho visível: nada muda")
+	assert_eq(Logic.drop_target(blocks, 3, 3, true), 3, "em cima de si mesmo")
+	assert_eq(Logic.drop_target(blocks, 3, 0, false), 0, "para o início")
+	assert_eq(Logic.drop_target(blocks, 0, 3, true), 3, "para o fim")
+	assert_eq(Logic.drop_target(blocks, 3, 2, false), 2, "para cima")
+	assert_eq(Logic.drop_target(blocks, 1, 0, true), -1, "a linha em branco não é arrastável")
+	assert_eq(Logic.drop_target(blocks, 0, 1, true), -1, "nem alvo")
+	assert_true(Logic.move_to(blocks, 0, Logic.drop_target(blocks, 0, 3, true)))
+	assert_eq(blocks[3].text, "um")
+	assert_eq(blocks[0].kind, Kind.EM_BRANCO, "a linha em branco fica onde estava na lista")

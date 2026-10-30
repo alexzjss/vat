@@ -227,3 +227,61 @@ func test_two_switches_in_a_row_do_not_share_a_gate_flag_twice() -> void:
 	var s1: Node = _place(root, &"interruptor")
 	var s2: Node = _place(root, &"interruptor")
 	assert_ne(s1.get(&"flag"), s2.get(&"flag"))
+
+# --- marcadores automáticos (M18) ---
+
+func _names(list: Array) -> Array[String]:
+	var out: Array[String] = []
+	out.assign(list)
+	return out
+
+func test_only_inn_and_rest_point_need_a_marker() -> void:
+	var none: Array[String] = _empty_names()
+	assert_true(Palette.needs_marker(&"pousada", none))
+	assert_true(Palette.needs_marker(&"ponto_descanso", none))
+	for id: StringName in [&"npc", &"bau", &"loja", &"marcador_spawn", &"zona"]:
+		assert_false(Palette.needs_marker(id, none), String(id))
+
+func test_marker_name_comes_from_the_prefab_spawn_name() -> void:
+	assert_eq(Palette.marker_base_name(&"pousada"), "InnSpawn")
+	assert_eq(Palette.marker_base_name(&"ponto_descanso"), "RestSpawn")
+	assert_eq(Palette.marker_base_name(&"pousada", &"CasaSpawn"), "CasaSpawn", "o spawn_name do prefab vale")
+	assert_eq(Palette.marker_base_name(&"npc"), "")
+	for id: StringName in [&"pousada", &"ponto_descanso"]:
+		var node: Node = (load(Palette.prefab_path(id)) as PackedScene).instantiate()
+		assert_eq(Palette.marker_base_name(id), String(node.get(&"spawn_name")), "o padrão confere com o prefab")
+		node.free()
+
+func test_no_marker_when_one_with_the_exact_name_exists() -> void:
+	assert_false(Palette.needs_marker(&"pousada", _names(["InnSpawn", "Outro"])))
+	assert_true(Palette.needs_marker(&"pousada", _names(["RestSpawn"])), "o marcador do descanso não serve à pousada")
+	assert_true(Palette.needs_marker(&"pousada", _names(["InnSpawn2"])), "nome parecido não conta")
+	assert_false(Palette.needs_marker(&"ponto_descanso", _names(["RestSpawn"])))
+
+func test_marker_name_is_unique_when_another_node_uses_it() -> void:
+	assert_eq(Palette.marker_name(&"pousada", _empty_names()), "InnSpawn")
+	assert_eq(Palette.marker_name(&"pousada", _names(["InnSpawn"])), "InnSpawn2", "outro nó (não marcador) com o nome")
+	assert_eq(Palette.marker_name(&"pousada", _names(["InnSpawn", "InnSpawn2"])), "InnSpawn3")
+	assert_eq(Palette.marker_name(&"ponto_descanso", _names(["RestSpawn"])), "RestSpawn2")
+	assert_eq(Palette.marker_name(&"npc", _empty_names()), "")
+
+func test_marker_sits_64px_below_snapped_to_the_grid() -> void:
+	assert_eq(Palette.marker_position(Vector2(96, 128)), Vector2(96, 192))
+	assert_eq(Palette.marker_position(Vector2(100, 130)), Vector2(96, 192), "64 abaixo e na grade de 32")
+	assert_eq(Palette.marker_position(Vector2(-40, -70)), Vector2(-32, 0))
+
+func test_collect_marker_names_only_lists_marker2d() -> void:
+	var root := Node2D.new()
+	add_child_autofree(root)
+	var m := Marker2D.new()
+	m.name = "InnSpawn"
+	root.add_child(m)
+	var other := Node2D.new()
+	other.name = "RestSpawn"
+	root.add_child(other)
+	var names: Array[String] = Palette.collect_marker_names(root)
+	assert_eq(names, ["InnSpawn"] as Array[String])
+	assert_eq(Palette.collect_marker_names(null), _empty_names())
+	assert_false(Palette.needs_marker(&"pousada", names))
+	assert_true(Palette.needs_marker(&"ponto_descanso", names), "um nó comum com o nome não é marcador")
+	assert_eq(Palette.marker_name(&"ponto_descanso", Palette.collect_names(root)), "RestSpawn2")

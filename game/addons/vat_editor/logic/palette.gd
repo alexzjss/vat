@@ -118,6 +118,53 @@ static func collect_names(root: Node) -> Array[String]:
 		out.append(String(n.name))
 	return out
 
+# --- marcadores automáticos ---------------------------------------------------------------------------------
+
+## Os prefabs que guardam o save num marcador do mapa (`spawn_name`) -> o nome padrão desse marcador.
+const MARKER_PREFABS: Dictionary = {&"pousada": &"InnSpawn", &"ponto_descanso": &"RestSpawn"}
+## Distância (px) abaixo do prefab em que o marcador entra.
+const MARKER_OFFSET: float = 64.0
+
+## O nome que o marcador do prefab `id` deve ter: o `spawn_name` do prefab recém-instanciado, ou o padrão do prefab.
+## "" se o prefab não precisa de marcador.
+static func marker_base_name(id: StringName, spawn_name: StringName = &"") -> String:
+	if not MARKER_PREFABS.has(id):
+		return ""
+	return String(spawn_name) if spawn_name != &"" else String(MARKER_PREFABS[id])
+
+## Se o prefab `id` pede um marcador novo: só pousada e ponto de descanso, e só se o mapa ainda não tem um marcador
+## (`marker_names`: os nomes dos Marker2D) com o nome exato.
+static func needs_marker(id: StringName, marker_names: Array[String], spawn_name: StringName = &"") -> bool:
+	var base: String = marker_base_name(id, spawn_name)
+	return base != "" and not marker_names.has(base)
+
+## O nome do marcador novo: o do prefab, ou `<nome>2`, `<nome>3`... se algum outro nó (`all_names`) já usa o nome.
+static func marker_name(id: StringName, all_names: Array[String], spawn_name: StringName = &"") -> String:
+	var base: String = marker_base_name(id, spawn_name)
+	if base == "":
+		return ""
+	return base if not all_names.has(base) else _free_name(base, all_names)
+
+## Onde o marcador entra: 64 px abaixo do prefab, na grade.
+static func marker_position(prefab_pos: Vector2, grid: int = GRID) -> Vector2:
+	return snap(prefab_pos + Vector2(0.0, MARKER_OFFSET), grid)
+
+## Os nomes dos `Marker2D` abaixo de `root`.
+static func collect_marker_names(root: Node) -> Array[String]:
+	var out: Array[String] = []
+	if root == null:
+		return out
+	for n: Node in root.find_children("*", "Marker2D", true, false):
+		out.append(String(n.name))
+	return out
+
+## `base2`, `base3`... (o primeiro livre), sem tirar o sufixo numérico de `base` (o nome do marcador é exato).
+static func _free_name(base: String, existing: Array[String]) -> String:
+	var n: int = 2
+	while existing.has("%s%d" % [base, n]):
+		n += 1
+	return "%s%d" % [base, n]
+
 # --- flags únicas -------------------------------------------------------------------------------------------
 
 static func is_placeholder(flag: Variant) -> bool:

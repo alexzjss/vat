@@ -18,6 +18,8 @@ const BlockCard: GDScript = preload("res://addons/vat_editor/ui/block_card.gd")
 signal status(text: String)
 ## O arquivo foi gravado (a lista de roteiros do painel se atualiza).
 signal saved(path: String)
+## "Atualizar": o dono deve descartar o índice de conteúdo em cache antes de a lista ser relida.
+signal content_refresh_requested
 
 const COLOR_ERROR: Color = Color(1.0, 0.45, 0.4)
 const COLOR_WARNING: Color = Color(1.0, 0.85, 0.4)
@@ -120,7 +122,7 @@ func _build_center() -> void:
 	new_event_button = _button(tools, "Novo evento", _on_new_event)
 	rename_button = _button(tools, "Renomear", _on_rename_event)
 	delete_button = _button(tools, "Apagar evento", _on_delete_event)
-	_button(tools, "Atualizar", reload_all)
+	_button(tools, "Atualizar", _on_refresh)
 	leading_box = VBoxContainer.new()
 	center.add_child(leading_box)
 	# Recolhido enquanto o evento não tem comentários colados no `===`.
@@ -141,6 +143,7 @@ func _build_center() -> void:
 	scroll = ScrollContainer.new()
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.set_drag_forwarding(Callable(), _scroll_can_drop, _scroll_drop)
 	center.add_child(scroll)
 	var inner := VBoxContainer.new()
 	inner.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -240,6 +243,11 @@ func _build_dialogs() -> void:
 func ensure_loaded() -> void:
 	if not _loaded:
 		reload_all()
+
+## O botão "Atualizar": pede ao dono que esqueça o índice de conteúdo em cache (para enxergar itens e encontros novos) e relê tudo.
+func _on_refresh() -> void:
+	content_refresh_requested.emit()
+	reload_all()
 
 ## Relê o conteúdo (menus) e a lista de arquivos. Mantém o arquivo e o evento abertos.
 func reload_all() -> void:
@@ -533,6 +541,9 @@ func _rebuild_cards(scroll_to_index: int = -1) -> void:
 		card.duplicate_requested.connect(func() -> void: _on_duplicate(index))
 		card.delete_requested.connect(func() -> void: _on_delete(index))
 		card.touched.connect(func() -> void: _anchor = index)
+		card.index = index
+		card.drop_filter = func(from: int, after: bool) -> bool: return Logic.drop_target(blocks, from, index, after) != from
+		card.drop_requested.connect(func(from: int, after: bool) -> void: _on_drop(from, index, after))
 		cards_box.add_child(card)
 		_cards[i] = card
 	if scroll_to_index >= 0 and _cards.has(scroll_to_index):
@@ -566,6 +577,59 @@ func _on_move(index: int, dir: int) -> void:
 	if to >= 0:
 		_anchor = to
 		_after_structure(to)
+
+## Soltaram o bloco `from` junto do `hovered` (`after`: depois dele). Move, marca como não salvo e recompila.
+func _on_drop(from: int, hovered: int, after: bool) -> void:
+	var blocks: Array[RoteiroBlock] = _container()
+	var to: int = Logic.drop_target(blocks, from, hovered, after)
+	if to != from and Logic.move_to(blocks, from, to):
+		_anchor = to
+		_after_structure(to)
+
+## O arrastar sobre os vãos entre cartões e o espaço abaixo do último: vale o cartão mais próximo (a posição do mouse
+## decide se é antes ou depois dele). Perto da borda de cima ou de baixo, rola a lista.
+func _scroll_can_drop(at: Vector2, data: Variant) -> bool:
+	var hit: Dictionary = _nearest_card(at, data)
+	for c: Node in cards_box.get_children():
+		(c as PanelContainer).show_drop_mark(0)
+	if at.y < 28.0:
+		scroll.scroll_vertical -= 24
+	elif at.y > scroll.size.y - 28.0:
+		scroll.scroll_vertical += 24
+	if hit.is_empty():
+		return false
+	var ok: bool = Logic.drop_target(_container(), int(hit["from"]), int(hit["index"]), bool(hit["after"])) != int(hit["from"])
+	if ok:
+		(hit["card"] as PanelContainer).show_drop_mark(1 if hit["after"] else -1)
+	return ok
+
+func _scroll_drop(at: Vector2, data: Variant) -> void:
+	var hit: Dictionary = _nearest_card(at, data)
+	for c: Node in cards_box.get_children():
+		(c as PanelContainer).show_drop_mark(0)
+	if not hit.is_empty():
+		_on_drop(int(hit["from"]), int(hit["index"]), bool(hit["after"]))
+
+## `{card, index, after, from}` do cartão mais perto de `at` (coordenadas da lista) para um arrastar de bloco, ou `{}`.
+func _nearest_card(at: Vector2, data: Variant) -> Dictionary:
+	if not data is Dictionary or not (data as Dictionary).has(BlockCard.DRAG_KEY):
+		return {}
+	var gp: Vector2 = scroll.get_global_transform() * at
+	var best: PanelContainer = null
+	var best_d: float = INF
+	for c: Node in cards_box.get_children():
+		var card := c as PanelContainer
+		if card == null or card.is_queued_for_deletion():
+			continue
+		var r: Rect2 = card.get_global_rect()
+		var d: float = absf(gp.y - (r.position.y + r.size.y * 0.5))
+		if d < best_d:
+			best_d = d
+			best = card
+	if best == null:
+		return {}
+	return {"card": best, "index": best.index, "from": int((data as Dictionary)[BlockCard.DRAG_KEY]),
+			"after": gp.y > best.get_global_rect().get_center().y}
 
 func _on_duplicate(index: int) -> void:
 	if Logic.duplicate_at(_container(), index) != null:

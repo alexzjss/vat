@@ -87,6 +87,11 @@ func _input(event: InputEvent) -> void:
 	var container: Control = EditorInterface.get_editor_viewport_2d().get_parent() as Control
 	if container == null or not container.is_visible_in_tree():
 		return
+	# Janela flutuante (editor de script solto, painel destacado, diálogo) por cima do retângulo da vista 2D: o mouse
+	# está noutra janela do sistema, então o clique não é da vista. (Janelas embutidas são tratadas pelo Godot antes.)
+	var under: int = DisplayServer.get_window_at_screen_position(DisplayServer.mouse_get_position())
+	if under != DisplayServer.INVALID_WINDOW_ID and under != container.get_window().get_window_id():
+		return
 	if container.get_global_rect().has_point(mb.global_position):
 		_palette.call(&"note_click", container.get_global_transform().affine_inverse() * mb.global_position)
 

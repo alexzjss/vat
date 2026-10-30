@@ -152,19 +152,40 @@ func add_prefab(id: StringName) -> Node:
 	var changes: Dictionary = Palette.flags_for_new(root, node, id, _map_id(root))
 	for k: Variant in changes:
 		node.set(k, changes[k])
+	var marker: Marker2D = _marker_for(root, id, node)
 	var ur: EditorUndoRedoManager = plugin.get_undo_redo()
 	ur.create_action("Adicionar %s" % node.name, UndoRedo.MERGE_DISABLE, root)
 	ur.add_do_method(root, &"add_child", node, true)
 	ur.add_do_method(node, &"set_owner", root)
 	ur.add_do_reference(node)
 	ur.add_undo_method(root, &"remove_child", node)
+	if marker != null:
+		# Na mesma ação: um só Ctrl+Z tira o prefab e o marcador.
+		ur.add_do_method(root, &"add_child", marker, true)
+		ur.add_do_method(marker, &"set_owner", root)
+		ur.add_do_reference(marker)
+		ur.add_undo_method(root, &"remove_child", marker)
 	ur.commit_action()
 	var sel: EditorSelection = EditorInterface.get_selection()
 	sel.clear()
 	sel.add_node(node)
 	EditorInterface.edit_node(node)
-	_say("%s adicionado." % node.name)
+	_say("%s adicionado%s." % [node.name, " com o marcador %s" % marker.name if marker != null else ""])
 	return node
+
+## O `Marker2D` que a pousada ou o ponto de descanso novo pede (64 px abaixo, na grade), ou null se o prefab não pede ou
+## o mapa já tem um marcador com o nome exato. Se o nome do marcador precisou de sufixo, o `spawn_name` do prefab o segue.
+func _marker_for(root: Node, id: StringName, node: Node) -> Marker2D:
+	var spawn: StringName = node.get(&"spawn_name") if &"spawn_name" in node else &""
+	if not Palette.needs_marker(id, Palette.collect_marker_names(root), spawn):
+		return null
+	var marker := Marker2D.new()
+	marker.name = Palette.marker_name(id, Palette.collect_names(root), spawn)
+	var node2d: Node2D = node as Node2D
+	marker.position = Palette.marker_position(node2d.position if node2d != null else Vector2.ZERO)
+	if &"spawn_name" in node and StringName(marker.name) != spawn:
+		node.set(&"spawn_name", StringName(marker.name))
+	return marker
 
 ## Alinha à grade os nós 2D selecionados (com undo).
 func snap_selection() -> int:

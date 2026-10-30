@@ -229,6 +229,37 @@ static func move_visible(blocks: Array[RoteiroBlock], index: int, direction: int
 	blocks.insert(to, b)
 	return to
 
+## Arrastar e soltar: o índice que o bloco `from` terá depois de soltar junto do bloco `hovered` (`after`: na metade de
+## baixo dele, ou seja, depois). É o `to` de `move_to`. Soltar em cima de si mesmo, ou colado no vizinho que já está
+## ali, devolve o próprio `from` (nada muda). Índice negativo: -1.
+static func drop_index(from: int, hovered: int, after: bool) -> int:
+	if from < 0 or hovered < 0:
+		return -1
+	var slot: int = hovered + (1 if after else 0)
+	return slot - 1 if slot > from else slot
+
+## Como `drop_index`, mas nas posições que o editor mostra (as linhas em branco escondidas não contam): `from` e
+## `hovered` são índices do modelo; devolve o índice do modelo para onde o bloco `from` vai (`from` mesmo se nada muda,
+## inclusive soltar ao lado do vizinho visível que já está ali). -1 se algum dos dois não é visível.
+static func drop_target(blocks: Array[RoteiroBlock], from: int, hovered: int, after: bool) -> int:
+	var vis: Array[int] = visible(blocks)
+	var pos_from: int = vis.find(from)
+	var pos_hover: int = vis.find(hovered)
+	if pos_from < 0 or pos_hover < 0:
+		return -1
+	var to_pos: int = drop_index(pos_from, pos_hover, after)
+	return from if to_pos == pos_from else vis[to_pos]
+
+## Move o bloco `from` para a posição `to` (o índice que ele terá depois). false se algum índice não existe.
+static func move_to(blocks: Array[RoteiroBlock], from: int, to: int) -> bool:
+	if from < 0 or from >= blocks.size() or to < 0 or to >= blocks.size():
+		return false
+	if from != to:
+		var b: RoteiroBlock = blocks[from]
+		blocks.remove_at(from)
+		blocks.insert(to, b)
+	return true
+
 static func duplicate_at(blocks: Array[RoteiroBlock], index: int) -> RoteiroBlock:
 	if index < 0 or index >= blocks.size():
 		return null

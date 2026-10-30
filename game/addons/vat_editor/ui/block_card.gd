@@ -7,6 +7,10 @@ extends PanelContainer
 ##
 ## `ctx` (Callables): `ids(kind) -> Array[String]`, `display(kind, id) -> String`, `speakers() -> Array[String]`,
 ## `expressions(speaker) -> Array[String]`, `flags() -> Array[String]`, `labels() -> Array[String]`.
+##
+## Arrastar (M18): o título é a alça (`_get_drag`); o cartão inteiro, campos incluídos, aceita a soltura (o `Control` do
+## Godot só repassa para o pai quando o filho não trata, então todos os filhos recebem o mesmo encaminhamento) e mostra
+## uma linha acima ou abaixo conforme a metade em que o mouse está. Quem monta os cartões põe `index` e `drop_filter`.
 
 const Logic: GDScript = preload("res://addons/vat_editor/logic/roteiro_editor_logic.gd")
 const ComboField: GDScript = preload("res://addons/vat_editor/ui/combo_field.gd")
@@ -20,6 +24,12 @@ signal duplicate_requested
 signal delete_requested
 ## O usuário mexeu neste cartão (ponto de inserção do próximo "+ Adicionar bloco").
 signal touched
+## Soltaram o bloco `from_index` em cima deste cartão (`after`: na metade de baixo).
+signal drop_requested(from_index: int, after: bool)
+
+## Chave do dicionário que o arrastar leva: o índice do bloco no modelo.
+const DRAG_KEY: String = "vat_block"
+const COLOR_DROP: Color = Color(0.4, 0.8, 1.0)
 
 const COLOR_RAW: Color = Color(1.0, 0.85, 0.4)
 const COLOR_ERROR: Color = Color(1.0, 0.4, 0.4)
@@ -33,6 +43,14 @@ var ctx: Dictionary = {}
 var _style: StyleBoxFlat
 ## Avisos em vermelho por campo (`field_error`), criados junto com os controles.
 var _hints: Dictionary = {}
+## Posição do bloco no modelo (a lista que o dono edita); -1 até o dono dizer.
+var index: int = -1
+## `(from_index, hovered_index, after) -> bool`: soltar ali mudaria alguma coisa? Sem filtro, sempre.
+var drop_filter: Callable = Callable()
+var _title: Label
+var _overlay: Control
+## Onde a linha de soltura aparece: -1 em cima, 1 embaixo, 0 em lugar nenhum.
+var _mark: int = 0
 
 func setup(p_block: RoteiroBlock, p_ctx: Dictionary) -> void:
 	block = p_block
@@ -63,6 +81,12 @@ func setup(p_block: RoteiroBlock, p_ctx: Dictionary) -> void:
 			control.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			grid.add_child(control)
 	gui_input.connect(_on_gui_input)
+	_overlay = Control.new()
+	_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_overlay.draw.connect(_draw_mark)
+	add_child(_overlay)
+	_forward_drops(self)
 
 func set_highlight(on: bool) -> void:
 	_style.border_color = Color(1.0, 0.45, 0.4) if on else Color(0.16, 0.18, 0.22)
@@ -74,7 +98,14 @@ func _on_gui_input(event: InputEvent) -> void:
 func _header() -> Control:
 	var row := HBoxContainer.new()
 	var title := Label.new()
+	_title = title
 	title.text = Logic.title(block.kind)
+	# A alça do arrastar: o título (um Label ignora o mouse por padrão).
+	title.mouse_filter = Control.MOUSE_FILTER_STOP
+	title.mouse_default_cursor_shape = Control.CURSOR_DRAG
+	title.tooltip_text = "Arraste para mudar o bloco de lugar"
+	title.set_drag_forwarding(_get_drag, _can_drop_from.bind(title), _drop_from.bind(title))
+	title.gui_input.connect(_on_gui_input)
 	title.add_theme_color_override("font_color", COLOR_RAW if block.kind == RoteiroBlock.Kind.OUTRO else COLOR_TITLE)
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(title)
@@ -83,6 +114,88 @@ func _header() -> Control:
 	_icon_button(row, "Duplicar", "Copiar este bloco logo abaixo", func() -> void: duplicate_requested.emit())
 	_icon_button(row, "Apagar", "Apagar este bloco", func() -> void: delete_requested.emit())
 	return row
+
+# --- arrastar e soltar ---
+
+func _get_drag(_at: Vector2) -> Variant:
+	touched.emit()
+	var preview := Label.new()
+	preview.text = "%s  (%s)" % [Logic.title(block.kind), _summary()]
+	preview.add_theme_color_override("font_color", COLOR_TITLE)
+	preview.add_theme_stylebox_override("normal", _style)
+	_title.set_drag_preview(preview)
+	return {DRAG_KEY: index}
+
+## Um resumo curto do bloco para a prévia do arrastar: o primeiro campo de texto que tiver.
+func _summary() -> String:
+	for key: String in ["text", "target", "ref"]:
+		var v: String = str(block.get(key)).replace("
+", " ").strip_edges()
+		if v != "":
+			return v.left(32) + ("..." if v.length() > 32 else "")
+	return "sem texto"
+
+## Todo `Control` do cartão (e ele mesmo) aceita a soltura; a posição vem sempre em coordenadas do cartão.
+func _forward_drops(root: Control) -> void:
+	for c: Node in root.find_children("*", "Control", true, false):
+		var ctrl: Control = c as Control
+		if ctrl == _title or ctrl == _overlay:
+			continue
+		ctrl.set_drag_forwarding(Callable(), _can_drop_from.bind(ctrl), _drop_from.bind(ctrl))
+	set_drag_forwarding(Callable(), _can_drop, _drop)
+
+func _can_drop_from(at: Vector2, data: Variant, ctrl: Control) -> bool:
+	return _can_drop(_to_card(at, ctrl), data)
+
+func _drop_from(at: Vector2, data: Variant, ctrl: Control) -> void:
+	_drop(_to_card(at, ctrl), data)
+
+func _to_card(at: Vector2, ctrl: Control) -> Vector2:
+	return get_global_transform().affine_inverse() * (ctrl.get_global_transform() * at)
+
+func _is_block_drag(data: Variant) -> bool:
+	return data is Dictionary and (data as Dictionary).has(DRAG_KEY)
+
+func _is_after(at: Vector2) -> bool:
+	return at.y > size.y * 0.5
+
+## Aceita se for um bloco e se soltar aqui mudar algo; desenha a linha acima ou abaixo.
+func _can_drop(at: Vector2, data: Variant) -> bool:
+	if not _is_block_drag(data):
+		return false
+	var after: bool = _is_after(at)
+	var ok: bool = not drop_filter.is_valid() or bool(drop_filter.call(int((data as Dictionary)[DRAG_KEY]), after))
+	if ok:
+		show_drop_mark(1 if after else -1)
+	else:
+		show_drop_mark(0)
+	return ok
+
+func _drop(at: Vector2, data: Variant) -> void:
+	show_drop_mark(0)
+	if _is_block_drag(data):
+		drop_requested.emit(int((data as Dictionary)[DRAG_KEY]), _is_after(at))
+
+## A linha de soltura: -1 em cima do cartão, 1 embaixo, 0 apaga.
+func show_drop_mark(where: int) -> void:
+	if where == _mark:
+		return
+	_mark = where
+	if _overlay != null:
+		_overlay.queue_redraw()
+
+func drop_mark() -> int:
+	return _mark
+
+func _draw_mark() -> void:
+	if _mark == 0:
+		return
+	var y: float = -4.0 if _mark < 0 else _overlay.size.y + 4.0
+	_overlay.draw_rect(Rect2(-8.0, y - 1.5, _overlay.size.x + 16.0, 3.0), COLOR_DROP)
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_DRAG_END or what == NOTIFICATION_MOUSE_EXIT:
+		show_drop_mark(0)
 
 func _icon_button(parent: Node, text: String, tip: String, handler: Callable) -> void:
 	var b := Button.new()
