@@ -41,6 +41,11 @@ const FLAG_CONCLUDED: StringName = &"fatia_concluida"
 
 ## Lista dos mapas em dados (M17): ids, cenas e marcadores de saída. A constante `MAPS` virou o registro.
 const DEFAULT_REGISTRY_PATH: String = "res://data/maps/registro.tres"
+## Banco de sons e músicas (M19).
+const DEFAULT_SOUND_BANK_PATH: String = "res://data/audio/sons.tres"
+
+## Banco de sons e músicas (null = o padrão, `DEFAULT_SOUND_BANK_PATH`).
+@export var sound_bank: SoundBank
 
 ## Registro de mapas (null = o padrão, `DEFAULT_REGISTRY_PATH`).
 @export var map_registry: MapRegistry
@@ -68,6 +73,8 @@ var maps: Dictionary[StringName, PackedScene] = {}
 var last_slot: int = 0
 var state: GameState
 var settings: GameSettings
+## O diretor de áudio (M19), filho do Game: um por jogo, sem estado global entre testes. Só ele toca som.
+var audio: AudioDirector
 var registry: DefRegistry
 var store: SaveStore
 var current: Node2D
@@ -120,6 +127,11 @@ func _ready() -> void:
 	if is_demo(args) or not dev.is_empty():
 		save_dir = DEMO_SAVE_DIR
 	store = SaveStore.new(save_dir, registry, balance)
+	if sound_bank == null:
+		sound_bank = load(DEFAULT_SOUND_BANK_PATH) as SoundBank
+	audio = AudioDirector.new()
+	audio.name = "AudioDirector"
+	add_child(audio)
 	settings = GameSettings.new(balance)
 	SettingsStore.load_into(settings, settings_path)
 	apply_settings()
@@ -340,10 +352,20 @@ func save_to_slot(slot: int) -> bool:
 		last_slot = slot
 	return ok
 
-## Aplica as configurações que não dependem de uma cena (volume do bus Master).
+## Aplica as configurações que não dependem de uma cena: volume dos barramentos (Master, Música e, com a
+## Interface, Efeitos). Barramento ausente do layout é ignorado.
 func apply_settings() -> void:
-	var v: float = float(settings.volume) / float(maxi(1, balance.volume_max))
-	AudioServer.set_bus_volume_db(0, linear_to_db(v) if v > 0.0 else -80.0)
+	var vmax: int = balance.volume_max
+	_set_bus_db(AudioBuses.MASTER, AudioBuses.level_to_db(settings.volume, vmax))
+	_set_bus_db(AudioBuses.MUSIC, AudioBuses.level_to_db(settings.music_volume, vmax))
+	var fx: float = AudioBuses.level_to_db(settings.effects_volume, vmax)
+	_set_bus_db(AudioBuses.EFFECTS, fx)
+	_set_bus_db(AudioBuses.INTERFACE, fx)
+
+func _set_bus_db(bus: StringName, db: float) -> void:
+	var idx: int = AudioServer.get_bus_index(bus)
+	if idx >= 0:
+		AudioServer.set_bus_volume_db(idx, db)
 
 func _on_settings_changed() -> void:
 	apply_settings()

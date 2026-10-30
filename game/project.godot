@@ -7,6 +7,10 @@ config/name="VAT RPG"
 run/main_scene="res://world/game_fatia.tscn"
 config/features=PackedStringArray("4.4", "GL Compatibility")
 
+[audio]
+
+buses/default_bus_layout="res://default_bus_layout.tres"
+
 [debug]
 
 gdscript/warnings/untyped_declaration=2

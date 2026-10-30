@@ -1,11 +1,11 @@
 class_name ConfigPage
 extends FieldPage
 
-## Config: ATB (Espera/Ativo), velocidade da batalha, memória do cursor, velocidade do texto e volume.
+## Config: ATB (Espera/Ativo), velocidade da batalha, memória do cursor, velocidade do texto, volume geral, volume da música e dos efeitos.
 ## Esquerda/direita alteram o valor da linha (Enter avança um passo); cada mudança avisa o menu
 ## (`settings_changed`) para quem hospeda persistir e aplicar.
 
-enum Row { ATB, BATTLE_SPEED, CURSOR_MEMORY, TEXT_SPEED, VOLUME }
+enum Row { ATB, BATTLE_SPEED, CURSOR_MEMORY, TEXT_SPEED, VOLUME, MUSIC_VOLUME, EFFECTS_VOLUME }
 
 func enter() -> void:
 	super.enter()
@@ -29,6 +29,10 @@ func adjust(delta: int) -> void:
 			s.text_speed += delta
 		Row.VOLUME:
 			s.volume += delta
+		Row.MUSIC_VOLUME:
+			s.music_volume += delta
+		Row.EFFECTS_VOLUME:
+			s.effects_volume += delta
 	_refresh()
 	menu.settings_changed.emit()
 
@@ -42,6 +46,8 @@ func _refresh() -> void:
 		texts.append("Memória do cursor: %s" % ("Ligada" if s.cursor_memory else "Desligada"))
 		texts.append("Velocidade do texto: %d" % s.text_speed)
 		texts.append("Volume: %d" % s.volume)
+		texts.append("Volume da música: %d" % s.music_volume)
+		texts.append("Volume dos efeitos: %d" % s.effects_volume)
 	for _t: String in texts:
 		enabled.append(true)
 	_set_entries(texts, enabled)

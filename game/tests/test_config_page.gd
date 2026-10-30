@@ -20,7 +20,7 @@ func test_command_opens_config_page() -> void:
 	assert_eq(menu.page, &"config")
 	assert_eq(page.entries(), PackedStringArray([
 		"ATB: Espera", "Velocidade da batalha: 3", "Memória do cursor: Ligada",
-		"Velocidade do texto: 2", "Volume: 10",
+		"Velocidade do texto: 2", "Volume: 10", "Volume da música: 10", "Volume dos efeitos: 10",
 	]))
 
 func test_left_right_change_values() -> void:
@@ -46,7 +46,23 @@ func test_left_right_change_values() -> void:
 	page.move(1)
 	page.adjust(-1)
 	assert_eq(g.settings.volume, 9)
-	assert_signal_emit_count(menu, "settings_changed", 8)
+	assert_eq(page.entries()[4], "Volume: 9")
+	page.move(1)
+	page.adjust(-1)
+	page.adjust(-1)
+	assert_eq(g.settings.music_volume, 8)
+	assert_eq(g.settings.volume, 9, "so a linha da musica muda")
+	assert_eq(page.entries()[5], "Volume da música: 8")
+	page.move(1)
+	page.adjust(-1)
+	assert_eq(g.settings.effects_volume, 9)
+	assert_eq(page.entries()[6], "Volume dos efeitos: 9")
+	for _i: int in 12:
+		page.adjust(-1)
+	assert_eq(g.settings.effects_volume, 0, "clamp no minimo")
+	page.adjust(1)
+	assert_eq(g.settings.effects_volume, 1)
+	assert_signal_emit_count(menu, "settings_changed", 8 + 2 + 1 + 12 + 1)
 
 func test_cancel_returns_to_root() -> void:
 	menu.cancel()

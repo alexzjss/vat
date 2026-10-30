@@ -13,6 +13,8 @@ var _cfg: BalanceConfig
 var _battle_speed: int
 var _text_speed: int
 var _volume: int
+var _music_volume: int
+var _effects_volume: int
 
 var battle_speed: int:
 	get:
@@ -32,11 +34,26 @@ var volume: int:
 	set(v):
 		_volume = clampi(v, 0, _cfg.volume_max)
 
+## Volume da musica e dos efeitos (M19), na mesma escala do `volume`. A interface fica no volume dos efeitos.
+var music_volume: int:
+	get:
+		return _music_volume
+	set(v):
+		_music_volume = clampi(v, 0, _cfg.volume_max)
+
+var effects_volume: int:
+	get:
+		return _effects_volume
+	set(v):
+		_effects_volume = clampi(v, 0, _cfg.volume_max)
+
 func _init(cfg: BalanceConfig) -> void:
 	_cfg = cfg
 	battle_speed = cfg.default_battle_speed
 	text_speed = cfg.default_text_speed
 	volume = cfg.default_volume
+	music_volume = cfg.default_volume
+	effects_volume = cfg.default_volume
 
 ## Multiplicador do delta do ATB para a velocidade escolhida.
 func speed_mult() -> float:
@@ -47,6 +64,8 @@ func to_dict() -> Dictionary:
 		"atb_mode": int(atb_mode),
 		"battle_speed": _battle_speed,
 		"cursor_memory": cursor_memory,
+		"effects_volume": _effects_volume,
+		"music_volume": _music_volume,
 		"text_speed": _text_speed,
 		"volume": _volume,
 	}
@@ -63,3 +82,7 @@ func from_dict(d: Dictionary) -> void:
 		text_speed = int(d["text_speed"])
 	if d.get("volume") is int or d.get("volume") is float:
 		volume = int(d["volume"])
+	if d.get("music_volume") is int or d.get("music_volume") is float:
+		music_volume = int(d["music_volume"])
+	if d.get("effects_volume") is int or d.get("effects_volume") is float:
+		effects_volume = int(d["effects_volume"])
