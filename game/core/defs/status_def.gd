@@ -21,3 +21,5 @@ enum Kind { POISON, SLEEP, PARALYSIS, HASTE, SLOW, BARRIER, ATTR_MOD, STOP, CONF
 @export var seconds: float = 0.0
 ## Veneno no mapa (M15): ativo num heroi vivo no fim da batalha, o estado segue com ele (HeroState.field_statuses) ate ser curado.
 @export var persists: bool = false
+## Som ao aplicar o estado (M19): id no SoundBank; vazio = mudo.
+@export var sfx_apply: StringName = &""

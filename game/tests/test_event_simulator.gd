@@ -171,3 +171,20 @@ func test_simulate_job_reports_compile_errors_and_unknown_events() -> void:
 	var none: Dictionary = RoteiroTools.simulate_job({"text": "=== t\nAlguém: oi.\n", "source": "t.roteiro", "event": "outro"})
 	assert_false(none["ok"])
 	assert_true(str(none["errors"][0]).contains("outro"))
+
+# --- áudio (M19) ---
+
+func test_musica_and_som_are_recorded_in_the_transcript() -> void:
+	var bank := SoundBank.new()
+	var m := MusicDef.new()
+	m.id = &"cidade"
+	bank.musics = [m]
+	var s := SoundDef.new()
+	s.id = &"golpe"
+	bank.sounds = [s]
+	var ix: ContentIndex = ContentIndex.from_resources([bank])
+	var r: Dictionary = RoteiroTools.compile_text("=== t\n@musica cidade 1\n@som golpe\n@musica parar\n: fim\n", "t.roteiro", ix)
+	assert_eq(r["errors"], [] as Array[String])
+	var sim: Dictionary = EventSimulator.simulate((r["events"] as Dictionary)[&"t"] as EventScript)
+	assert_eq(sim["transcript"], ["música: cidade", "som: golpe", "música: parar", "[sistema] fim"] as Array[String])
+	assert_eq(sim["ended_reason"], "fim")

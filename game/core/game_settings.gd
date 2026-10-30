@@ -8,6 +8,8 @@ enum AtbMode { WAIT, ACTIVE }
 
 var atb_mode: AtbMode = AtbMode.WAIT
 var cursor_memory: bool = true
+## Som do texto das falas (M19): um tique a cada poucas letras reveladas.
+var text_sound: bool = true
 
 var _cfg: BalanceConfig
 var _battle_speed: int
@@ -66,6 +68,7 @@ func to_dict() -> Dictionary:
 		"cursor_memory": cursor_memory,
 		"effects_volume": _effects_volume,
 		"music_volume": _music_volume,
+		"text_sound": text_sound,
 		"text_speed": _text_speed,
 		"volume": _volume,
 	}
@@ -78,6 +81,8 @@ func from_dict(d: Dictionary) -> void:
 		battle_speed = int(d["battle_speed"])
 	if d.get("cursor_memory") is bool:
 		cursor_memory = d["cursor_memory"]
+	if d.get("text_sound") is bool:
+		text_sound = d["text_sound"]
 	if d.get("text_speed") is int or d.get("text_speed") is float:
 		text_speed = int(d["text_speed"])
 	if d.get("volume") is int or d.get("volume") is float:

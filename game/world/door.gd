@@ -67,6 +67,7 @@ func has_key() -> bool:
 func _activate() -> void:
 	var steps: Array[EventStep] = []
 	if has_key():
+		AudioHooks.event(self, SoundEvents.Event.DOOR)
 		steps.append(EventScript.set_flag(open_flag, 1))
 		if key_item != null:
 			steps.append(EventScript.say("Usou %s. A porta se abriu." % key_item.display_name))

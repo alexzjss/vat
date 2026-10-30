@@ -31,11 +31,15 @@ signal drop_requested(from_index: int, after: bool)
 const DRAG_KEY: String = "vat_block"
 const COLOR_DROP: Color = Color(0.4, 0.8, 1.0)
 
+## Entrada extra do seletor de música: o `@musica parar`.
+const PARAR_ITEM: Array[Array] = [["(parar a música)", "parar"]]
+
 const COLOR_RAW: Color = Color(1.0, 0.85, 0.4)
 const COLOR_ERROR: Color = Color(1.0, 0.4, 0.4)
 const COLOR_TITLE: Color = Color(0.75, 0.85, 1.0)
 const KIND_OF_FIELD: Dictionary = {
 	"item": &"item", "equip": &"equip", "hero": &"hero", "ability": &"ability", "encounter": &"encounter",
+	"music": &"music", "sound": &"sound",
 }
 
 var block: RoteiroBlock
@@ -234,8 +238,8 @@ func _control_for(spec: Dictionary) -> Control:
 			return le
 		"multiline":
 			return _multiline(field)
-		"item", "equip", "hero", "ability", "encounter":
-			return _picker(field, KIND_OF_FIELD[str(spec["type"])])
+		"item", "equip", "hero", "ability", "encounter", "music", "sound":
+			return _picker(field, KIND_OF_FIELD[str(spec["type"])], PARAR_ITEM if spec["type"] == "music" else [])
 		"op":
 			return _op_picker(field)
 		"int", "pct":
@@ -287,7 +291,7 @@ func _multiline(field: String) -> Control:
 	return te
 
 ## Lista fechada de ids: "(nenhum)", os do conteúdo e, se o valor atual não existe, ele mesmo marcado.
-func _picker(field: String, kind: StringName) -> Control:
+func _picker(field: String, kind: StringName, extras: Array = []) -> Control:
 	var ob := OptionButton.new()
 	var current: String = str(Logic.get_field(block, field))
 	var ids: Array[String] = []
@@ -298,6 +302,11 @@ func _picker(field: String, kind: StringName) -> Control:
 	ob.add_item("(nenhum)")
 	ob.set_item_metadata(0, "")
 	var select: int = 0
+	for extra: Array in extras:
+		ob.add_item(str(extra[0]))
+		ob.set_item_metadata(ob.item_count - 1, str(extra[1]))
+		if str(extra[1]) == current:
+			select = ob.item_count - 1
 	for id: String in ids:
 		ob.add_item(str(shown.call(kind, id)) if shown.is_valid() else id)
 		ob.set_item_metadata(ob.item_count - 1, id)

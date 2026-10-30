@@ -17,7 +17,7 @@ extends RefCounted
 ## Resultado: `{transcript: Array[String], flags: Dictionary, items: Dictionary, money: int, heroes: Array[String],
 ## ended_reason: String}`. `ended_reason`: "fim" (o evento acabou), "fim_demo", "abortado" (o runner abortou: rótulo
 ## inexistente ou laço sem apresentação) ou "limite de passos".
-## Uma batalha é anotada ("batalha: <id> (iniciaria aqui)") e tratada como vencida; mover, câmera e esperar viram notas.
+## Uma batalha é anotada ("batalha: <id> (iniciaria aqui)") e tratada como vencida; mover, câmera, esperar, música e som viram notas ("música: <id>", "som: <id>").
 
 const DEFAULT_PROFILE: String = "res://data/fatia/start.tres"
 const DEFAULT_BALANCE: String = "res://data/test/balance.tres"
@@ -102,6 +102,10 @@ static func simulate(script: EventScript, setup: Dictionary = {}) -> Dictionary:
 				transcript.append("câmera: %s" % req.marker)
 			EventRequest.Kind.WAIT:
 				transcript.append("esperar: %s s" % str(req.seconds))
+			EventRequest.Kind.PLAY_MUSIC:
+				transcript.append("música: parar" if req.stop else "música: %s" % req.music_id)
+			EventRequest.Kind.PLAY_SOUND:
+				transcript.append("som: %s" % req.sound_id)
 			EventRequest.Kind.END_DEMO:
 				transcript.append("fim da demo")
 				reason = "fim_demo"

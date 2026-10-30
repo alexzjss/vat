@@ -149,6 +149,23 @@ enum DurationMode { A, B }
 # Bestiario (M15).
 @export var bestiary_reveal_kills: int = 3 # valor de teste (M15: derrotas de um inimigo que revelam as afinidades sem Scan)
 
+# Audio (M19): ids no SoundBank; vazio = silencio, como antes do audio.
+@export var default_battle_music: StringName = &""
+@export var boss_battle_music: StringName = &""
+@export var victory_jingle: StringName = &""
+@export var defeat_jingle: StringName = &""
+@export var sfx_menu_move: StringName = &""
+@export var sfx_menu_confirm: StringName = &""
+@export var sfx_menu_cancel: StringName = &""
+@export var sfx_text_tick: StringName = &""
+@export var sfx_open_chest: StringName = &""
+@export var sfx_open_door: StringName = &""
+@export var sfx_step: StringName = &""
+@export var sfx_level_up: StringName = &""
+## Caracteres entre dois tiques do texto (M19) e pixels andados entre dois passos.
+@export var text_tick_every: int = 2
+@export var step_distance: float = 40.0
+
 ## O estado persistente (`persistent_statuses`) com esse id; nulo se desconhecido.
 func persistent_status(id: StringName) -> StatusDef:
 	for d: StatusDef in persistent_statuses:

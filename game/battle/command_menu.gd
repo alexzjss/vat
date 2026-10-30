@@ -142,6 +142,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		cancel()
 	else:
 		return
+	AudioHooks.menu_input(self, event)
 	get_viewport().set_input_as_handled()
 
 ## Move o cursor (listas) ou alterna o alvo (etapa de alvo), com volta circular.

@@ -120,3 +120,38 @@ func test_marker_for_ignores_prefabs_without_marker() -> void:
 	var chest: Node = (load("res://world/prefabs/bau.tscn") as PackedScene).instantiate()
 	add_child_autofree(chest)
 	assert_null(made[0]._marker_for(made[1], &"bau", chest))
+
+# --- áudio (M19): cartões de música e som ---
+
+func _audio_card(kind: int, ref: String) -> PanelContainer:
+	var card: PanelContainer = BlockCard.new()
+	var ctx: Dictionary = {
+		&"ids": func(k: StringName) -> Array[String]: return ["cidade", "masmorra"] as Array[String] if k == &"music" else ["golpe"] as Array[String],
+		&"display": func(_k: StringName, id: String) -> String: return id,
+	}
+	var b: RoteiroBlock = Logic.new_block(kind)
+	b.ref = StringName(ref)
+	card.setup(b, ctx)
+	add_child_autofree(card)
+	return card
+
+func _options_of(card: PanelContainer) -> Array[String]:
+	var ob: OptionButton = card.find_children("*", "OptionButton", true, false)[0] as OptionButton
+	var out: Array[String] = []
+	for i: int in ob.item_count:
+		out.append(ob.get_item_text(i))
+	return out
+
+func test_music_card_lists_the_bank_ids_with_a_stop_entry() -> void:
+	var card: PanelContainer = _audio_card(RoteiroBlock.Kind.MUSICA, "masmorra")
+	assert_eq(_options_of(card), ["(nenhum)", "(parar a música)", "cidade", "masmorra"] as Array[String])
+	var ob: OptionButton = card.find_children("*", "OptionButton", true, false)[0] as OptionButton
+	assert_eq(ob.get_item_text(ob.selected), "masmorra")
+	ob.item_selected.emit(1)
+	assert_eq(card.block.ref, &"parar", "a entrada de parar grava a palavra")
+	ob.item_selected.emit(2)
+	assert_eq(card.block.ref, &"cidade")
+
+func test_sound_card_lists_the_bank_sounds_and_flags_a_missing_one() -> void:
+	var card: PanelContainer = _audio_card(RoteiroBlock.Kind.SOM, "sumiu")
+	assert_eq(_options_of(card), ["(nenhum)", "golpe", "sumiu (não existe)"] as Array[String])

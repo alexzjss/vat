@@ -5,7 +5,7 @@ extends RefCounted
 ## fica parado até `resume(answer)`.
 
 ## Novos valores sempre no fim.
-enum Kind { SAY, CHOICE, MOVE_ACTOR, WAIT, CAMERA_TO, START_BATTLE, END_DEMO }
+enum Kind { SAY, CHOICE, MOVE_ACTOR, WAIT, CAMERA_TO, START_BATTLE, END_DEMO, PLAY_MUSIC, PLAY_SOUND }
 
 var kind: Kind = Kind.SAY
 var speaker: String = ""
@@ -20,6 +20,11 @@ var marker: NodePath = NodePath("")
 var speed: float = 0.0
 var seconds: float = 0.0
 var encounter: EncounterDef
+## PLAY_MUSIC (M19): id da música (vazio com `stop`), segundos do fade e se é para parar. PLAY_SOUND: `sound_id`.
+var music_id: StringName = &""
+var fade: float = 0.0
+var stop: bool = false
+var sound_id: StringName = &""
 
 static func say(p_speaker: String, p_text: String, p_portrait: StringName = &"") -> EventRequest:
 	var r := EventRequest.new()

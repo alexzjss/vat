@@ -15,6 +15,7 @@ extends RefCounted
 ## - XP: amount, everyone (`todos`).   ENSINAR: ref (herói), ref2 (habilidade).   CURAR: pct (1 a 100).
 ## - RECRUTAR: ref (herói), amount (nível; 0 = não fixa).   BATALHA: ref (encontro).
 ## - MOVER: ref (ator), ref2 (marcador), seconds (velocidade).   CAMERA: ref (marcador).   ESPERAR: seconds.
+## - MUSICA: ref (id da música, ou `parar`), seconds (fade; negativo = não escrito, vale o padrão).   SOM: ref (id do som).
 ## - OUTRO: text (a linha crua, que não foi entendida).   EM_BRANCO: nada.
 
 ## Só se acrescenta no fim: os valores podem ser gravados.
@@ -26,6 +27,7 @@ enum Kind {
 	XP, ENSINAR, CURAR, RECRUTAR,
 	BATALHA, MOVER, CAMERA, ESPERAR, FIM_DEMO,
 	OUTRO, EM_BRANCO,
+	MUSICA, SOM,
 }
 
 ## Uma opção de escolha: `* text -> label`.
@@ -65,6 +67,8 @@ static func make(p_kind: Kind) -> RoteiroBlock:
 			b.amount = 1
 		Kind.DAR_MOEDAS, Kind.XP:
 			b.amount = 1
+		Kind.MUSICA:
+			b.seconds = -1.0
 	return b
 
 func copy() -> RoteiroBlock:

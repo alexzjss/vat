@@ -442,6 +442,7 @@ func _set_highlight_off() -> void:
 
 ## Suporte: o reserva aparece (fade-in) na posicao dele enquanto a acao executa.
 func _on_action_started(a: PendingAction) -> void:
+	AudioHooks.play(self, SoundEvents.action_start_sound(a))
 	if a.caller == null:
 		var v: CombatantView = views.get(a.actor.id)
 		if v != null:
@@ -489,6 +490,8 @@ func _on_action_impact(a: PendingAction, r: ActionResult) -> void:
 		lifesteal += int(hit.get("lifesteal", 0))
 		self_damage += int(hit.get("self_damage", 0))
 	_debug.record_impact(r, ctrl.b)
+	for sound_id: StringName in SoundEvents.impact_sounds(a, r, ctrl.b.reactions):
+		AudioHooks.play(self, sound_id)
 	_show_reactions(a, r, (1 if lifesteal > 0 else 0) + (1 if self_damage > 0 else 0))
 	if lifesteal > 0 or self_damage > 0:
 		# O reserva do Suporte nao esta em `views`: usa a vista dele.
@@ -538,6 +541,7 @@ func _on_turn_lost(c: Combatant) -> void:
 		views[c.id].float_text("Perdeu o turno", Color.WHITE)
 
 func _on_battle_ended(outcome: BattleController.Outcome) -> void:
+	AudioHooks.battle_end(self, outcome)
 	_set_highlight_off()
 	_menu.close()
 	_outcome_label.text = _outcome_text(outcome)
@@ -631,6 +635,7 @@ func _next_level_up() -> void:
 			phase = Phase.FIGHT_AGAIN
 			_result.set_actions(PackedStringArray(["Descansar e lutar", "Lutar de novo"]))
 		return
+	AudioHooks.event(self, SoundEvents.Event.LEVEL_UP)
 	_level_up.open(_level_queue.pop_front())
 
 func _on_level_up_closed(_h: HeroState) -> void:

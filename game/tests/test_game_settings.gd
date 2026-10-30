@@ -127,3 +127,15 @@ func test_speed_mult_scales_atb_only() -> void:
 	normal.tick(1.0)
 	assert_gt(half, 0.0)
 	assert_almost_eq(half * 2.0, hero2.atb, 0.0001)
+
+func test_text_sound_defaults_on_round_trips_and_old_files_keep_the_default() -> void:
+	assert_true(s.text_sound, "ligado por padrao")
+	s.text_sound = false
+	var t := GameSettings.new(cfg)
+	t.from_dict(s.to_dict())
+	assert_false(t.text_sound)
+	var old := GameSettings.new(cfg)
+	old.from_dict({"volume": 4})
+	assert_true(old.text_sound, "arquivo antigo sem o campo")
+	old.from_dict({"text_sound": "nao e bool"})
+	assert_true(old.text_sound, "tipo errado e ignorado")

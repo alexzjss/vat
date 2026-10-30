@@ -20,3 +20,6 @@ extends Resource
 @export var status_resist: Dictionary[StringName, float] = {}
 ## Arte opcional (M16); sem ela o jogo desenha as formas geométricas de sempre.
 @export var sprites: SpriteSet
+## Sons do combatente (M19): ids no SoundBank; vazio = mudo. `sfx_hit` ao levar dano, `sfx_down` ao cair.
+@export var sfx_hit: StringName = &""
+@export var sfx_down: StringName = &""

@@ -29,6 +29,7 @@ var _gen: int = 0
 func _init() -> void:
 	dialogue = DialogueBox.new()
 	add_child(dialogue)
+	dialogue.text_ticked.connect(_on_text_ticked)
 
 ## Executa o roteiro até o fim. Devolve (ao ser aguardado) quando o evento termina ou é cancelado.
 func play(event: EventScript, map: LocalMap, state: GameState) -> void:
@@ -39,6 +40,7 @@ func play(event: EventScript, map: LocalMap, state: GameState) -> void:
 	_state = state
 	_gen += 1
 	var gen: int = _gen
+	dialogue.tick_every = state.cfg.text_tick_every
 	map.set_event_frozen(true)
 	runner = EventRunner.new(event, state)
 	runner.start()
@@ -80,6 +82,11 @@ func _finish(completed: bool) -> void:
 		_map.set_event_frozen(false)
 	_map = null
 	finished.emit(completed)
+
+## Som do texto (M19): um tique a cada bloco de letras, se o jogador não o desligou na Config.
+func _on_text_ticked() -> void:
+	if _state != null and (_state.settings == null or _state.settings.text_sound):
+		AudioHooks.event(self, SoundEvents.Event.TEXT_TICK)
 
 func _cps() -> float:
 	return DialogueBox.speed_for(_state.cfg, _state.settings.text_speed)
@@ -130,6 +137,12 @@ func _present(req: EventRequest, gen: int) -> int:
 			get_tree().create_timer(t).timeout.connect(_done.bind(gen, 0))
 		EventRequest.Kind.END_DEMO:
 			end_demo_requested.emit()
+			return 0
+		EventRequest.Kind.PLAY_MUSIC:
+			AudioHooks.event_music(self, req.music_id, req.fade, req.stop)
+			return 0
+		EventRequest.Kind.PLAY_SOUND:
+			AudioHooks.play(self, req.sound_id)
 			return 0
 		EventRequest.Kind.START_BATTLE:
 			# A fala que veio antes (ex.: o aviso da armadilha) não pode ficar aberta sobre a batalha: a caixa consome o Enter.

@@ -367,6 +367,8 @@ func _command(body: String, n: int) -> void:
 				var w := WaitStep.new()
 				w.seconds = secs
 				step = w
+		"musica": step = _cmd_music(args, n)
+		"som": step = _cmd_sound(args, n)
 		"fim_demo":
 			if args.is_empty():
 				step = EndDemoStep.new()
@@ -376,6 +378,33 @@ func _command(body: String, n: int) -> void:
 			_err(n, "comando desconhecido '@%s'" % cmd)
 	if step != null:
 		_steps.append(step)
+
+func _cmd_music(args: PackedStringArray, n: int) -> EventStep:
+	if args.is_empty() or args.size() > 2:
+		_err(n, "uso: @musica id [fade] | @musica parar [fade]")
+		return null
+	var fade: Variant = _real(args[1], n, 0.0) if args.size() == 2 else AudioRules.MAP_FADE
+	if fade == null:
+		return null
+	var m := PlayMusicStep.new()
+	m.fade = fade
+	if args[0] == "parar":
+		m.stop = true
+		return m
+	if _resolve(&"music", args[0], n) == null:
+		return null
+	m.music_id = StringName(args[0])
+	return m
+
+func _cmd_sound(args: PackedStringArray, n: int) -> EventStep:
+	if args.size() != 1:
+		_err(n, "uso: @som id")
+		return null
+	if _resolve(&"sound", args[0], n) == null:
+		return null
+	var s := PlaySoundStep.new()
+	s.sound_id = StringName(args[0])
+	return s
 
 func _cmd_flag(cmd: String, args: PackedStringArray, n: int) -> EventStep:
 	if args.size() != 2:
@@ -565,6 +594,7 @@ func _real(tok: String, n: int, min_v: float) -> Variant:
 
 const _KIND_NAMES: Dictionary[StringName, String] = {
 	&"item": "item", &"equip": "equipamento", &"hero": "herói", &"encounter": "encontro", &"ability": "habilidade",
+	&"music": "música", &"sound": "som",
 }
 
 func _resolve(kind: StringName, id: String, n: int) -> Resource:

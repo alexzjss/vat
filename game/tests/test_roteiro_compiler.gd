@@ -459,3 +459,82 @@ func test_roteiro_book_holds_events() -> void:
 	var b := RoteiroBook.new()
 	b.events[&"e"] = _event("=== e\n: oi")
 	assert_true(b.events.has(&"e"))
+
+# --- áudio (M19): @musica e @som ---
+
+func _audio_defs() -> void:
+	var m := MusicDef.new()
+	m.id = &"cidade"
+	_defs["music/cidade"] = m
+	var s := SoundDef.new()
+	s.id = &"golpe"
+	_defs["sound/golpe"] = s
+
+func test_musica_and_som_compile_to_steps_with_the_default_fade() -> void:
+	_audio_defs()
+	var s: Array[EventStep] = _steps("@musica cidade\n@musica cidade 1.5\n@musica cidade 0\n@musica parar\n@musica parar 2\n@som golpe")
+	assert_eq((s[0] as PlayMusicStep).music_id, &"cidade")
+	assert_false((s[0] as PlayMusicStep).stop)
+	assert_almost_eq((s[0] as PlayMusicStep).fade, AudioRules.MAP_FADE, 0.0001)
+	assert_almost_eq((s[1] as PlayMusicStep).fade, 1.5, 0.0001)
+	assert_almost_eq((s[2] as PlayMusicStep).fade, 0.0, 0.0001, "fade 0 escrito vale 0")
+	assert_true((s[3] as PlayMusicStep).stop)
+	assert_almost_eq((s[3] as PlayMusicStep).fade, AudioRules.MAP_FADE, 0.0001)
+	assert_true((s[4] as PlayMusicStep).stop)
+	assert_almost_eq((s[4] as PlayMusicStep).fade, 2.0, 0.0001)
+	assert_eq((s[5] as PlaySoundStep).sound_id, &"golpe")
+
+func test_musica_and_som_with_unknown_ids_are_compile_errors() -> void:
+	_audio_defs()
+	var errs: Array[String] = _errs("=== e\n@musica nada\n@som nada\n")
+	assert_eq(errs.size(), 2)
+	assert_eq(errs[0], "t.roteiro:2: música 'nada' não existe")
+	assert_eq(errs[1], "t.roteiro:3: som 'nada' não existe")
+
+func test_musica_and_som_usage_errors() -> void:
+	_audio_defs()
+	assert_eq(_errs("=== e\n@musica\n"), ["t.roteiro:2: uso: @musica id [fade] | @musica parar [fade]"] as Array[String])
+	assert_eq(_errs("=== e\n@musica cidade 1 2\n").size(), 1)
+	assert_eq(_errs("=== e\n@musica cidade abc\n").size(), 1)
+	assert_eq(_errs("=== e\n@musica cidade -1\n").size(), 1, "fade negativo")
+	assert_eq(_errs("=== e\n@som\n"), ["t.roteiro:2: uso: @som id"] as Array[String])
+	assert_eq(_errs("=== e\n@som golpe golpe\n").size(), 1)
+
+func test_musica_and_som_become_presentation_requests_in_the_runner() -> void:
+	_audio_defs()
+	var ev: EventScript = _event("=== e\n@musica cidade 2\n@som golpe\n@musica parar\n: fim")
+	var r := EventRunner.new(ev, g)
+	r.start()
+	assert_eq(r.current().kind, EventRequest.Kind.PLAY_MUSIC)
+	assert_eq(r.current().music_id, &"cidade")
+	assert_almost_eq(r.current().fade, 2.0, 0.0001)
+	assert_false(r.current().stop)
+	r.resume()
+	assert_eq(r.current().kind, EventRequest.Kind.PLAY_SOUND)
+	assert_eq(r.current().sound_id, &"golpe")
+	r.resume()
+	assert_eq(r.current().kind, EventRequest.Kind.PLAY_MUSIC)
+	assert_true(r.current().stop)
+	assert_eq(r.current().music_id, &"")
+	r.resume()
+	assert_eq(r.current().kind, EventRequest.Kind.SAY)
+
+func test_the_index_resolves_music_and_sound_including_the_ones_of_a_bank() -> void:
+	var bank := SoundBank.new()
+	var m := MusicDef.new()
+	m.id = &"cidade"
+	bank.musics = [m]
+	var s := SoundDef.new()
+	s.id = &"golpe"
+	bank.sounds = [s]
+	var loose := SoundDef.new()
+	loose.id = &"solto"
+	var ix: ContentIndex = ContentIndex.from_resources([bank, loose, m])
+	assert_eq(ix.resolve(&"music", &"cidade"), m)
+	assert_eq(ix.resolve(&"sound", &"golpe"), s)
+	assert_eq(ix.resolve(&"sound", &"solto"), loose)
+	assert_eq(ix.ids(&"sound"), [&"golpe", &"solto"] as Array[StringName])
+	assert_eq(ix.count(&"music"), 1)
+	assert_eq(ix.duplicates, [] as Array[String], "o mesmo recurso no banco e solto não é repetição")
+	var r: Dictionary = RoteiroCompiler.compile("=== e\n@musica cidade\n@som golpe\n", "t.roteiro", ix.resolver())
+	assert_eq(r["errors"], [] as Array[String])

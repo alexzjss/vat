@@ -45,6 +45,7 @@ func content_text() -> String:
 	return n
 
 func _activate() -> void:
+	AudioHooks.event(self, SoundEvents.Event.CHEST)
 	var steps: Array[EventStep] = []
 	steps.append(EventScript.set_flag(opened_flag, 1))
 	if item != null:

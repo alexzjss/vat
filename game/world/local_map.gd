@@ -319,12 +319,18 @@ func _on_enemy_touched(enemy: MapEnemy) -> void:
 	_battle_from = from_pos
 	var defs: Array[EnemyDef] = []
 	var flee_ok: bool = true
+	# Música (M19): a do primeiro encontro do grupo que tiver uma; basta um chefe para valer a música de chefe.
+	var music: StringName = &""
+	var boss: bool = false
 	for g: MapEnemy in group:
 		g.visible = false
 		g.frozen = true
 		defs.append_array(g.encounter.enemies)
 		flee_ok = flee_ok and g.encounter.can_flee
-	_begin_battle(arena, defs, flee_ok, from_pos, kind)
+		if music == &"":
+			music = g.encounter.music
+		boss = boss or SoundEvents.is_boss(g.encounter)
+	_begin_battle(arena, defs, flee_ok, from_pos, kind, music, boss)
 
 ## Batalha iniciada por um evento (StartBattle): na arena padrão, sem inimigo de mapa. Ao fim com vitória ou
 ## fuga emite `event_battle_finished`; a derrota segue o caminho normal (`game_over`).
@@ -344,9 +350,11 @@ func start_event_battle(encounter: EncounterDef) -> void:
 	camera.slide_to(default_arena.center(), state.cfg.camera_slide_time)
 	var defs: Array[EnemyDef] = []
 	defs.append_array(encounter.enemies)
-	_begin_battle(default_arena, defs, encounter.can_flee, from_pos, Initiative.Kind.NORMAL)
+	_begin_battle(default_arena, defs, encounter.can_flee, from_pos, Initiative.Kind.NORMAL, encounter.music, SoundEvents.is_boss(encounter))
 
-func _begin_battle(arena: BattleArena, defs: Array[EnemyDef], flee_ok: bool, from_pos: Vector2, kind: Initiative.Kind) -> void:
+func _begin_battle(arena: BattleArena, defs: Array[EnemyDef], flee_ok: bool, from_pos: Vector2, kind: Initiative.Kind,
+		music: StringName = &"", boss: bool = false) -> void:
+	AudioHooks.battle_start(self, music, boss)
 	player.visible = false
 	if followers != null:
 		followers.hide_all()

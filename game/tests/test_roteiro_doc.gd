@@ -127,7 +127,8 @@ func test_sample_parses_without_errors_and_covers_every_kind() -> void:
 		for b: RoteiroBlock in e.blocks:
 			seen[b.kind] = true
 	for k: int in RoteiroBlock.Kind.values():
-		if k != RoteiroBlock.Kind.OUTRO:
+		# MUSICA e SOM precisam de um banco de sons para compilar: têm testes próprios (fim do arquivo).
+		if k != RoteiroBlock.Kind.OUTRO and k != RoteiroBlock.Kind.MUSICA and k != RoteiroBlock.Kind.SOM:
 			assert_true(seen.has(k), "tipo %s no exemplo" % RoteiroBlock.Kind.keys()[k])
 
 func test_sample_round_trips_and_is_idempotent() -> void:
@@ -466,3 +467,51 @@ func test_slice_files_keep_their_comments() -> void:
 	assert_eq(morador_c.leading.size(), 1)
 	assert_true(morador_c.leading[0].text.begins_with("Missão secundária"))
 	assert_eq(morador_c.labels(), [&"ativa", &"entrega", &"inicio", &"aceita", &"recusa"] as Array[StringName])
+
+# --- áudio (M19) ---
+
+func test_musica_and_som_blocks_round_trip_and_keep_the_fade() -> void:
+	var t: String = "=== e\n@musica cidade\n@musica cidade 1.5\n@musica cidade 0\n@musica parar\n@musica parar 2\n@som golpe\n"
+	var blocks: Array[RoteiroBlock] = _blocks_of(t)
+	assert_eq(_kinds(blocks), [Kind.MUSICA, Kind.MUSICA, Kind.MUSICA, Kind.MUSICA, Kind.MUSICA, Kind.SOM])
+	assert_eq(blocks[0].ref, &"cidade")
+	assert_lt(blocks[0].seconds, 0.0, "sem fade escrito")
+	assert_almost_eq(blocks[1].seconds, 1.5, 0.0001)
+	assert_almost_eq(blocks[2].seconds, 0.0, 0.0001, "fade 0 escrito não vira ausente")
+	assert_eq(blocks[3].ref, &"parar")
+	assert_eq(blocks[5].ref, &"golpe")
+	assert_eq(_round_trip(t), t)
+
+func test_musica_and_som_errors_stay_raw_blocks() -> void:
+	var t: String = "=== e\n@musica\n@musica a b c\n@musica a x\n@musica a -1\n@som\n@som a b\n"
+	var r: Dictionary = RoteiroDoc.parse(t)
+	var errs: Array = r["errors"]
+	assert_eq(errs.size(), 6)
+	assert_eq(errs[0], "2: uso: @musica id [fade] | @musica parar [fade]")
+	assert_eq(errs[4], "6: uso: @som id")
+	var doc: RoteiroDoc = r["doc"]
+	for b: RoteiroBlock in doc.events[0].blocks:
+		assert_eq(b.kind, Kind.OUTRO)
+	assert_eq(_round_trip(t), t)
+
+func test_musica_and_som_blocks_compile_like_the_text_does() -> void:
+	var bank := SoundBank.new()
+	var m := MusicDef.new()
+	m.id = &"cidade"
+	bank.musics = [m]
+	var s := SoundDef.new()
+	s.id = &"golpe"
+	bank.sounds = [s]
+	var ix: ContentIndex = ContentIndex.from_resources([bank])
+	var doc := RoteiroDoc.new()
+	var e: RoteiroEvent = doc.add_event("t")
+	var mb: RoteiroBlock = RoteiroBlock.make(Kind.MUSICA)
+	mb.ref = &"cidade"
+	e.add_block(mb)
+	var sb: RoteiroBlock = RoteiroBlock.make(Kind.SOM)
+	sb.ref = &"golpe"
+	e.add_block(sb)
+	var text: String = RoteiroDoc.to_text(doc)
+	assert_eq(text, "=== t\n@musica cidade\n@som golpe\n")
+	var r: Dictionary = RoteiroCompiler.compile(text, "t.roteiro", ix.resolver())
+	assert_eq(r["errors"], [] as Array[String])

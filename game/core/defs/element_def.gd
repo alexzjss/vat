@@ -16,3 +16,5 @@ enum Rule { NORMAL, BLOOD, RADIOACTIVE }
 @export var reacts: bool = true
 ## Regra especial; o codigo nunca compara ids de elemento, so `rule`.
 @export var rule: Rule = Rule.NORMAL
+## Som do impacto de uma tecnica deste elemento (M19), quando ela nao tem `sfx_impact`; id no SoundBank.
+@export var sfx_hit: StringName = &""

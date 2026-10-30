@@ -12,3 +12,5 @@ enum Kind { CIDADE, INTERIOR, MASMORRA, MUNDO, TESTE }
 @export var kind: Kind = Kind.CIDADE
 ## Marcador do `overworld` onde o jogador reaparece ao sair pelo `$Exit` deste mapa. Vazio = usa "Start".
 @export var exit_spawn: StringName = &""
+## Musica de fundo (M19): id no SoundBank. Vazio = silencio (a musica anterior para).
+@export var music: StringName = &""

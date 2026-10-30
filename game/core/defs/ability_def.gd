@@ -16,3 +16,6 @@ enum Side { ENEMIES, ALLIES, BOTH }
 @export var effects: Array[EffectDef] = []
 ## Elemento dos efeitos DAMAGE (M13); nulo = neutro (o ataque basico usa o da arma).
 @export var element: ElementDef
+## Sons (M19): ids no SoundBank. `sfx_cast` toca ao comecar a tecnica; `sfx_impact` no impacto (vazio = o `sfx_hit` do elemento).
+@export var sfx_cast: StringName = &""
+@export var sfx_impact: StringName = &""

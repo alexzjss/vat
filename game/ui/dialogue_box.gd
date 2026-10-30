@@ -12,6 +12,8 @@ extends CanvasLayer
 
 signal advanced
 signal chosen(index: int)
+## O texto revelou mais um bloco de `tick_every` caracteres (som do texto, M19); no máximo um por quadro.
+signal text_ticked
 
 const TEXT_COLOR: Color = Color(1.0, 1.0, 1.0)
 const NAME_COLOR: Color = Color(1.0, 0.85, 0.3)
@@ -22,6 +24,8 @@ var chars_per_second: float = 60.0
 ## Opções da escolha em andamento (vazio = fala simples).
 var options: PackedStringArray = PackedStringArray()
 var cursor: int = 0
+## Caracteres entre dois `text_ticked` (BalanceConfig.text_tick_every; quem hospeda a caixa ajusta).
+var tick_every: int = 2
 
 var _text: String = ""
 var _shown: float = 0.0
@@ -178,8 +182,11 @@ func is_revealing() -> bool:
 func tick(delta: float) -> void:
 	if not is_open or not is_revealing():
 		return
+	var before: int = shown_chars()
 	_shown = minf(_shown + delta * chars_per_second, float(_text.length()))
 	_refresh()
+	if SoundEvents.ticks_between(before, shown_chars(), tick_every) > 0:
+		text_ticked.emit()
 
 func _process(delta: float) -> void:
 	tick(delta)
@@ -195,6 +202,7 @@ func accept() -> void:
 	if options.is_empty():
 		advanced.emit()
 	else:
+		AudioHooks.event(self, SoundEvents.Event.MENU_CONFIRM)
 		chosen.emit(cursor)
 
 ## Move o cursor das opções (com o texto completo); `dir` -1 sobe, 1 desce.
@@ -202,6 +210,7 @@ func move(dir: int) -> void:
 	if not is_open or options.is_empty() or is_revealing():
 		return
 	cursor = posmod(cursor + dir, options.size())
+	AudioHooks.event(self, SoundEvents.Event.MENU_MOVE)
 	_refresh()
 
 func _input(event: InputEvent) -> void:

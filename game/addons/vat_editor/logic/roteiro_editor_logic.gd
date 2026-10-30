@@ -20,6 +20,7 @@ const CATEGORIES: Array[Dictionary] = [
 	{"label": "Itens e dinheiro", "kinds": [Kind.DAR_ITEM, Kind.DAR_EQUIP, Kind.DAR_MOEDAS, Kind.TIRAR_ITEM]},
 	{"label": "Grupo", "kinds": [Kind.XP, Kind.ENSINAR, Kind.CURAR, Kind.RECRUTAR]},
 	{"label": "Ações", "kinds": [Kind.BATALHA, Kind.MOVER, Kind.CAMERA, Kind.ESPERAR, Kind.FIM_DEMO]},
+	{"label": "Áudio", "kinds": [Kind.MUSICA, Kind.SOM]},
 ]
 
 const TITLES: Dictionary = {
@@ -31,6 +32,7 @@ const TITLES: Dictionary = {
 	Kind.CURAR: "Curar", Kind.RECRUTAR: "Recrutar", Kind.BATALHA: "Batalha", Kind.MOVER: "Mover",
 	Kind.CAMERA: "Câmera", Kind.ESPERAR: "Esperar", Kind.FIM_DEMO: "Fim da demo", Kind.OUTRO: "Linha não entendida",
 	Kind.EM_BRANCO: "Linha em branco",
+	Kind.MUSICA: "Música", Kind.SOM: "Som",
 }
 
 static func title(kind: int) -> String:
@@ -44,7 +46,7 @@ static func _f(name: String, label: String, type: String, extra: Dictionary = {}
 	return d
 
 ## Os campos de um tipo de bloco, na ordem do cartão. `name` é a propriedade do `RoteiroBlock`; `type` diz o controle:
-## speaker, expr, line (uma linha), multiline, flag (lista com digitação), item, equip, hero, ability, encounter (lista
+## speaker, expr, line (uma linha), multiline, flag (lista com digitação), item, equip, hero, ability, encounter, music (com "parar a música") e sound (lista
 ## fechada), label (lista com digitação), newlabel (texto), op, int, float, pct, bool, options, text (texto livre) e raw.
 static func fields(kind: int) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
@@ -100,6 +102,11 @@ static func fields(kind: int) -> Array[Dictionary]:
 			out = [_f("ref", "Marcador", "text")]
 		Kind.ESPERAR:
 			out = [_f("seconds", "Segundos", "float", {"min": 0.0, "max": 9999.0, "step": 0.1})]
+		Kind.MUSICA:
+			out = [_f("ref", "Música", "music"),
+					_f("seconds", "Fade em segundos (-1 = padrão)", "float", {"min": -1.0, "max": 60.0, "step": 0.1})]
+		Kind.SOM:
+			out = [_f("ref", "Som", "sound")]
 		Kind.OUTRO:
 			out = [_f("text", "Linha original", "raw")]
 	return out

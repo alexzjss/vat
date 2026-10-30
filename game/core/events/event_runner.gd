@@ -165,6 +165,19 @@ func _exec(step: EventStep) -> void:
 		rc.kind = EventRequest.Kind.CAMERA_TO
 		rc.marker = (step as CameraToStep).marker
 		_present(rc)
+	elif step is PlayMusicStep:
+		var pm: PlayMusicStep = step
+		var rmu := EventRequest.new()
+		rmu.kind = EventRequest.Kind.PLAY_MUSIC
+		rmu.music_id = &"" if pm.stop else pm.music_id
+		rmu.fade = pm.fade
+		rmu.stop = pm.stop
+		_present(rmu)
+	elif step is PlaySoundStep:
+		var rso := EventRequest.new()
+		rso.kind = EventRequest.Kind.PLAY_SOUND
+		rso.sound_id = (step as PlaySoundStep).sound_id
+		_present(rso)
 	elif step is StartBattleStep:
 		var sb: StartBattleStep = step
 		if sb.encounter != null:

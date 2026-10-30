@@ -185,6 +185,10 @@ static func block_lines(b: RoteiroBlock) -> PackedStringArray:
 			out.append("@esperar %s" % fmt_float(b.seconds))
 		RoteiroBlock.Kind.FIM_DEMO:
 			out.append("@fim_demo")
+		RoteiroBlock.Kind.MUSICA:
+			out.append("@musica %s%s" % [b.ref, "" if b.seconds < 0.0 else " " + fmt_float(b.seconds)])
+		RoteiroBlock.Kind.SOM:
+			out.append("@som %s" % b.ref)
 		RoteiroBlock.Kind.OUTRO:
 			out.append(b.text)
 		RoteiroBlock.Kind.EM_BRANCO:
@@ -511,6 +515,13 @@ class _Parser extends RefCounted:
 					if secs != null:
 						b = RoteiroBlock.make(RoteiroBlock.Kind.ESPERAR)
 						b.seconds = secs
+			"musica": b = _cmd_music(args)
+			"som":
+				if args.size() != 1:
+					msg = "uso: @som id"
+				else:
+					b = RoteiroBlock.make(RoteiroBlock.Kind.SOM)
+					b.ref = StringName(args[0])
 			"fim_demo":
 				if args.is_empty():
 					b = RoteiroBlock.make(RoteiroBlock.Kind.FIM_DEMO)
@@ -617,6 +628,18 @@ class _Parser extends RefCounted:
 		var b: RoteiroBlock = RoteiroBlock.make(RoteiroBlock.Kind.RECRUTAR)
 		b.ref = StringName(args[0])
 		b.amount = lvl
+		return b
+
+	func _cmd_music(args: PackedStringArray) -> RoteiroBlock:
+		if args.is_empty() or args.size() > 2:
+			msg = "uso: @musica id [fade] | @musica parar [fade]"
+			return null
+		var fade: Variant = _real(args[1], 0.0) if args.size() == 2 else -1.0
+		if fade == null:
+			return null
+		var b: RoteiroBlock = RoteiroBlock.make(RoteiroBlock.Kind.MUSICA)
+		b.ref = StringName(args[0])
+		b.seconds = fade
 		return b
 
 	func _cmd_move(args: PackedStringArray) -> RoteiroBlock:

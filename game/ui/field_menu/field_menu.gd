@@ -119,6 +119,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not is_open:
 		return
 	if page != &"root" and _page_input.has(page) and bool(_page_input[page].call(event)):
+		AudioHooks.menu_input(self, event)
 		get_viewport().set_input_as_handled()
 		return
 	if event.is_action_pressed("ui_up"):
@@ -131,6 +132,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		cancel()
 	else:
 		return
+	AudioHooks.menu_input(self, event)
 	get_viewport().set_input_as_handled()
 
 func move(delta: int) -> void:

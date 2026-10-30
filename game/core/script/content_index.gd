@@ -2,7 +2,7 @@ class_name ContentIndex
 extends RefCounted
 
 ## Índice puro dos recursos de conteúdo por (tipo, id), para o compilador do roteiro (M16).
-## Tipos: `item`, `equip`, `hero`, `encounter`, `ability`. Ids repetidos: vale o primeiro; os demais vão para `duplicates`.
+## Tipos: `item`, `equip`, `hero`, `encounter`, `ability`, `music` e `sound` (M19; os de um SoundBank também entram). Ids repetidos: vale o primeiro; os demais vão para `duplicates`.
 ## Sem IO: quem varre as pastas entrega os recursos já carregados (ver RoteiroTools.scan_content).
 
 var _by_kind: Dictionary = {}
@@ -28,9 +28,22 @@ static func kind_of(res: Resource) -> StringName:
 		return &"encounter"
 	if res is AbilityDef:
 		return &"ability"
+	if res is MusicDef:
+		return &"music"
+	if res is SoundDef:
+		return &"sound"
 	return &""
 
 func _add(res: Resource) -> void:
+	var bank: SoundBank = res as SoundBank
+	if bank != null:
+		for m: MusicDef in bank.musics:
+			if m != null:
+				_add(m)
+		for s: SoundDef in bank.sounds:
+			if s != null:
+				_add(s)
+		return
 	var kind: StringName = kind_of(res)
 	if kind == &"":
 		return
@@ -39,6 +52,9 @@ func _add(res: Resource) -> void:
 		return
 	var bucket: Dictionary = _by_kind.get(kind, {})
 	if bucket.has(id):
+		# O mesmo recurso visto duas vezes (um som solto e também no banco) não é repetição.
+		if bucket[id] == res:
+			return
 		duplicates.append("%s '%s': %s repete %s" % [kind, id, res.resource_path, (bucket[id] as Resource).resource_path])
 	else:
 		bucket[id] = res

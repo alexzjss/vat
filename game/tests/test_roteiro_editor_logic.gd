@@ -123,6 +123,8 @@ func _sample(spec: Dictionary) -> Variant:
 		"hero": return "teste_a_f"
 		"ability": return "chama_f"
 		"encounter": return "enc_f1"
+		"music": return "cidade"
+		"sound": return "golpe"
 		"label", "newlabel": return "alvo"
 		"op": return ">="
 		"int": return 7
@@ -134,7 +136,7 @@ func _sample(spec: Dictionary) -> Variant:
 
 func test_every_editable_kind_has_known_field_types_and_real_properties() -> void:
 	var known: Array[String] = ["speaker", "expr", "line", "multiline", "flag", "item", "equip", "hero", "ability",
-			"encounter", "label", "newlabel", "op", "int", "float", "pct", "bool", "options", "text", "raw"]
+			"encounter", "label", "newlabel", "op", "int", "float", "pct", "bool", "options", "text", "raw", "music", "sound"]
 	for k: int in RoteiroBlock.Kind.values():
 		var b: RoteiroBlock = RoteiroBlock.make(k)
 		for f: Dictionary in Logic.fields(k):

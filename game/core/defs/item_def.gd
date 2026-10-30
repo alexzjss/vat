@@ -10,3 +10,5 @@ extends Resource
 @export var key_item: bool = false
 ## Economia (M12): preço de compra; vender rende floor(price x sell_ratio). 0 = não vendável.
 @export var price: int = 0
+## Som ao usar o item (M19): id no SoundBank; vazio = mudo.
+@export var sfx_use: StringName = &""

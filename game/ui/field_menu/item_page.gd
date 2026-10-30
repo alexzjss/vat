@@ -57,6 +57,7 @@ func _use_on_picked() -> void:
 		return
 	var item: ItemDef = targeting_item
 	if FieldActions.use_item(state, item, h):
+		AudioHooks.event(self, SoundEvents.Event.ITEM_USE, {"item": item})
 		_say("%s usado em %s." % [item.display_name, _hero_name(h)])
 	else:
 		_say("Ninguém precisa disso.")

@@ -21,6 +21,7 @@ func test_command_opens_config_page() -> void:
 	assert_eq(page.entries(), PackedStringArray([
 		"ATB: Espera", "Velocidade da batalha: 3", "Memória do cursor: Ligada",
 		"Velocidade do texto: 2", "Volume: 10", "Volume da música: 10", "Volume dos efeitos: 10",
+		"Som do texto: Ligado",
 	]))
 
 func test_left_right_change_values() -> void:

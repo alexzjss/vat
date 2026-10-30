@@ -7,3 +7,5 @@ extends Resource
 @export var can_flee: bool = true
 ## Chefes: id gravado em GameState.defeated ao vencer; o mapa não os instancia de novo (vazio = comum).
 @export var unique_id: StringName = &""
+## Musica de batalha (M19): id no SoundBank. Vazio = a musica de batalha padrao (BalanceConfig).
+@export var music: StringName = &""

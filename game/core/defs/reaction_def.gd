@@ -28,3 +28,5 @@ extends Resource
 @export var heal_allies_pct: float = 0.0
 ## Estados removidos do alvo (ex.: quebrar Barreira).
 @export var remove_target_statuses: Array[StatusDef] = []
+## Som ao disparar a reacao (M19): id no SoundBank; vazio = mudo.
+@export var sfx: StringName = &""

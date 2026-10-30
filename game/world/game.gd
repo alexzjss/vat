@@ -75,6 +75,8 @@ var state: GameState
 var settings: GameSettings
 ## O diretor de áudio (M19), filho do Game: um por jogo, sem estado global entre testes. Só ele toca som.
 var audio: AudioDirector
+## Retrato do estado de música para o AudioRules (mapa, batalha, evento); `current` é preenchido na hora por `audio_snapshot`.
+var _audio_state: Dictionary = AudioRules.make_snapshot()
 var registry: DefRegistry
 var store: SaveStore
 var current: Node2D
@@ -307,6 +309,7 @@ func continue_from_slot(slot: int) -> bool:
 	return true
 
 func _show_title() -> void:
+	_audio_to_title()
 	in_title = true
 	title = TitleScreen.new()
 	title.setup(store)
@@ -361,6 +364,74 @@ func apply_settings() -> void:
 	var fx: float = AudioBuses.level_to_db(settings.effects_volume, vmax)
 	_set_bus_db(AudioBuses.EFFECTS, fx)
 	_set_bus_db(AudioBuses.INTERFACE, fx)
+
+# --- Áudio (M19): as decisões vêm do AudioRules (puro); aqui só se guarda o retrato do estado e se manda executar ---
+
+## Toca o efeito `id` do banco de sons (vazio, desconhecido ou sem diretor = nada).
+func play_sound(id: StringName) -> void:
+	if id == &"" or audio == null or sound_bank == null:
+		return
+	audio.play_sfx(sound_bank.find_sound(id))
+
+## O retrato atual para o AudioRules, com a faixa que o diretor realmente toca.
+func audio_snapshot() -> Dictionary:
+	_audio_state["current"] = audio.current_music_id if audio != null else &""
+	return _audio_state
+
+func _audio_run(commands: Array[Dictionary]) -> void:
+	if audio != null:
+		audio.run(commands, sound_bank)
+
+## Entrou num mapa (ou voltou ao título com `map_id` vazio): a música do `MapDef` toca, sem reiniciar a mesma; o que um
+## evento tinha trocado é esquecido.
+func audio_enter_map(map_id: StringName) -> void:
+	var def: MapDef = map_registry.find(map_id) if map_registry != null else null
+	_audio_state["map_music"] = def.music if def != null else &""
+	_audio_state["event_music"] = &""
+	_audio_state["in_battle"] = false
+	_audio_state["outcome"] = AudioRules.Outcome.NONE
+	_audio_run(AudioRules.on_enter_map(audio_snapshot()))
+
+## Começou uma batalha: a música do encontro (vazio = a padrão do BalanceConfig; chefe = a de chefe, se houver).
+func audio_battle_start(music: StringName, boss: bool) -> void:
+	_audio_state["in_battle"] = true
+	_audio_state["battle_music"] = music
+	_audio_state["boss"] = boss
+	_audio_state["outcome"] = AudioRules.Outcome.NONE
+	_audio_run(AudioRules.on_battle_start(audio_snapshot(), SoundEvents.audio_defaults(balance)))
+
+## A batalha acabou: jingle e volta à música do campo (vitória), jingle (derrota) ou volta direto (fuga).
+func audio_battle_end(outcome: BattleController.Outcome) -> void:
+	var mapped: AudioRules.Outcome = AudioRules.Outcome.NONE
+	match outcome:
+		BattleController.Outcome.VICTORY:
+			mapped = AudioRules.Outcome.VICTORY
+		BattleController.Outcome.DEFEAT:
+			mapped = AudioRules.Outcome.DEFEAT
+		BattleController.Outcome.FLED:
+			mapped = AudioRules.Outcome.FLED
+	_audio_state["outcome"] = mapped
+	var commands: Array[Dictionary] = AudioRules.on_battle_end(audio_snapshot(), SoundEvents.audio_defaults(balance))
+	_audio_state["in_battle"] = false
+	_audio_state["battle_music"] = &""
+	_audio_state["boss"] = false
+	_audio_state["outcome"] = AudioRules.Outcome.NONE
+	_audio_run(commands)
+
+## `@musica`: troca (ou, com `stop`, cala) a música do campo até o evento mudar de novo ou o mapa trocar.
+func audio_event_music(id: StringName, fade: float, stop: bool) -> void:
+	_audio_state["event_music"] = AudioRules.EVENT_STOP if stop else id
+	var commands: Array[Dictionary] = AudioRules.on_event_music(audio_snapshot())
+	for c: Dictionary in commands:
+		if int(c["op"]) != AudioRules.Op.NOOP:
+			c["fade"] = maxf(0.0, fade)
+	_audio_run(commands)
+
+## Título: a música para com fade e o retrato do estado volta ao começo.
+func _audio_to_title() -> void:
+	_audio_state = AudioRules.make_snapshot()
+	if audio != null:
+		audio.stop_music(AudioRules.MAP_FADE)
 
 func _set_bus_db(bus: StringName, db: float) -> void:
 	var idx: int = AudioServer.get_bus_index(bus)
@@ -437,6 +508,7 @@ func go_to(map: StringName, spawn: StringName, with_fade: bool = true) -> void:
 	move_child(current, 0)
 	_connect_and_setup(current, spawn)
 	_refresh_leader()
+	audio_enter_map(map)
 	if with_fade:
 		await fade.fade_in(state.cfg.fade_time)
 	current.process_mode = Node.PROCESS_MODE_INHERIT

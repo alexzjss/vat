@@ -15,6 +15,9 @@ var map_sprite: MapSprite
 ## Os pés do sprite ficam na borda de baixo do quadrado geométrico (y = +16); a colisão (28x28) não muda.
 const FEET_Y: float = 16.0
 
+## Distância andada desde o último passo sonoro (M19).
+var _step_acc: float = 0.0
+
 static func velocity_for(dir: Vector2, speed: float) -> Vector2:
 	if dir == Vector2.ZERO:
 		return Vector2.ZERO
@@ -35,14 +38,24 @@ func input_dir() -> Vector2:
 		return override_dir
 	return Input.get_vector("move_left", "move_right", "move_up", "move_down")
 
-func _physics_process(_delta: float) -> void:
+func _physics_process(delta: float) -> void:
 	if enabled and cfg != null:
 		velocity = velocity_for(input_dir(), Player.speed_for(cfg, is_running()))
 		move_and_slide()
+		_step_sound(delta)
 	else:
 		velocity = Vector2.ZERO
 	if map_sprite != null:
 		map_sprite.apply_motion(get_real_velocity())
+
+## Passos (M19): um som a cada `BalanceConfig.step_distance` pixels realmente andados.
+func _step_sound(delta: float) -> void:
+	if cfg.step_distance <= 0.0:
+		return
+	_step_acc += get_real_velocity().length() * delta
+	if _step_acc >= cfg.step_distance:
+		_step_acc = fmod(_step_acc, cfg.step_distance)
+		AudioHooks.event(self, SoundEvents.Event.STEP)
 
 ## O marcador representa o líder: inicial da última palavra do nome ("Teste D" → "D").
 func set_leader(h: HeroState) -> void:
