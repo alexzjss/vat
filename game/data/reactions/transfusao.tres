@@ -11,3 +11,4 @@ display_name = "Transfusão"
 a = ExtResource("2_2")
 b = ExtResource("3_3")
 heal_attacker_pct = 0.5
+sfx = &"sfx_reacao"

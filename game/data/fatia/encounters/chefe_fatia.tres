@@ -11,3 +11,4 @@ id = &"chefe_fatia"
 enemies = Array[ExtResource("2_enemydef")]([ExtResource("3_bracofat"), ExtResource("3_bracofat"), ExtResource("4_guardiao")])
 can_flee = false
 unique_id = &"chefe_fatia"
+music = &"musica_chefe"

@@ -248,9 +248,19 @@ func _grant_xp(step: GrantXpStep) -> void:
 	for h: HeroState in xp_targets(step):
 		var gained: int = XpCalculator.grant(h, step.amount, state.cfg)
 		if gained > 0:
+			_level_up_sound()
 			_system("%s subiu para o Nv %d!" % [h.def.display_name, h.level])
 		for a: AbilityDef in h.last_learned:
 			_system("%s aprendeu %s!" % [h.def.display_name, a.display_name])
+
+## O som de subida de nivel (BalanceConfig.sfx_level_up; vazio = nada, nem pedido). Um pedido PLAY_SOUND antes da mensagem.
+func _level_up_sound() -> void:
+	if state.cfg.sfx_level_up == &"":
+		return
+	var r := EventRequest.new()
+	r.kind = EventRequest.Kind.PLAY_SOUND
+	r.sound_id = state.cfg.sfx_level_up
+	_present(r)
 
 func _heal(pct: float) -> void:
 	for h: HeroState in state.heroes:

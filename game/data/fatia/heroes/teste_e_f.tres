@@ -73,3 +73,5 @@ learnset = Array[ExtResource("le_script")]([SubResource("le_elem"), SubResource(
 weapon_types = Array[StringName]([&"bow"])
 elements = Array[ExtResource("el_script")]([ExtResource("el_native")])
 starting_equipment = Array[ExtResource("eq_script")]([ExtResource("w_r"), ExtResource("ar_r")])
+sfx_hit = &"sfx_acerto"
+sfx_down = &"sfx_queda"

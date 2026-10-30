@@ -11,3 +11,4 @@ potency = 6
 apply_contribution = 10
 cancels = Array[StringName]([&"wet"])
 negative = true
+sfx_apply = &"sfx_estado"

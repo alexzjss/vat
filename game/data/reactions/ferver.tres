@@ -16,3 +16,4 @@ keep = ExtResource("3_3")
 bonus_pct = 0.2
 target_statuses = Array[ExtResource("4_4")]([ExtResource("5_5")])
 status_chance = 1.0
+sfx = &"sfx_reacao"

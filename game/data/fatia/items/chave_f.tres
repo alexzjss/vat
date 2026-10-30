@@ -9,3 +9,4 @@ display_name = "Chave de Teste (fatia)"
 shape = 0
 side = 1
 key_item = true
+sfx_use = &"sfx_item"

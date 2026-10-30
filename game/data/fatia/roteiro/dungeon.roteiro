@@ -18,10 +18,12 @@ Teste E: Texto de teste: já estou no grupo.
 
 === chefe_entrada
 @camera BossSpot
+@som sfx_conjurar
 : Texto de teste: o Guardião (fatia) bloqueia a sala.
 @esperar 0.6
 
 === cena_final
+@musica parar 1
 : Texto de teste: o Guardião (fatia) foi derrotado.
 @esperar 0.5
 @fim_demo

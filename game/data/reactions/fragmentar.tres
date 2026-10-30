@@ -14,3 +14,4 @@ a = ExtResource("2_2")
 b = ExtResource("3_3")
 bonus_pct = 0.6
 remove_target_statuses = Array[ExtResource("4_4")]([ExtResource("5_5")])
+sfx = &"sfx_reacao"

@@ -13,3 +13,4 @@ b = ExtResource("3_3")
 keep = ExtResource("3_3")
 area_radius = 300.0
 area_pct = 0.4
+sfx = &"sfx_reacao"

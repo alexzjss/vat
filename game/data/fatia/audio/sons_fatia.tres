@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="SoundBank" format=3]
+
+[ext_resource type="Script" path="res://core/defs/sound_bank.gd" id="1_bank"]
+[ext_resource type="Script" path="res://core/defs/sound_def.gd" id="2_sd"]
+[ext_resource type="Script" path="res://core/defs/music_def.gd" id="3_md"]
+[ext_resource type="Resource" path="res://data/fatia/audio/musicas/musica_cidade.tres" id="m0"]
+[ext_resource type="Resource" path="res://data/fatia/audio/musicas/musica_estrada.tres" id="m1"]
+[ext_resource type="Resource" path="res://data/fatia/audio/musicas/musica_masmorra.tres" id="m2"]
+[ext_resource type="Resource" path="res://data/fatia/audio/musicas/musica_batalha.tres" id="m3"]
+[ext_resource type="Resource" path="res://data/fatia/audio/musicas/musica_chefe.tres" id="m4"]
+[ext_resource type="Resource" path="res://data/fatia/audio/musicas/jingle_vitoria.tres" id="m5"]
+[ext_resource type="Resource" path="res://data/fatia/audio/musicas/jingle_derrota.tres" id="m6"]
+[ext_resource type="Resource" path="res://data/fatia/audio/sons/sfx_menu_mover.tres" id="s0"]
+[ext_resource type="Resource" path="res://data/fatia/audio/sons/sfx_menu_confirmar.tres" id="s1"]
+[ext_resource type="Resource" path="res://data/fatia/audio/sons/sfx_menu_cancelar.tres" id="s2"]
+[ext_resource type="Resource" path="res://data/fatia/audio/sons/sfx_texto.tres" id="s3"]
+[ext_resource type="Resource" path="res://data/fatia/audio/sons/sfx_bau.tres" id="s4"]
+[ext_resource type="Resource" path="res://data/fatia/audio/sons/sfx_porta.tres" id="s5"]
+[ext_resource type="Resource" path="res://data/fatia/audio/sons/sfx_passo.tres" id="s6"]
+[ext_resource type="Resource" path="res://data/fatia/audio/sons/sfx_nivel.tres" id="s7"]
+[ext_resource type="Resource" path="res://data/fatia/audio/sons/sfx_conjurar.tres" id="s8"]
+[ext_resource type="Resource" path="res://data/fatia/audio/sons/sfx_golpe.tres" id="s9"]
+[ext_resource type="Resource" path="res://data/fatia/audio/sons/sfx_acerto.tres" id="s10"]
+[ext_resource type="Resource" path="res://data/fatia/audio/sons/sfx_queda.tres" id="s11"]
+[ext_resource type="Resource" path="res://data/fatia/audio/sons/sfx_reacao.tres" id="s12"]
+[ext_resource type="Resource" path="res://data/fatia/audio/sons/sfx_estado.tres" id="s13"]
+[ext_resource type="Resource" path="res://data/fatia/audio/sons/sfx_item.tres" id="s14"]
+
+[resource]
+script = ExtResource("1_bank")
+sounds = Array[ExtResource("2_sd")]([ExtResource("s0"), ExtResource("s1"), ExtResource("s2"), ExtResource("s3"), ExtResource("s4"), ExtResource("s5"), ExtResource("s6"), ExtResource("s7"), ExtResource("s8"), ExtResource("s9"), ExtResource("s10"), ExtResource("s11"), ExtResource("s12"), ExtResource("s13"), ExtResource("s14")])
+musics = Array[ExtResource("3_md")]([ExtResource("m0"), ExtResource("m1"), ExtResource("m2"), ExtResource("m3"), ExtResource("m4"), ExtResource("m5"), ExtResource("m6")])

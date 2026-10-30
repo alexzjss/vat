@@ -41,3 +41,5 @@ element_resist = Dictionary[StringName, float]({
 &"fuhaku": -0.5,
 &"amaterasu": 0.5
 })
+sfx_hit = &"sfx_acerto"
+sfx_down = &"sfx_queda"

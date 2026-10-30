@@ -8,3 +8,4 @@ script = ExtResource("1_def")
 id = &"cidade"
 display_name = "cidade"
 scene = ExtResource("2_scene")
+music = &"musica_cidade"

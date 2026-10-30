@@ -15,3 +15,4 @@ a = ExtResource("2_2")
 b = ExtResource("3_3")
 target_statuses = Array[ExtResource("4_4")]([ExtResource("5_5")])
 status_chance = 0.3
+sfx = &"sfx_reacao"

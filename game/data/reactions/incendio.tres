@@ -14,3 +14,4 @@ keep = ExtResource("2_2")
 bonus_pct = 0.2
 area_radius = 120.0
 area_pct = 0.4
+sfx = &"sfx_reacao"

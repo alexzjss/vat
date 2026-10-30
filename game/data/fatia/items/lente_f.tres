@@ -19,3 +19,4 @@ shape = 0
 side = 0
 effects = Array[ExtResource("1_r")]([SubResource("effect_def_1")])
 price = 20
+sfx_use = &"sfx_item"

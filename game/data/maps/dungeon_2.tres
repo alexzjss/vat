@@ -9,3 +9,4 @@ id = &"dungeon_2"
 display_name = "dungeon_2"
 scene = ExtResource("2_scene")
 kind = 2
+music = &"musica_masmorra"

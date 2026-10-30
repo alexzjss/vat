@@ -25,3 +25,5 @@ cast_time = 1.0
 impact_time = 0.6
 element = ExtResource("3_r")
 effects = Array[ExtResource("1_r")]([SubResource("effect_def_1")])
+sfx_cast = &"sfx_conjurar"
+sfx_impact = &"sfx_golpe"

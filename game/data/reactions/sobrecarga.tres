@@ -14,3 +14,4 @@ bonus_pct = 0.3
 area_radius = 200.0
 area_pct = 0.5
 target_atb = -0.25
+sfx = &"sfx_reacao"

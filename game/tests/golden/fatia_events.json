@@ -100,12 +100,14 @@
 	},
 	"steps": {
 		"cena_final": [
+			"PlayMusicStep(fade=1.0, music_id=&\"\", stop=true)",
 			"SayStep(portrait=&\"\", speaker=\"\", text=\"Texto de teste: o Guardião (fatia) foi derrotado.\")",
 			"WaitStep(seconds=0.5)",
 			"EndDemoStep()"
 		],
 		"chefe_entrada": [
 			"CameraToStep(marker=NodePath(\"BossSpot\"))",
+			"PlaySoundStep(sound_id=&\"sfx_conjurar\")",
 			"SayStep(portrait=&\"\", speaker=\"\", text=\"Texto de teste: o Guardião (fatia) bloqueia a sala.\")",
 			"WaitStep(seconds=0.6)"
 		],
@@ -157,6 +159,7 @@
 	"traces": {
 		"cena_final": {
 			"padrao": [
+				"OTHER|7",
 				"SAY||Texto de teste: o Guardião (fatia) foi derrotado.",
 				"WAIT|0.5",
 				"END_DEMO",
@@ -167,6 +170,7 @@
 		"chefe_entrada": {
 			"padrao": [
 				"CAMERA|BossSpot",
+				"OTHER|8",
 				"SAY||Texto de teste: o Guardião (fatia) bloqueia a sala.",
 				"WAIT|0.6",
 				"FINISHED|true|ABORTED|false",

@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="SoundDef" format=3]
+
+[ext_resource type="Script" path="res://core/defs/sound_def.gd" id="1_def"]
+[ext_resource type="AudioStream" path="res://art/_exemplo/audio/sfx_item.wav" id="2_wav"]
+
+[resource]
+script = ExtResource("1_def")
+id = &"sfx_item"
+display_name = "Usar item"
+stream = ExtResource("2_wav")
+volume_db = -6
+pitch_variation = 0
+bus = 0
+cooldown = 0

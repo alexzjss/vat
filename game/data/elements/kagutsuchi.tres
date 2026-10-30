@@ -9,3 +9,4 @@ display_name = "Kagutsuchi"
 short_name = "Fogo"
 icon_text = "F"
 color = Color(0.910, 0.341, 0.165, 1)
+sfx_hit = &"sfx_golpe"

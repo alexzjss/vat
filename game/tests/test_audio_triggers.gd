@@ -392,3 +392,19 @@ func test_a_stub_bank_with_no_ids_set_stays_silent_too() -> void:
 	_accept_screens(s)
 	assert_eq(game.audio.sfx_played, 0, "sem ids nos defs o banco cheio nao toca nada")
 	assert_eq(game.audio.music_changes, 0)
+
+func test_rest_and_shop_menu_keys_play_move_confirm_and_cancel() -> void:
+	_start({&"overworld": &"", &"area_teste": &""}, func(c: BalanceConfig) -> void:
+		c.sfx_menu_move = &"move"
+		c.sfx_menu_confirm = &"ok"
+		c.sfx_menu_cancel = &"volta")
+	game.rest_menu.open(game, 0)
+	game.rest_menu._unhandled_input(_action(&"ui_down"))
+	assert_eq(game.audio.last_sfx_id, &"move", "descanso: mover")
+	game.rest_menu._unhandled_input(_action(&"ui_cancel"))
+	assert_eq(game.audio.last_sfx_id, &"volta", "descanso: voltar")
+	game.shop_menu.open(game, load("res://data/fatia/shops/loja_cidade.tres") as ShopDef)
+	game.shop_menu._unhandled_input(_action(&"ui_down"))
+	assert_eq(game.audio.last_sfx_id, &"move", "loja: mover")
+	game.shop_menu._unhandled_input(_action(&"ui_cancel"))
+	assert_eq(game.audio.last_sfx_id, &"volta", "loja: voltar")

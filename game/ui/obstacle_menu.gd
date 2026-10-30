@@ -133,6 +133,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		cancel()
 	else:
 		return
+	AudioHooks.menu_input(self, event)
 	get_viewport().set_input_as_handled()
 
 func _render() -> void:

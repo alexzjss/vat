@@ -11,3 +11,4 @@ display_name = "Arco-íris"
 a = ExtResource("2_2")
 b = ExtResource("3_3")
 heal_allies_pct = 0.2
+sfx = &"sfx_reacao"

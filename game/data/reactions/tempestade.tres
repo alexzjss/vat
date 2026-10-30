@@ -13,3 +13,4 @@ b = ExtResource("3_3")
 area_radius = 300.0
 area_pct = 0.3
 target_atb = -0.15
+sfx = &"sfx_reacao"

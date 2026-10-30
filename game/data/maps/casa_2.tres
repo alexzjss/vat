@@ -9,3 +9,4 @@ id = &"casa_2"
 display_name = "casa_2"
 scene = ExtResource("2_scene")
 kind = 1
+music = &"musica_cidade"

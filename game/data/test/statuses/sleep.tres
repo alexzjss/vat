@@ -10,3 +10,4 @@ duration = 2
 potency = 0
 apply_contribution = 10
 negative = true
+sfx_apply = &"sfx_estado"

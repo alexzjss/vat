@@ -15,3 +15,4 @@ b = ExtResource("3_3")
 bonus_pct = 0.3
 target_statuses = Array[ExtResource("4_4")]([ExtResource("5_5")])
 status_chance = 0.6
+sfx = &"sfx_reacao"

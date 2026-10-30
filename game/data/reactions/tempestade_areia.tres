@@ -17,3 +17,4 @@ status_chance = 0.6
 area_radius = 200.0
 area_pct = 0.1
 area_statuses = Array[ExtResource("4_4")]([ExtResource("5_5")])
+sfx = &"sfx_reacao"

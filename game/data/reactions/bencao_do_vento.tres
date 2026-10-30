@@ -14,3 +14,4 @@ a = ExtResource("2_2")
 b = ExtResource("3_3")
 attacker_atb = 0.3
 attacker_statuses = Array[ExtResource("4_4")]([ExtResource("5_5")])
+sfx = &"sfx_reacao"

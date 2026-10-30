@@ -11,3 +11,4 @@ display_name = "Supernova"
 a = ExtResource("2_2")
 b = ExtResource("3_3")
 bonus_pct = 0.8
+sfx = &"sfx_reacao"
