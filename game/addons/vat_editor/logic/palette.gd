@@ -138,6 +138,16 @@ static func needs_marker(id: StringName, marker_names: Array[String], spawn_name
 	var base: String = marker_base_name(id, spawn_name)
 	return base != "" and not marker_names.has(base)
 
+## A frase da barra de estado sobre o marcador: "" se o prefab não usa marcador; `created` é o nome do marcador novo
+## ("" se o mapa já tinha um com o nome exato, e então ele é reaproveitado).
+static func marker_note(id: StringName, spawn_name: StringName, created: String) -> String:
+	var base: String = marker_base_name(id, spawn_name)
+	if base == "":
+		return ""
+	if created != "":
+		return "Marcador %s criado." % created
+	return "Usando o marcador %s que já existe." % base
+
 ## O nome do marcador novo: o do prefab, ou `<nome>2`, `<nome>3`... se algum outro nó (`all_names`) já usa o nome.
 static func marker_name(id: StringName, all_names: Array[String], spawn_name: StringName = &"") -> String:
 	var base: String = marker_base_name(id, spawn_name)

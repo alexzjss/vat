@@ -170,7 +170,9 @@ func add_prefab(id: StringName) -> Node:
 	sel.clear()
 	sel.add_node(node)
 	EditorInterface.edit_node(node)
-	_say("%s adicionado%s." % [node.name, " com o marcador %s" % marker.name if marker != null else ""])
+	var note: String = Palette.marker_note(id, node.get(&"spawn_name") if &"spawn_name" in node else &"",
+			String(marker.name) if marker != null else "")
+	_say("%s adicionado.%s" % [node.name, " " + note if note != "" else ""])
 	return node
 
 ## O `Marker2D` que a pousada ou o ponto de descanso novo pede (64 px abaixo, na grade), ou null se o prefab não pede ou

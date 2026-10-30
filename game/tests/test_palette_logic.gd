@@ -285,3 +285,9 @@ func test_collect_marker_names_only_lists_marker2d() -> void:
 	assert_false(Palette.needs_marker(&"pousada", names))
 	assert_true(Palette.needs_marker(&"ponto_descanso", names), "um nó comum com o nome não é marcador")
 	assert_eq(Palette.marker_name(&"ponto_descanso", Palette.collect_names(root)), "RestSpawn2")
+
+func test_marker_note_says_whether_the_marker_was_created_or_reused() -> void:
+	assert_eq(Palette.marker_note(&"pousada", &"InnSpawn", "InnSpawn"), "Marcador InnSpawn criado.")
+	assert_eq(Palette.marker_note(&"pousada", &"InnSpawn", ""), "Usando o marcador InnSpawn que já existe.")
+	assert_eq(Palette.marker_note(&"ponto_descanso", &"", ""), "Usando o marcador RestSpawn que já existe.")
+	assert_eq(Palette.marker_note(&"bau", &"", ""), "", "prefab sem marcador: sem frase")

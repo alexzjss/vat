@@ -54,7 +54,7 @@ static func _paint(layer: TileMapLayer, cells: Dictionary, terrain: int = Wizard
 
 ## O TileSet tem o terrain set do assistente e o terreno `terrain`?
 static func uses_terrain(tile_set: TileSet, terrain: int) -> bool:
-	return tile_set != null and tile_set.get_terrain_sets_count() > Wizard.TERRAIN_SET 			and terrain >= 0 and terrain < tile_set.get_terrains_count(Wizard.TERRAIN_SET)
+	return tile_set != null and tile_set.get_terrain_sets_count() > Wizard.TERRAIN_SET and terrain >= 0 and terrain < tile_set.get_terrains_count(Wizard.TERRAIN_SET)
 
 ## Registra o mapa em memória: um `MapDef` novo no fim de `registry.maps`.
 static func register(registry: MapRegistry, plan: Dictionary, scene: PackedScene) -> MapDef:

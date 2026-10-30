@@ -103,7 +103,7 @@ func _header() -> Control:
 	# A alça do arrastar: o título (um Label ignora o mouse por padrão).
 	title.mouse_filter = Control.MOUSE_FILTER_STOP
 	title.mouse_default_cursor_shape = Control.CURSOR_DRAG
-	title.tooltip_text = "Arraste para mudar o bloco de lugar"
+	title.tooltip_text = "Arraste para reordenar (cuidado com rótulos, desvios e escolhas: mover muda o que roda)"
 	title.set_drag_forwarding(_get_drag, _can_drop_from.bind(title), _drop_from.bind(title))
 	title.gui_input.connect(_on_gui_input)
 	title.add_theme_color_override("font_color", COLOR_RAW if block.kind == RoteiroBlock.Kind.OUTRO else COLOR_TITLE)
@@ -129,8 +129,7 @@ func _get_drag(_at: Vector2) -> Variant:
 ## Um resumo curto do bloco para a prévia do arrastar: o primeiro campo de texto que tiver.
 func _summary() -> String:
 	for key: String in ["text", "target", "ref"]:
-		var v: String = str(block.get(key)).replace("
-", " ").strip_edges()
+		var v: String = str(block.get(key)).replace("\n", " ").strip_edges()
 		if v != "":
 			return v.left(32) + ("..." if v.length() > 32 else "")
 	return "sem texto"
