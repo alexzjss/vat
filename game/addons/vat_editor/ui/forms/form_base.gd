@@ -7,6 +7,9 @@ extends VBoxContainer
 ## volta ao que está no disco. Um indicador "não salvo" mostra o estado, e o painel pergunta antes de trocar de item.
 ## Embaixo do cabeçalho fica a validação ao vivo do recurso aberto (os checks puros do M16).
 ##
+## Os campos ficam em seções recolhíveis (▶/▼ no título) quando o tipo tem 2 ou mais; o estado de cada uma é lembrado por
+## tipo e título em `vat_editor.cfg` (`FormPrefs`). Uma seção recolhida com erro de validação mostra um ponto vermelho no título.
+##
 ## As subclasses só dizem o `kind` (a categoria do Banco) e, se precisam, acrescentam algo em `_build_extra`.
 
 const Forms: GDScript = preload("res://addons/vat_editor/logic/forms.gd")
@@ -16,6 +19,7 @@ const StatusDictEditor: GDScript = preload("res://addons/vat_editor/ui/widgets/s
 const ListEditor: GDScript = preload("res://addons/vat_editor/ui/widgets/list_editor.gd")
 const StatsEditor: GDScript = preload("res://addons/vat_editor/ui/widgets/stats_editor.gd")
 const SpritePreview: GDScript = preload("res://addons/vat_editor/ui/widgets/sprite_preview.gd")
+const FormPrefs: GDScript = preload("res://addons/vat_editor/logic/form_prefs.gd")
 
 const COLOR_ERROR: Color = Color(1.0, 0.45, 0.4)
 const COLOR_WARNING: Color = Color(1.0, 0.85, 0.4)
@@ -48,6 +52,13 @@ var _issues: VBoxContainer
 var _body: VBoxContainer
 var _scroll: ScrollContainer
 var _choice_cache: Dictionary = {}
+## O arquivo das preferências das seções (vazio = o padrão de `FormPrefs.default_path()`; os testes põem um em user://).
+var prefs_path: String = ""
+## Por título de seção: o corpo, o botão do título, o ponto de erro e a pior gravidade dos achados (0 nenhum, 1 aviso, 2 erro).
+var _section_bodies: Dictionary = {}
+var _section_buttons: Dictionary = {}
+var _section_dots: Dictionary = {}
+var _section_level: Dictionary = {}
 
 func _init() -> void:
 	size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -160,9 +171,16 @@ func refresh_issues() -> void:
 	for c: Node in _issues.get_children():
 		_issues.remove_child(c)
 		c.queue_free()
+	_section_level.clear()
 	if res == null:
+		_refresh_dots()
 		return
 	var issues: Array[ValidationIssue] = _find_issues()
+	for i: ValidationIssue in issues:
+		var title: String = Forms.section_of(kind, Forms.issue_prop(kind, i.message))
+		if title != "":
+			_section_level[title] = maxi(int(_section_level.get(title, 0)), 2 if i.is_error() else 1)
+	_refresh_dots()
 	if issues.is_empty():
 		_issues.add_child(_note("Validação: sem problemas.", COLOR_OK))
 		return
@@ -182,16 +200,24 @@ func rebuild() -> void:
 	for c: Node in _body.get_children():
 		_body.remove_child(c)
 		c.queue_free()
+	_section_bodies.clear()
+	_section_buttons.clear()
+	_section_dots.clear()
 	_title.text = "%s: %s" % [kind_label, _res_name()] if res != null else kind_label
 	_path_label.text = res.resource_path if res != null else ""
 	if res != null:
 		var group: String = ""
+		var grouped: bool = Forms.sections(kind).size() >= 2
+		var target: VBoxContainer = _body
 		for d: Dictionary in Forms.fields(kind):
 			if d.has("group") and d["group"] != group:
 				group = d["group"]
-				_body.add_child(_section(group))
-			_add_field(_body, res, d)
-			_after_field(_body, d)
+				if grouped:
+					target = _begin_section(group)
+				else:
+					_body.add_child(_section(group))
+			_add_field(target, res, d)
+			_after_field(target, d)
 		_build_extra(_body)
 	refresh_issues()
 
@@ -223,6 +249,71 @@ func _section(text: String) -> Control:
 	box.add_child(l)
 	box.add_child(HSeparator.new())
 	return box
+
+# --- seções recolhíveis ----------------------------------------------------------------------------------------
+
+func _prefs_file() -> String:
+	return prefs_path if prefs_path != "" else FormPrefs.default_path()
+
+## Abre uma seção no corpo: o título (botão ▶/▼ e o ponto de erro) e, embaixo, a caixa onde vão os campos dela.
+func _begin_section(title: String) -> VBoxContainer:
+	var box := VBoxContainer.new()
+	var gap := Control.new()
+	gap.custom_minimum_size.y = 6
+	box.add_child(gap)
+	var head := HBoxContainer.new()
+	var button := Button.new()
+	button.flat = true
+	button.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	button.add_theme_font_size_override("font_size", 15)
+	button.add_theme_color_override("font_color", Color(0.75, 0.85, 1.0))
+	button.add_theme_color_override("font_hover_color", Color(0.9, 0.95, 1.0))
+	head.add_child(button)
+	var dot := Label.new()
+	dot.text = "●"
+	dot.visible = false
+	head.add_child(dot)
+	box.add_child(head)
+	box.add_child(HSeparator.new())
+	var content := VBoxContainer.new()
+	content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	box.add_child(content)
+	_body.add_child(box)
+	_section_bodies[title] = content
+	_section_buttons[title] = button
+	_section_dots[title] = dot
+	_apply_section(title, FormPrefs.is_open(_prefs_file(), kind, title))
+	button.pressed.connect(func() -> void: set_section_open(title, not section_open(title)))
+	return content
+
+func _apply_section(title: String, open: bool) -> void:
+	(_section_bodies[title] as Control).visible = open
+	(_section_buttons[title] as Button).text = ("▼ " if open else "▶ ") + title
+	_refresh_dots()
+
+## A seção `title` está aberta? (uma seção que o tipo não tem conta como aberta)
+func section_open(title: String) -> bool:
+	return not _section_bodies.has(title) or (_section_bodies[title] as Control).visible
+
+## Abre ou recolhe a seção e lembra a escolha (por tipo e título). Os campos de uma seção recolhida seguem existindo.
+func set_section_open(title: String, open: bool) -> void:
+	if not _section_bodies.has(title):
+		return
+	_apply_section(title, open)
+	FormPrefs.set_open(_prefs_file(), kind, title, open)
+
+## O ponto de erro do título da seção (null se o formulário não tem seções).
+func section_dot(title: String) -> Label:
+	return _section_dots.get(title) as Label
+
+## O ponto aparece só com a seção recolhida e achados nela: vermelho com erro, amarelo só com avisos.
+func _refresh_dots() -> void:
+	for title: Variant in _section_dots:
+		var dot: Label = _section_dots[title]
+		var level: int = int(_section_level.get(title, 0))
+		dot.visible = level > 0 and not section_open(title)
+		dot.add_theme_color_override("font_color", COLOR_ERROR if level >= 2 else COLOR_WARNING)
+		dot.tooltip_text = "Tem erro nesta seção" if level >= 2 else "Tem aviso nesta seção"
 
 ## Um campo com o rótulo: ao lado para os simples, em cima para os que ocupam a largura toda.
 func _add_field(parent: Control, target: Resource, d: Dictionary) -> void:

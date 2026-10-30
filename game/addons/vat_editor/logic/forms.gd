@@ -134,32 +134,32 @@ static func fields(kind: StringName) -> Array[Dictionary]:
 				_f(&"id", "Id", T_ID, {"group": "Identidade"}),
 				_f(&"display_name", "Nome", T_TEXT),
 				_f(&"base", "Atributos base", T_STATS, {"group": "Atributos"}),
-				_f(&"elements", "Elementos nativos (até 2)", T_REFS, {"group": "Elementos e estados", "source": SRC_ELEMENT, "max_count": MAX_NATIVES}),
+				_f(&"elements", "Elementos nativos (até 2)", T_REFS, {"group": "Afinidades", "source": SRC_ELEMENT, "max_count": MAX_NATIVES}),
 				_f(&"element_resist", "Afinidades elementais", T_PCT_DICT, {"source": SRC_ELEMENT, "help": AFFINITY_HELP}),
 				_f(&"status_resist", "Resistência a estados", T_PCT_DICT, {"source": SRC_STATUS, "help": STATUS_HELP}),
-				_f(&"basic_attack", "Ataque básico", T_REF, {"group": "Combate", "source": SRC_ABILITY}),
+				_f(&"basic_attack", "Ataque básico", T_REF, {"group": "Técnicas", "source": SRC_ABILITY}),
 				_f(&"limit_ability", "Golpe de Limite", T_REF, {"source": SRC_ABILITY}),
 				_f(&"weapon_types", "Tipos de arma", T_NAMES, {"source": SRC_WEAPON}),
 				_f(&"starting_equipment", "Equipamento inicial", T_REFS, {"source": SRC_EQUIP}),
-				_f(&"learnset", "Técnicas por nível (nível 0 = só por evento)", T_ROWS, {"group": "Técnicas", "row": ROW_LEARN}),
+				_f(&"learnset", "Técnicas por nível (nível 0 = só por evento)", T_ROWS, {"row": ROW_LEARN}),
 				_f(&"sprites", "Arte (SpriteSet)", T_SPRITES, {"group": "Arte", "source": SRC_SPRITES}),
 			])
 		&"enemies":
 			out.assign([
-				_f(&"id", "Id", T_ID, {"group": "Identidade"}),
+				_f(&"id", "Id", T_ID, {"group": "Identidade e atributos"}),
 				_f(&"display_name", "Nome", T_TEXT),
 				_f(&"level", "Nível", T_INT, {"min": 1, "max": 99}),
 				_f(&"xp_base", "XP base", T_INT, {"min": 0, "max": 999999}),
 				_f(&"money", "Moedas", T_INT, {"min": 0, "max": 999999}),
-				_f(&"base", "Atributos base", T_STATS, {"group": "Atributos"}),
-				_f(&"elements", "Elementos nativos (até 2)", T_REFS, {"group": "Elementos e estados", "source": SRC_ELEMENT, "max_count": MAX_NATIVES}),
+				_f(&"base", "Atributos base", T_STATS),
+				_f(&"elements", "Elementos nativos (até 2)", T_REFS, {"group": "Afinidades", "source": SRC_ELEMENT, "max_count": MAX_NATIVES}),
 				_f(&"element_resist", "Afinidades elementais", T_PCT_DICT, {"source": SRC_ELEMENT, "help": AFFINITY_HELP}),
 				_f(&"resistances", "Resistência a estados", T_PCT_DICT, {"source": SRC_STATUS, "help": STATUS_HELP}),
 				_f(&"immunities", "Imunidades a estados", T_NAMES, {"source": SRC_STATUS}),
-				_f(&"abilities", "Habilidades", T_REFS, {"group": "Combate", "source": SRC_ABILITY}),
+				_f(&"abilities", "Habilidades", T_REFS, {"group": "Habilidades e IA", "source": SRC_ABILITY}),
 				_f(&"ai_rules", "Regras de IA (a primeira que vale, de cima para baixo)", T_ROWS, {"row": ROW_AI_RULE}),
-				_f(&"drops", "Drops", T_ROWS, {"group": "Recompensas", "row": ROW_DROP}),
-				_f(&"phases", "Fases de chefe (HP em ordem decrescente)", T_ROWS, {"group": "Chefe", "row": ROW_PHASE}),
+				_f(&"drops", "Drops", T_ROWS, {"group": "Drops", "row": ROW_DROP}),
+				_f(&"phases", "Fases de chefe (HP em ordem decrescente)", T_ROWS, {"group": "Fases e contra-ataque", "row": ROW_PHASE}),
 				_f(&"counter", "Contra-ataque", T_REF, {"source": SRC_ABILITY}),
 				_f(&"counter_chance", "Chance do contra-ataque", T_PCT),
 				_f(&"counter_only_basic", "Só o ataque básico provoca o contra-ataque", T_BOOL),
@@ -223,6 +223,41 @@ static func fields(kind: StringName) -> Array[Dictionary]:
 				_f(&"portrait_size", "Tamanho do retrato (px)", T_VEC2I),
 			])
 	return out
+
+## As seções do formulário de `kind`, na ordem: `[{title, props}]` (os campos entre dois `group` do descritor).
+static func sections(kind: StringName) -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	for d: Dictionary in fields(kind):
+		if d.has("group") and (out.is_empty() or out[-1]["title"] != d["group"]):
+			out.append({"title": d["group"], "props": []})
+		if not out.is_empty():
+			(out[-1]["props"] as Array).append(d["prop"])
+	return out
+
+## Os trechos da mensagem de cada validador que dizem de qual campo ela fala (ordem importa: o primeiro que casa vale).
+const ISSUE_NEEDLES: Dictionary = {
+	&"heroes": [["ataque básico", &"basic_attack"], ["learnset", &"learnset"], ["equipamento inicial", &"starting_equipment"],
+			["elemento nativo", &"elements"], ["elementos nativos", &"elements"], ["atributos base", &"base"], ["sem id", &"id"], ["id de ", &"id"]],
+	&"enemies": [["regra de IA", &"ai_rules"], ["drop [", &"drops"], ["fase [", &"phases"], ["habilidade [", &"abilities"], ["chefe '", &"immunities"],
+			["elemento nativo", &"elements"], ["elementos nativos", &"elements"], ["atributos base", &"base"], ["sem id", &"id"], ["id de ", &"id"]],
+	&"encounters": [["inimigo", &"enemies"], ["sem id", &"id"], ["id de ", &"id"]],
+	&"items": [["efeito [", &"effects"], ["sem id", &"id"], ["id de ", &"id"]],
+	&"equipment": [["passiva [", &"passives"], ["sem id", &"id"], ["id de ", &"id"]],
+}
+
+## O campo de `kind` de que a mensagem de validação fala, ou &"" se não dá para saber (o achado só aparece na faixa).
+static func issue_prop(kind: StringName, message: String) -> StringName:
+	for pair: Array in ISSUE_NEEDLES.get(kind, []):
+		if message.contains(pair[0]):
+			return pair[1]
+	return &""
+
+## O título da seção de `kind` que tem o campo `prop`, ou "".
+static func section_of(kind: StringName, prop: StringName) -> String:
+	for s: Dictionary in sections(kind):
+		if (s["props"] as Array).has(prop):
+			return s["title"]
+	return ""
 
 ## O descritor de `prop`, ou {} se não existe.
 static func field(kind: StringName, prop: StringName) -> Dictionary:
