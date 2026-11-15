@@ -13,7 +13,13 @@
 [ext_resource type="Script" path="res://world/map_camera.gd" id="e18"]
 [ext_resource type="Resource" path="res://data/fatia/roteiro/cidade.roteiro" id="rot_cidade"]
 [ext_resource type="Resource" path="res://art/_exemplo/morador_a_exemplo.tres" id="spk_a"]
-[ext_resource type="TileSet" path="res://art/tiles/placeholder_32.tres" id="tiles_ts"]
+[ext_resource type="PackedScene" path="res://fx/luz_quente.tscn" id="fx_luz"]
+[ext_resource type="PackedScene" path="res://fx/poeira.tscn" id="fx_poeira"]
+[ext_resource type="Texture2D" path="res://art/packs/ansimuz/fundos/colinas.png" id="fx_fundo"]
+[ext_resource type="Texture2D" path="res://art/packs/ansimuz/props/casa.png" id="pr_casa"]
+[ext_resource type="Texture2D" path="res://art/packs/ansimuz/props/casa_azul.png" id="pr_casa_azul"]
+[ext_resource type="Texture2D" path="res://art/packs/ansimuz/props/pinheiro.png" id="pr_pinheiro"]
+[ext_resource type="TileSet" path="res://art/tiles/ansimuz_32.tres" id="tiles_ts"]
 
 [sub_resource type="RectangleShape2D" id="sh_56x30"]
 size = Vector2(56, 30)
@@ -163,6 +169,7 @@ display_name = "Pousadeiro"
 [node name="Arena" type="Node2D" parent="."]
 position = Vector2(1200, 360)
 script = ExtResource("e15")
+backdrop = ExtResource("fx_fundo")
 
 [node name="HeroSpot1" type="Marker2D" parent="Arena"]
 position = Vector2(-280, -225)
@@ -200,3 +207,70 @@ position = Vector2(200, 360)
 [node name="MapCamera" type="Camera2D" parent="."]
 position = Vector2(200, 360)
 script = ExtResource("e18")
+
+[node name="Cenario" type="Node2D" parent="."]
+
+[node name="Casa1Arte" type="Sprite2D" parent="Cenario"]
+position = Vector2(800, 192)
+texture = ExtResource("pr_casa")
+
+[node name="Casa2Arte" type="Sprite2D" parent="Cenario"]
+position = Vector2(1400, 192)
+texture = ExtResource("pr_casa_azul")
+
+[node name="Pinheiro1" type="Sprite2D" parent="Cenario"]
+z_index = 1
+position = Vector2(2160, 56)
+texture = ExtResource("pr_pinheiro")
+
+[node name="Pinheiro2" type="Sprite2D" parent="Cenario"]
+z_index = 1
+position = Vector2(2160, 88)
+texture = ExtResource("pr_pinheiro")
+
+[node name="Pinheiro3" type="Sprite2D" parent="Cenario"]
+z_index = 1
+position = Vector2(304, 120)
+texture = ExtResource("pr_pinheiro")
+
+[node name="Pinheiro4" type="Sprite2D" parent="Cenario"]
+z_index = 1
+position = Vector2(304, 504)
+texture = ExtResource("pr_pinheiro")
+
+[node name="Pinheiro5" type="Sprite2D" parent="Cenario"]
+z_index = 1
+position = Vector2(2096, 504)
+texture = ExtResource("pr_pinheiro")
+
+[node name="Pinheiro6" type="Sprite2D" parent="Cenario"]
+z_index = 1
+position = Vector2(560, 536)
+texture = ExtResource("pr_pinheiro")
+
+[node name="Pinheiro7" type="Sprite2D" parent="Cenario"]
+z_index = 1
+position = Vector2(1008, 536)
+texture = ExtResource("pr_pinheiro")
+
+[node name="Pinheiro8" type="Sprite2D" parent="Cenario"]
+z_index = 1
+position = Vector2(560, 568)
+texture = ExtResource("pr_pinheiro")
+
+[node name="Ambiente" type="CanvasModulate" parent="."]
+color = Color(0.62, 0.6, 0.78, 1)
+
+[node name="LuzCasa1" parent="." instance=ExtResource("fx_luz")]
+position = Vector2(800, 300)
+
+[node name="LuzCasa2" parent="." instance=ExtResource("fx_luz")]
+position = Vector2(1400, 300)
+
+[node name="LuzPousada" parent="." instance=ExtResource("fx_luz")]
+position = Vector2(1830, 530)
+
+[node name="Poeira" parent="." instance=ExtResource("fx_poeira")]
+position = Vector2(1200, 360)
+emission_rect_extents = Vector2(1250, 400)
+amount = 120

@@ -9,6 +9,7 @@
 [ext_resource type="Script" path="res://core/defs/ability_def.gd" id="5_r"]
 [ext_resource type="Script" path="res://core/defs/enemy_def.gd" id="6_r"]
 [ext_resource type="Resource" path="res://data/fatia/abilities/peconha_f.tres" id="ab_veneno"]
+[ext_resource type="Resource" path="res://art/packs/ansimuz/inimigos/frog.tres" id="spr_ansimuz"]
 
 [sub_resource type="Resource" id="ai_rule_1"]
 script = ExtResource("2_r")
@@ -49,6 +50,7 @@ count = 1
 script = ExtResource("6_r")
 id = &"inimigo_f2"
 display_name = "Inimigo F2"
+sprites = ExtResource("spr_ansimuz")
 level = 2
 base = SubResource("stats_3")
 xp_base = 100

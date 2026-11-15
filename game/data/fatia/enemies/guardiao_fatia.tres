@@ -16,6 +16,7 @@
 [ext_resource type="Script" path="res://core/defs/enemy_def.gd" id="s_def"]
 [ext_resource type="Script" path="res://core/defs/ability_def.gd" id="s_ab"]
 [ext_resource type="Resource" path="res://data/test/abilities/contra_ataque.tres" id="ab_contra_ataque"]
+[ext_resource type="Resource" path="res://art/packs/ansimuz/inimigos/ogre.tres" id="spr_ansimuz"]
 
 [sub_resource type="Resource" id="sub_1"]
 script = ExtResource("s_stats")
@@ -139,6 +140,7 @@ banner = "Fase 3 (teste)"
 script = ExtResource("s_def")
 id = &"guardiao_fatia"
 display_name = "Guardião (fatia)"
+sprites = ExtResource("spr_ansimuz")
 level = 6
 base = SubResource("sub_1")
 xp_base = 400

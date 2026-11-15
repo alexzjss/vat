@@ -80,6 +80,8 @@ var _audio_state: Dictionary = AudioRules.make_snapshot()
 var registry: DefRegistry
 var store: SaveStore
 var current: Node2D
+## Pós-processamento HD-2D (tilt-shift, bloom, gradação); desligado no modo headless.
+var post: Hd2dPost
 var current_map: StringName = &""
 ## Verdadeiro durante uma transição; sinais dos mapas são ignorados.
 var busy: bool = false
@@ -137,6 +139,9 @@ func _ready() -> void:
 	settings = GameSettings.new(balance)
 	SettingsStore.load_into(settings, settings_path)
 	apply_settings()
+	if DisplayServer.get_name() != "headless":
+		post = Hd2dPost.new()
+		add_child(post)
 	menu.closed.connect(_on_menu_closed)
 	menu.settings_changed.connect(_on_settings_changed)
 	menu.store = store
@@ -268,6 +273,9 @@ func _dev_spawn(dev: Dictionary, p: StartProfile, map: StringName, probe: Node) 
 	return &""
 
 func _process(delta: float) -> void:
+	if post != null:
+		var map: LocalMap = current as LocalMap
+		post.set_mode(&"battle" if map != null and map.battle != null else &"map")
 	if state != null and not in_title and game_over_screen == null and end_screen == null:
 		state.play_time += delta
 

@@ -253,7 +253,7 @@ func test_slice_example_art_is_wired_in_the_scene() -> void:
 	assert_not_null(hv.sprite)
 	assert_not_null(ev.sprite)
 	assert_false(hv.sprite.flip_h)
-	assert_true(ev.sprite.flip_h)
+	assert_false(ev.sprite.flip_h, "a arte do inimigo ja olha para a esquerda (battle_faces_right = false)")
 	s._on_action_started(_action(hv.combatant, hv.combatant.basic_attack))
 	assert_eq(hv.sprite.anim, BattleSprite.ATTACK)
 	ev.show_hit({"kind": EffectDef.Kind.DAMAGE, "amount": 3, "dodged": false})

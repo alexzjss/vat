@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="SpeakerDef" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://core/defs/speaker_def.gd" id="1_spk"]
-[ext_resource type="Resource" path="res://art/_exemplo/npc_exemplo.tres" id="2_set"]
+[ext_resource type="Resource" path="res://art/packs/ansimuz/npc_1.tres" id="2_set"]
 
 [resource]
 script = ExtResource("1_spk")

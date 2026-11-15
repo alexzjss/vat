@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="SpriteSet" format=3]
+
+[ext_resource type="Script" path="res://core/defs/sprite_set.gd" id="1_set"]
+[ext_resource type="Texture2D" path="res://art/packs/ansimuz/inimigos/Mummy.png" id="2_battle"]
+
+[resource]
+script = ExtResource("1_set")
+battle_sheet = ExtResource("2_battle")
+battle_frame = Vector2i(57, 75)
+battle_faces_right = false
+anims = Dictionary[StringName, Vector3i]({
+&"idle": Vector3i(0, 1, 1),
+&"attack": Vector3i(0, 1, 1),
+&"cast": Vector3i(0, 1, 1),
+&"hit": Vector3i(0, 1, 1),
+&"down": Vector3i(0, 1, 1),
+&"victory": Vector3i(0, 1, 1)
+})

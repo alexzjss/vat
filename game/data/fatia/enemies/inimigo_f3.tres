@@ -12,6 +12,7 @@
 [ext_resource type="Resource" path="res://data/elements/shukketsu.tres" id="el_n0"]
 [ext_resource type="Script" path="res://core/defs/element_def.gd" id="el_script"]
 [ext_resource type="Resource" path="res://data/fatia/abilities/mordida_f.tres" id="ab_new"]
+[ext_resource type="Resource" path="res://art/packs/ansimuz/inimigos/mummy.tres" id="spr_ansimuz"]
 
 [sub_resource type="Resource" id="ai_rule_0"]
 script = ExtResource("2_r")
@@ -58,6 +59,7 @@ count = 1
 script = ExtResource("6_r")
 id = &"inimigo_f3"
 display_name = "Inimigo F3"
+sprites = ExtResource("spr_ansimuz")
 level = 3
 base = SubResource("stats_3")
 xp_base = 150
