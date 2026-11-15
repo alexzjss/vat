@@ -10,7 +10,8 @@
 [ext_resource type="PackedScene" path="res://world/player.tscn" id="e9"]
 [ext_resource type="Script" path="res://world/map_camera.gd" id="e10"]
 [ext_resource type="Resource" path="res://data/fatia/roteiro/casas.roteiro" id="rot_casas"]
-[ext_resource type="TileSet" path="res://art/tiles/placeholder_32.tres" id="tiles_ts"]
+[ext_resource type="PackedScene" path="res://fx/luz_quente.tscn" id="fx_luz"]
+[ext_resource type="TileSet" path="res://art/tiles/ansimuz_32.tres" id="tiles_ts"]
 
 [sub_resource type="RectangleShape2D" id="sh_90x24"]
 size = Vector2(90, 24)
@@ -96,3 +97,11 @@ position = Vector2(1200, 560)
 [node name="MapCamera" type="Camera2D" parent="."]
 position = Vector2(1200, 560)
 script = ExtResource("e10")
+
+[node name="Ambiente" type="CanvasModulate" parent="."]
+color = Color(0.8, 0.72, 0.66, 1)
+
+[node name="LuzSala" parent="." instance=ExtResource("fx_luz")]
+position = Vector2(1000, 320)
+energy = 0.6
+texture_scale = 2.5

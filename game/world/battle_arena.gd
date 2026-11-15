@@ -4,6 +4,9 @@ extends Node2D
 ## Marcadores de posicao da cena de batalha no mapa (HeroSpot1..4, EnemySpot1..N).
 ## A LocalMap usa os primeiros hero_positions() conforme o numero de herois ativos.
 
+## Fundo de batalha opcional: se definido, cobre o mapa durante a luta.
+@export var backdrop: Texture2D
+
 func hero_positions() -> Array[Vector2]:
 	return _spots("HeroSpot")
 

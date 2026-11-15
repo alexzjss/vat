@@ -4,7 +4,8 @@
 [ext_resource type="Script" path="res://world/zone.gd" id="e2"]
 [ext_resource type="PackedScene" path="res://world/player.tscn" id="e3"]
 [ext_resource type="Script" path="res://world/map_camera.gd" id="e4"]
-[ext_resource type="TileSet" path="res://art/tiles/placeholder_32.tres" id="tiles_ts"]
+[ext_resource type="PackedScene" path="res://fx/poeira.tscn" id="fx_poeira"]
+[ext_resource type="TileSet" path="res://art/tiles/ansimuz_32.tres" id="tiles_ts"]
 
 [sub_resource type="RectangleShape2D" id="sh_200x160"]
 size = Vector2(200, 160)
@@ -84,3 +85,11 @@ position = Vector2(600, 720)
 [node name="MapCamera" type="Camera2D" parent="."]
 position = Vector2(600, 720)
 script = ExtResource("e4")
+
+[node name="Ambiente" type="CanvasModulate" parent="."]
+color = Color(1, 0.98, 0.94, 1)
+
+[node name="Poeira" parent="." instance=ExtResource("fx_poeira")]
+position = Vector2(1280, 720)
+emission_rect_extents = Vector2(1300, 740)
+amount = 200

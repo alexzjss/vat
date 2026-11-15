@@ -28,7 +28,10 @@
 [ext_resource type="Resource" path="res://data/fatia/encounters/enc_raro.tres" id="e_raro"]
 [ext_resource type="Resource" path="res://data/fatia/terrain/calor.tres" id="e_terrain"]
 [ext_resource type="Resource" path="res://data/fatia/roteiro/dungeon.roteiro" id="rot_dungeon"]
-[ext_resource type="TileSet" path="res://art/tiles/placeholder_32.tres" id="tiles_ts"]
+[ext_resource type="PackedScene" path="res://fx/luz_quente.tscn" id="fx_luz"]
+[ext_resource type="PackedScene" path="res://fx/poeira.tscn" id="fx_poeira"]
+[ext_resource type="Texture2D" path="res://art/packs/ansimuz/fundos/masmorra.png" id="fx_fundo"]
+[ext_resource type="TileSet" path="res://art/tiles/ansimuz_32.tres" id="tiles_ts"]
 
 [sub_resource type="RectangleShape2D" id="sh_40x160"]
 size = Vector2(40, 160)
@@ -216,6 +219,7 @@ arena_path = NodePath("../Arena")
 [node name="Arena" type="Node2D" parent="."]
 position = Vector2(2050, 360)
 script = ExtResource("e19")
+backdrop = ExtResource("fx_fundo")
 
 [node name="HeroSpot1" type="Marker2D" parent="Arena"]
 position = Vector2(-280, -225)
@@ -253,3 +257,26 @@ position = Vector2(180, 360)
 [node name="MapCamera" type="Camera2D" parent="."]
 position = Vector2(180, 360)
 script = ExtResource("e22")
+
+[node name="Ambiente" type="CanvasModulate" parent="."]
+color = Color(0.42, 0.42, 0.58, 1)
+
+[node name="Tocha1" parent="." instance=ExtResource("fx_luz")]
+position = Vector2(400, 360)
+energy = 0.9
+texture_scale = 2.2
+
+[node name="Tocha2" parent="." instance=ExtResource("fx_luz")]
+position = Vector2(1200, 360)
+energy = 0.9
+texture_scale = 2.2
+
+[node name="Tocha3" parent="." instance=ExtResource("fx_luz")]
+position = Vector2(2050, 360)
+energy = 0.9
+texture_scale = 2.2
+
+[node name="Poeira" parent="." instance=ExtResource("fx_poeira")]
+position = Vector2(1200, 360)
+emission_rect_extents = Vector2(1250, 400)
+amount = 60

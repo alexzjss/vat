@@ -25,6 +25,10 @@ var auto_hook: Callable = Callable()
 var settings: GameSettings
 ## Terreno do mapa (M15), repassado ao BattleState e mostrado num canto; nulo = sem efeito (e sem rótulo).
 var terrain: TerrainDef
+## Fundo de batalha opcional (modo mapa): cobre o mapa durante a luta, seguindo a câmera. Definir antes de `start_with`.
+var backdrop: Texture2D
+var _backdrop_sprite: Sprite2D
+const BACKDROP_Z: int = 10
 ## Só no modo MAP: o encontro permite fugir (EncounterDef.can_flee). Aplicado ao controlador em start_with.
 var can_flee: bool = true
 ## Só testes/demo: -1 lê a ação `flee`; 0/1 força solta/segurada.
@@ -136,6 +140,7 @@ func start_with(heroes: Array[HeroState], enemies: Array[EnemyDef], hero_pos: Ar
 		support_pos: Vector2 = Vector2.INF) -> void:
 	_clear()
 	_background.visible = mode == Mode.STANDALONE
+	_setup_backdrop()
 	_outcome_label.visible = mode == Mode.STANDALONE
 	hero_states = heroes
 	_snapshots = []
@@ -215,6 +220,7 @@ func start_with(heroes: Array[HeroState], enemies: Array[EnemyDef], hero_pos: Ar
 	ctrl.battle_ended.connect(_on_battle_ended)
 
 func _process(delta: float) -> void:
+	_follow_camera()
 	if ctrl == null:
 		return
 	_tick_banner(delta)
@@ -723,3 +729,32 @@ func _demo_pick(prefix: String) -> void:
 			_menu.move(i - _menu.cursor)
 			_menu.accept()
 			return
+
+## Cria (ou troca) o sprite do fundo: ampliação inteira que cobre a tela, atrás dos combatentes e sem receber luz do mapa.
+func _setup_backdrop() -> void:
+	if _backdrop_sprite != null:
+		_backdrop_sprite.queue_free()
+		_backdrop_sprite = null
+	# Com fundo, a batalha inteira sobe de camada para cobrir adereços altos do mapa (árvores com z_index > 0).
+	z_index = BACKDROP_Z if backdrop != null else 0
+	if backdrop == null:
+		return
+	_backdrop_sprite = Sprite2D.new()
+	_backdrop_sprite.texture = backdrop
+	_backdrop_sprite.light_mask = 0
+	_backdrop_sprite.scale = Vector2.ONE * float(backdrop_scale(Vector2(backdrop.get_size()), get_viewport_rect().size))
+	add_child(_backdrop_sprite)
+	move_child(_backdrop_sprite, 0)
+	_follow_camera()
+
+## Menor ampliação inteira com que uma imagem `tex` cobre uma tela `view`.
+static func backdrop_scale(tex: Vector2, view: Vector2) -> int:
+	if tex.x <= 0.0 or tex.y <= 0.0:
+		return 1
+	return maxi(1, ceili(maxf(view.x / tex.x, view.y / tex.y)))
+
+func _follow_camera() -> void:
+	if _backdrop_sprite == null:
+		return
+	var cam: Camera2D = get_viewport().get_camera_2d()
+	_backdrop_sprite.global_position = cam.get_screen_center_position() if cam != null else get_viewport_rect().size / 2.0

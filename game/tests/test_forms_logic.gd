@@ -356,7 +356,7 @@ func test_hero_round_trip() -> void:
 	var text: String = FileAccess.get_file_as_string(path)
 	assert_eq(_count(text, "[sub_resource"), sub_before + 2, "as duas linhas novas entram embutidas")
 	assert_eq(_count(text, "\nsprites = ExtResource"), 1, "a arte continua uma referência externa")
-	assert_eq(back.sprites.resource_path, "res://art/_exemplo/teste_a.tres")
+	assert_eq(back.sprites.resource_path, "res://art/packs/ansimuz/heroi.tres")
 	assert_eq(back.basic_attack.resource_path, "res://data/test/abilities/golpe.tres")
 	assert_eq(ValidationIssue.errors_of(Forms.validate(back)).size(), 0)
 	assert_eq(ValidationIssue.errors_of(ContentChecks.references([back])).size(), 0)
@@ -967,5 +967,5 @@ func test_speaker_round_trip_keeps_the_art_reference() -> void:
 	assert_eq(Forms.save(speaker), OK)
 	var back: SpeakerDef = _fresh(path) as SpeakerDef
 	assert_eq(back.display_name, "Morador Z")
-	assert_eq(back.sprites.resource_path, "res://art/_exemplo/npc_exemplo.tres")
+	assert_eq(back.sprites.resource_path, "res://art/packs/ansimuz/npc_1.tres")
 	assert_eq(back.id, &"morador_a_exemplo")

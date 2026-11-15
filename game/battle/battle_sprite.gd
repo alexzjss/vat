@@ -16,6 +16,9 @@ const VICTORY: StringName = &"victory"
 var sprite_set: SpriteSet
 var anim: StringName = IDLE
 
+## Altura padrão do quadro de batalha; a base dos sprites se alinha à de um quadro dessa altura.
+const BASE_FRAME_H: int = 64
+
 ## Cria o BattleSprite para `sprites`, ou null se o conjunto não tem folha de batalha.
 ## `flip`: espelha na horizontal (inimigo desenhado virado para a direita, ou herói virado para a esquerda).
 static func create(sprites: SpriteSet, flip: bool) -> BattleSprite:
@@ -24,6 +27,8 @@ static func create(sprites: SpriteSet, flip: bool) -> BattleSprite:
 	var s: BattleSprite = BattleSprite.new()
 	s.sprite_set = sprites
 	s.centered = true
+	# Quadros mais altos que o padrão crescem para cima: a base fica onde ficaria a de um quadro 64x64.
+	s.offset.y = -maxf(0.0, float(sprites.battle_frame.y - BASE_FRAME_H)) / 2.0
 	s.flip_h = flip
 	s.sprite_frames = BattleSprite.build_frames(sprites)
 	s.show_anim(IDLE)

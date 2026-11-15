@@ -50,6 +50,8 @@ var event_gate: Callable
 
 var state: GameState
 var _battle_enemy: MapEnemy
+## Ambiente do mapa suspenso enquanto um fundo de batalha cobre a tela (ver MapAmbience).
+var _ambience_saved: Dictionary = {}
 ## Todos os inimigos de mapa na batalha atual (o tocado primeiro, depois o grupo).
 var _battle_group: Array[MapEnemy] = []
 ## Membros do grupo perto o bastante que não couberam na arena (ficam no mapa; levam cooldown ao fim da batalha).
@@ -356,6 +358,9 @@ func _begin_battle(arena: BattleArena, defs: Array[EnemyDef], flee_ok: bool, fro
 	battle = BATTLE_SCENE.instantiate() as BattleScene
 	battle.balance = state.cfg
 	battle.terrain = terrain
+	battle.backdrop = arena.backdrop
+	if arena.backdrop != null:
+		_ambience_saved = MapAmbience.suspend(self)
 	battle.auto_battle = auto_battle
 	battle.demo_result = demo_result
 	battle.dice_seed = dice_seed if dice_seed >= 0 else state.dice.pick_index(1 << 30)
@@ -393,6 +398,8 @@ func _on_battle_finished(outcome: BattleController.Outcome) -> void:
 	var arena: BattleArena = _arena_for(_battle_enemy) if is_instance_valid(_battle_enemy) else default_arena
 	battle.queue_free()
 	battle = null
+	MapAmbience.restore(_ambience_saved)
+	_ambience_saved = {}
 	for e: MapEnemy in _battle_left_out:
 		if is_instance_valid(e):
 			e.begin_cooldown(state.cfg.flee_cooldown)

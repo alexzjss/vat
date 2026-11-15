@@ -13,6 +13,8 @@ const MAPS: Array[String] = [
 	"res://world/fatia/dungeon_2.tscn",
 ]
 const TILESET: String = "res://art/tiles/placeholder_32.tres"
+## Tilesets aceitos nos mapas: o placeholder e os de arte com a mesma folha 10x2 (mesmas coordenadas e colisão).
+const TILESETS: Array[String] = [TILESET, "res://art/tiles/ansimuz_32.tres"]
 const GOLDEN: String = "res://tests/golden/map_walls.json"
 ## Tiles da folha que colidem (coluna, linha): parede, água, parede interna e as variantes sólidas.
 const SOLID_TILES: Array[Vector2i] = [Vector2i(3, 0), Vector2i(4, 0), Vector2i(6, 0), Vector2i(0, 1), Vector2i(1, 1),
@@ -92,7 +94,7 @@ func test_maps_have_layers_and_no_old_geometry() -> void:
 			var layer: TileMapLayer = root.get_node_or_null(NodePath(layer_name)) as TileMapLayer
 			assert_not_null(layer, "%s: camada %s" % [path, layer_name])
 			if layer != null:
-				assert_eq(layer.tile_set.resource_path, TILESET, "%s: tileset de %s" % [path, layer_name])
+				assert_has(TILESETS, layer.tile_set.resource_path, "%s: tileset de %s" % [path, layer_name])
 				assert_eq(layer.position, Vector2.ZERO)
 		assert_eq((root.get_node(^"Decoração") as TileMapLayer).get_used_cells().size(), 0, "%s: Decoração vazia" % path)
 		assert_gt((root.get_node(^"Chão") as TileMapLayer).get_used_cells().size(), 0)

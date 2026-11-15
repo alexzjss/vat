@@ -1,0 +1,19 @@
+[gd_scene format=3]
+
+[sub_resource type="Gradient" id="g"]
+offsets = PackedFloat32Array(0, 0.45, 1)
+colors = PackedColorArray(1, 1, 1, 1, 0.45, 0.45, 0.45, 1, 0, 0, 0, 1)
+
+[sub_resource type="GradientTexture2D" id="t"]
+gradient = SubResource("g")
+width = 256
+height = 256
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(1, 0.5)
+
+[node name="LuzQuente" type="PointLight2D"]
+color = Color(1, 0.78, 0.5, 1)
+energy = 0.5
+texture = SubResource("t")
+texture_scale = 1.6
