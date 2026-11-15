@@ -1,3 +1,4 @@
 game/.godot/
 .superpowers/
 *.tmp
+build/
